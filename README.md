@@ -1,12 +1,22 @@
 # 如何选择 UI 组件库
 
-通过**同一业务形态**（用户管理：表格 + Modal 表单）切换不同 React UI 组件库，对比默认观感与交互，并查看 Library Profile（框架、GitHub stars、License 等）。
+通过**同一业务形态**（用户管理：表格 + Modal 表单）切换不同 UI 组件库，对比默认观感与交互，并查看 Library Profile（框架、GitHub stars、License 等）。
 
-## v1 候选库
+先选 **Framework**（React / Vue），再在该框架下切换 **Candidate Library**。
+
+## 候选库
+
+**React**
 
 - [Ant Design](https://ant.design)
 - [MUI](https://mui.com)
 - [shadcn/ui](https://ui.shadcn.com)
+
+**Vue**
+
+- [Element Plus](https://element-plus.org)
+
+路由示例：`/libs/react/ant-design`、`/libs/vue/element-plus`。旧路径 `/libs/mui` 会重定向到 React 前缀。
 
 ## 本地运行
 

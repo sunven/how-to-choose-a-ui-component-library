@@ -1,11 +1,6 @@
-import { useCallback, useMemo, useState } from 'react'
-import {
-  SEED_USERS,
-  type User,
-  type UserInput,
-  type UserRole,
-  type UserStatus,
-} from './user'
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import type { UserInput, UserRole, UserStatus } from './user'
+import { userStore } from './userStore'
 
 export interface UserFilters {
   keyword: string
@@ -15,12 +10,13 @@ export interface UserFilters {
 
 export type HireDateSort = 'none' | 'asc' | 'desc'
 
-function createId() {
-  return `u_${Math.random().toString(36).slice(2, 10)}`
-}
-
 export function useUsers() {
-  const [users, setUsers] = useState<User[]>(() => [...SEED_USERS])
+  const users = useSyncExternalStore(
+    userStore.subscribe,
+    userStore.getSnapshot,
+    userStore.getSnapshot,
+  )
+
   const [filters, setFilters] = useState<UserFilters>({
     keyword: '',
     role: 'all',
@@ -60,18 +56,17 @@ export function useUsers() {
   }, [filtered, safePage, pageSize])
 
   const createUser = useCallback((input: UserInput) => {
-    const user: User = { ...input, id: createId() }
-    setUsers((prev) => [user, ...prev])
+    const user = userStore.create(input)
     setPage(1)
     return user
   }, [])
 
   const updateUser = useCallback((id: string, input: UserInput) => {
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...input, id } : u)))
+    userStore.update(id, input)
   }, [])
 
   const deleteUser = useCallback((id: string) => {
-    setUsers((prev) => prev.filter((u) => u.id !== id))
+    userStore.remove(id)
     setSelectedIds((prev) => prev.filter((x) => x !== id))
   }, [])
 

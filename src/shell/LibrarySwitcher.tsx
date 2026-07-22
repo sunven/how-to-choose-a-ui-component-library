@@ -1,19 +1,32 @@
 import { NavLink } from 'react-router-dom'
-import { LIBRARIES } from '@/domain/libraries'
+import {
+  getLibrariesForFramework,
+  libraryPath,
+  type FrameworkId,
+  type LibraryId,
+} from '@/domain/libraries'
 import { cn } from '@/lib/cn'
 
-export function LibrarySwitcher() {
+export function LibrarySwitcher({
+  framework,
+  currentLibraryId,
+}: {
+  framework: FrameworkId
+  currentLibraryId: LibraryId
+}) {
+  const libs = getLibrariesForFramework(framework)
+
   return (
     <nav className="flex flex-wrap gap-2" aria-label="组件库切换">
-      {LIBRARIES.map((lib) => (
+      {libs.map((lib) => (
         <NavLink
           key={lib.id}
-          to={`/libs/${lib.id}`}
-          className={({ isActive }) =>
+          to={libraryPath(framework, lib.id)}
+          className={() =>
             cn(
               'rounded-md border px-3 py-1.5 text-sm font-medium transition-colors',
-              isActive
-                ? 'border-slate-900 bg-slate-900 text-white'
+              currentLibraryId === lib.id
+                ? 'border-slate-700 bg-slate-700 text-white'
                 : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50',
             )
           }

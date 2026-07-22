@@ -13,12 +13,12 @@ _Avoid_: UI kit, design system（除非明确指设计系统本身）
 _Avoid_: demo 站, playground（易与官方文档演示混淆）
 
 **Form Showcase** (表单展示):
-典型中后台表单：分组布局、校验、常见控件（文本、数字、日期、选择、多选、文本域等）以及提交/重置。三个候选库使用同一套业务字段与文案，仅替换组件实现。
-_Avoid_: 极简 Hello World 表单；分步向导/动态增删行等重型表单（非 v1）
+典型中后台表单：分组布局、校验、常见控件（文本、数字、日期、选择、多选、文本域等）以及提交/重置。所有 Candidate Library（含 Vue/Element Plus）使用同一套业务字段与文案，仅替换组件实现。
+_Avoid_: 极简 Hello World 表单；分步向导/动态增删行等重型表单；跨库缩水字段造成双标准
 
 **Table Showcase** (表格展示):
-典型中后台表格：排序、筛选/搜索、分页、行选择、操作列。三个候选库使用同一套列定义、样例数据与交互语义，仅替换组件实现。
-_Avoid_: 仅静态三列表格；虚拟滚动/可编辑单元格/树表等重型表格（非 v1）
+典型中后台表格：排序、筛选/搜索、分页、行选择、操作列。所有 Candidate Library 使用同一套列定义、样例数据与交互语义，仅替换组件实现。
+_Avoid_: 仅静态三列表格；虚拟滚动/可编辑单元格/树表等重型表格；Vue 侧半套交互
 
 **Library Profile** (组件库档案):
 组件库的选型辅助元信息。v1 实用集字段：名称、适用框架、GitHub stars、License、官网/文档链接、活跃度说明、包体积量级（或外链）、TypeScript 支持、样式方案（一句）、一句话定位。可变指标（如 stars）运行时向 GitHub 拉取；静态配置中保留快照值，拉取失败时回退快照并可重试。Showcase 不依赖 Profile 接口成功。
@@ -32,51 +32,68 @@ _Avoid_: 详情页, about；百科式长文档案（非 v1）；因 Profile 失�
 _Avoid_: 用 Ant Design/MUI/shadcn 组件搭外壳；切换库时连外壳一起换皮
 
 **Style Isolation** (样式隔离):
-同一时间只挂载当前候选库的 Showcase 子树；各库样式按库分入口引入；shadcn 等与外壳共享 Tailwind 的区域需 root scope，减少主题变量与 preflight 互相污染。不承诺零泄漏；不做全站 iframe/微前端子 v1。
-_Avoid_: 三库同时挂载; 全站 iframe 沙箱; 微前端（非 v1）
+同一时间只挂载当前候选库的 Showcase（React 子树或 Vue Island 二选一）；各库样式按库分入口引入；离开当前库时卸载对应子树/应用并尽量移除其运行时副作用（含 teleport/popup）。shadcn 等与外壳共享 Tailwind 的区域需 root scope。不承诺零泄漏；不做全站 iframe 沙箱。
+_Avoid_: 多库同时挂载; 全站 iframe; 为隔离上完整微前端框架
 
 **Delivery Stack** (交付技术栈):
-v1 应用为 Vite + React + TypeScript SPA，路由使用 React Router；包管理默认 pnpm。不做 Next.js/SSR 作为 v1 基座。
-_Avoid_: Next.js 作为 v1 主框架
+单一 Vite 应用：React 外壳（React Router、TypeScript、pnpm）与 Vue Island 共存，构建启用 React + Vue 双插件。领域状态与注册表放在框架无关模块；Element Plus Showcase 源码与样式走该库自己的异步入口，避免访问 React 库时下载 Vue 运行时。不改为 Next.js/SSR，不拆同域双主应用，不为首个 Vue 库先上 workspace 多包。
+_Avoid_: Next.js 作为主框架; 双 Vite 主应用/iframe 宿主; 首个 Vue 库就拆 monorepo 多包; Vue/Element Plus 打进首屏公共包
+
+**Vue Island** (Vue 岛):
+在 React App Shell 内、仅当当前 Candidate Library 属于 Vue 时，于 Showcase 区域挂载的独立 Vue 应用实例；切换走时 unmount。外壳、路由、Library Profile 仍由 React 负责。
+_Avoid_: 把整个站点改成 Vue; 用 iframe 充当默认 Island; 微前端编排框架
 
 **UI Language** (界面语言):
-中文为主；技术专有名词保留英文（如 License、TypeScript、GitHub stars）。v1 不做中英切换 i18n。
-_Avoid_: 全站英文; 完整 i18n（非 v1）
+中文为主；技术专有名词保留英文（如 License、TypeScript、GitHub stars）。候选库组件文案/日期等使用其官方中文 locale（如 Element Plus `zh-cn`），与外壳中文一致。不做完整中英切换 i18n。
+_Avoid_: 全站英文; 完整 i18n; Vue 侧默认英文 locale 导致观感对比失真
 
 **Theme Mode** (主题模式):
 v1 仅亮色（light）。各候选库使用其官方默认 light 主题；外壳亦为 light。不做亮暗切换。
 _Avoid_: 暗色主题; 跟随系统; 每库文档默认主题不一致（非 v1）
 
 **Showcase Data** (展示数据):
-用户管理样例数据存在于浏览器内存：支持新建/编辑写回列表、删除移除、筛选与分页作用于同一份数据；刷新后恢复初始种子数据。无后端、无登录、无权限。
-_Avoid_: 纯死展示按钮; localStorage/后端持久化（非 v1）
+用户管理的业务实体数据（User 列表）存在于浏览器内存、且跨 Framework / Candidate Library 共享同一份；React Showcase 与 Vue Island 读写同一领域状态。支持新建/编辑写回、删除移除；刷新后恢复初始种子数据。无后端、无登录、无权限。筛选关键字、页码、Modal 开闭等纯 UI 状态由各 Showcase 自持，切换库或框架时可不保留。
+_Avoid_: 纯死展示按钮; localStorage/后端持久化; 每库或每框架各一份互不同步的业务数据; 把 UI 瞬态强行做成全局共享
 
 **Library Route** (组件库路由):
-当前选中的候选库同步到 URL path（如 `/libs/ant-design`、`/libs/mui`、`/libs/shadcn`），可分享、刷新保持。默认库为 Ant Design；`/` 或无效 id 回退到 Ant Design。
-_Avoid_: 仅内存 state 不进 URL; 用复杂多页为每库做独立站点; 强制先选手动空态
+当前 Framework 与 Candidate Library 同步到 URL path：`/libs/:framework/:libraryId`（如 `/libs/react/mui`、`/libs/vue/element-plus`），可分享、刷新保持。站点默认 `/libs/react/ant-design`；`/libs/react`、`/libs/vue` 回落到该框架默认库（React→ant-design，Vue→element-plus）；无效组合回退到默认。v1 旧路径 `/libs/:libraryId` 站内重定向到 `/libs/react/:libraryId`（仅当该 id 属于 React 候选集）。跨框架切换时的「会话内上次库」是导航辅助，不写入 URL 以外的持久化。
+_Avoid_: 仅内存 state 不进 URL; framework 只放 query; 扁平混排 id 却假装有框架维度; 强制先选手动空态; localStorage 持久化上次选择（非必要）
 
 **User** (用户):
-Showcase 中的领域实体。字段：姓名、邮箱、角色（管理员/编辑/访客）、状态（启用/禁用）、入职日期、备注。三库共用同一字段语义与校验规则。
-_Avoid_: 头像上传、部门树、权限矩阵、导入导出（非 v1）
+Showcase 中的领域实体。字段：姓名、邮箱、角色（管理员/编辑/访客）、状态（启用/禁用）、入职日期、备注。全部 Candidate Library 共用同一字段语义与校验规则。
+_Avoid_: 头像上传、部门树、权限矩阵、导入导出
 
 **V1 Scope** (第一版范围):
-可切换的三库用户管理观感对比台：中立外壳、Form/Table Showcase、内存 CRUD、Library Profile、URL 同步。不做并排对比、推荐引擎、多框架、暗色、i18n、后端、全站 iframe/微前端、专业 a11y/bundle 实验室、专门移动端适配。
+已交付：可切换的三库（React）用户管理观感对比台：中立外壳、Form/Table Showcase、内存 CRUD、Library Profile、URL 同步。v1 本身不做并排对比、推荐引擎、多框架真机、暗色、i18n、后端、全站 iframe/微前端、专业 a11y/bundle 实验室、专门移动端适配。
+
+**Multi-framework Expansion** (多框架扩展范围):
+在 v1 之上增加：Framework-first 信息架构与两级 Switcher；Supported Framework = React + Vue；Vue 真机仅 Element Plus 且场景全对齐；React Shell + Vue Island；共享 Showcase Data；URL `/libs/:framework/:libraryId` 与旧链 redirect。本批仍不做：更多 Vue 候选库、并排对比、推荐引擎、暗色、完整 i18n、后端、iframe/微前端框架、a11y/bundle 实验室、外壳改 Vue、专门移动端适配。
+_Avoid_: 把本批做成跨框架百科或 Vue 多库大战；范围偷偷塞进第二 Vue 库
+
+**Framework** (框架):
+候选组件库所属的前端框架维度。本批 Supported Framework 为 React 与 Vue。采用「先框架、再组件库」：Framework 是硬筛选，不与跨框架库扁平混排。用户通常在框架已定的前提下选型组件库。
+_Avoid_: 把 Framework 与 Library 同级平铺混选；暗示跨框架可凭观感直接对标选型
 
 **Supported Framework** (支持的框架):
-第一版 Showcase 与候选组件库仅覆盖 React 生态。档案可提及「另有 Vue 版」等事实，但不提供 Vue 真机展示。
-_Avoid_: 跨框架对比平台（非当前范围）
+本批真机 Showcase 覆盖 React 与 Vue。React 候选三库不变；Vue 仅 Element Plus。档案仍可提及他框架事实，但不提供未列入 Supported Framework 的真机。
+_Avoid_: 扁平跨框架对比台；未决议的 Angular/Svelte 等真机
+
+**Framework Switcher** (框架切换器):
+外壳上用于选择当前 Framework 的控件，与 Library Switcher 分层展示（先框架、后组件库）。切换框架时进入该框架下的目标库：优先恢复本会话内该框架上次选中的 libraryId，否则用框架默认库；以 URL 为刷新后的唯一真源。
+_Avoid_: 与库扁平混在一个无分组长列表；用框架切换暗示推荐某一组件库
 
 **Library Switcher** (组件库切换器):
-用户一次只选择一个当前组件库；页面渲染该库的 Showcase 与 Library Profile。不做并排双库对比。
-_Avoid_: 并排对比, side-by-side, 双栏模式（非当前范围）
+在当前 Framework 下，用户一次只选择一个候选组件库；页面渲染该库的 Showcase 与 Library Profile。与 Framework Switcher 组成两级控件；即便某框架仅一个候选库，仍保留库级展示（可仅一项），不把「框架」与「库」合成一层。不做并排双库对比。
+_Avoid_: 并排对比, side-by-side, 双栏模式；跨框架扁平混排；单库时删掉库层导致框架=库
+
 
 **Candidate Library** (候选组件库):
-第一版固定 3 个 React 组件库，用于 Showcase：Ant Design、MUI、shadcn/ui。代表企业中后台、Material、可复制源码三条常见选型路线。架构上应按可扩展注册，但 v1 不承诺更多库。
-_Avoid_: 全量组件库目录（非当前范围）
+某一 Framework 下用于 Showcase 的组件库集合。React：Ant Design、MUI、shadcn/ui（企业中后台、Material、可复制源码三条路线）。Vue 第一批仅 Element Plus，用于验证多框架基建；不与 Ant Design（React）合并为同一库。架构上按可扩展注册；每框架清单单独决议。
+_Avoid_: 全量组件库目录；把不同 Framework 的库当成同一候选集；把 Ant Design 与 Ant Design Vue 当成同一 Candidate Library
 
 **Showcase Scenario** (展示场景):
-第一版唯一业务场景为「用户管理」：表格为主展示用户列表；通过 Modal 打开表单进行新建/编辑。三库共用同一字段、列、样例数据与文案。
-_Avoid_: 多业务场景切换（非 v1）；页内常驻表单；Drawer 表单（非 v1）
+唯一业务场景为「用户管理」：表格为主展示用户列表；通过 Modal 打开表单进行新建/编辑。全部 Candidate Library（React 三库与 Vue/Element Plus）共用同一字段、列、校验语义与文案；Element Plus 不降级场景。
+_Avoid_: 多业务场景切换；页内常驻表单；Drawer 表单；Vue 专用缩水场景
 
 **Form Chrome** (表单容器):
 承载 Form Showcase 的容器固定为 Modal（弹窗）。列表提供「新建」；行操作提供「编辑」（回填）与删除类操作。

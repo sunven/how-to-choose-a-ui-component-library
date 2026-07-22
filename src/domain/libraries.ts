@@ -1,8 +1,18 @@
-export type LibraryId = 'ant-design' | 'mui' | 'shadcn'
+export type FrameworkId = 'react' | 'vue'
+
+export type LibraryId = 'ant-design' | 'mui' | 'shadcn' | 'element-plus'
+
+export interface FrameworkMeta {
+  id: FrameworkId
+  name: string
+  defaultLibraryId: LibraryId
+}
 
 export interface LibraryProfile {
   id: LibraryId
+  framework: FrameworkId
   name: string
+  /** Display string for profile card */
   frameworks: string
   /** Snapshot used when GitHub fetch fails */
   starsSnapshot: number
@@ -17,11 +27,18 @@ export interface LibraryProfile {
   tagline: string
 }
 
+export const FRAMEWORKS: FrameworkMeta[] = [
+  { id: 'react', name: 'React', defaultLibraryId: 'ant-design' },
+  { id: 'vue', name: 'Vue', defaultLibraryId: 'element-plus' },
+]
+
+export const DEFAULT_FRAMEWORK_ID: FrameworkId = 'react'
 export const DEFAULT_LIBRARY_ID: LibraryId = 'ant-design'
 
 export const LIBRARIES: LibraryProfile[] = [
   {
     id: 'ant-design',
+    framework: 'react',
     name: 'Ant Design',
     frameworks: 'React（另有 Ant Design Vue / Angular 等生态）',
     starsSnapshot: 94000,
@@ -37,6 +54,7 @@ export const LIBRARIES: LibraryProfile[] = [
   },
   {
     id: 'mui',
+    framework: 'react',
     name: 'MUI',
     frameworks: 'React',
     starsSnapshot: 95000,
@@ -52,6 +70,7 @@ export const LIBRARIES: LibraryProfile[] = [
   },
   {
     id: 'shadcn',
+    framework: 'react',
     name: 'shadcn/ui',
     frameworks: 'React',
     starsSnapshot: 88000,
@@ -65,12 +84,63 @@ export const LIBRARIES: LibraryProfile[] = [
     styling: 'Tailwind CSS + Radix UI 原语',
     tagline: '不是传统 npm 组件库，而是可拥有、可改的组件代码集。',
   },
+  {
+    id: 'element-plus',
+    framework: 'vue',
+    name: 'Element Plus',
+    frameworks: 'Vue 3',
+    starsSnapshot: 26000,
+    license: 'MIT',
+    homepage: 'https://element-plus.org',
+    docs: 'https://element-plus.org/zh-CN/component/overview.html',
+    githubRepo: 'element-plus/element-plus',
+    activity: 'Vue 3 中后台常用方案，Element UI 继任者，中文文档完善',
+    bundleSize: '全量偏大，可按需引入',
+    typescript: '一等支持',
+    styling: 'CSS Variables + SCSS（默认主题可配置）',
+    tagline: 'Vue 生态企业中后台组件库，默认观感完整、文档友好。',
+  },
 ]
+
+export function isFrameworkId(id: string | undefined): id is FrameworkId {
+  return FRAMEWORKS.some((f) => f.id === id)
+}
+
+export function isLibraryId(id: string | undefined): id is LibraryId {
+  return LIBRARIES.some((lib) => lib.id === id)
+}
+
+export function getFramework(id: FrameworkId): FrameworkMeta {
+  return FRAMEWORKS.find((f) => f.id === id) ?? FRAMEWORKS[0]
+}
 
 export function getLibrary(id: string | undefined): LibraryProfile {
   return LIBRARIES.find((lib) => lib.id === id) ?? LIBRARIES[0]
 }
 
-export function isLibraryId(id: string | undefined): id is LibraryId {
-  return LIBRARIES.some((lib) => lib.id === id)
+export function getLibrariesForFramework(framework: FrameworkId): LibraryProfile[] {
+  return LIBRARIES.filter((lib) => lib.framework === framework)
+}
+
+export function libraryPath(framework: FrameworkId, libraryId: LibraryId): string {
+  return `/libs/${framework}/${libraryId}`
+}
+
+export function defaultPath(): string {
+  return libraryPath(DEFAULT_FRAMEWORK_ID, DEFAULT_LIBRARY_ID)
+}
+
+/** Resolve a valid library for the given route segments; invalid combos fall back. */
+export function resolveRouteLibrary(
+  framework: string | undefined,
+  libraryId: string | undefined,
+): LibraryProfile {
+  if (isFrameworkId(framework) && isLibraryId(libraryId)) {
+    const lib = getLibrary(libraryId)
+    if (lib.framework === framework) return lib
+  }
+  if (isFrameworkId(framework)) {
+    return getLibrary(getFramework(framework).defaultLibraryId)
+  }
+  return getLibrary(DEFAULT_LIBRARY_ID)
 }
