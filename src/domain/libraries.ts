@@ -1,6 +1,19 @@
 export type FrameworkId = 'react' | 'vue'
 
-export type LibraryId = 'ant-design' | 'mui' | 'shadcn' | 'element-plus'
+export type LibraryId =
+  | 'ant-design'
+  | 'mui'
+  | 'shadcn'
+  | 'arco-design'
+  | 'semi-design'
+  | 'mantine'
+  | 'element-plus'
+  | 'naive-ui'
+  | 'ant-design-vue'
+  | 'arco-design-vue'
+
+export type VueLibraryId = 'element-plus' | 'naive-ui' | 'ant-design-vue' | 'arco-design-vue'
+export type ReactLibraryId = Exclude<LibraryId, VueLibraryId>
 
 export interface FrameworkMeta {
   id: FrameworkId
@@ -85,6 +98,54 @@ export const LIBRARIES: LibraryProfile[] = [
     tagline: '不是传统 npm 组件库，而是可拥有、可改的组件代码集。',
   },
   {
+    id: 'arco-design',
+    framework: 'react',
+    name: 'Arco Design',
+    frameworks: 'React（另有 Vue 实现）',
+    starsSnapshot: 5400,
+    license: 'MIT',
+    homepage: 'https://arco.design',
+    docs: 'https://arco.design/react/docs/start',
+    githubRepo: 'arco-design/arco-design',
+    activity: '字节跳动开源中后台体系，组件面完整、中文文档友好',
+    bundleSize: '全量偏大，可按需引入',
+    typescript: '一等支持',
+    styling: 'Less / CSS 变量（可主题定制）',
+    tagline: '国产企业中后台另一套完整默认观感，常与 Ant Design 对照选型。',
+  },
+  {
+    id: 'semi-design',
+    framework: 'react',
+    name: 'Semi Design',
+    frameworks: 'React',
+    starsSnapshot: 9200,
+    license: 'MIT',
+    homepage: 'https://semi.design',
+    docs: 'https://semi.design/zh-CN/start/getting-started',
+    githubRepo: 'DouyinFE/semi-design',
+    activity: '抖音前端开源设计系统，中后台与设计 token 体系完整',
+    bundleSize: '全量偏大，可按需引入',
+    typescript: '一等支持',
+    styling: 'CSS 变量 + 设计 token（可主题）',
+    tagline: '设计系统感更强的中后台组件库，默认观感完整。',
+  },
+  {
+    id: 'mantine',
+    framework: 'react',
+    name: 'Mantine',
+    frameworks: 'React',
+    starsSnapshot: 29000,
+    license: 'MIT',
+    homepage: 'https://mantine.dev',
+    docs: 'https://mantine.dev/getting-started/',
+    githubRepo: 'mantinedev/mantine',
+    activity: '现代 React hooks 生态活跃，表单/日期/hooks 配套齐全',
+    bundleSize: '按包拆分（@mantine/core 等），按需引入可控',
+    typescript: '一等支持',
+    styling: 'CSS modules / PostCSS（Mantine 样式包）',
+    tagline: '现代 hooks 与 DX 路线，组件完整度高、国际项目常见。',
+  },
+  {
     id: 'element-plus',
     framework: 'vue',
     name: 'Element Plus',
@@ -99,6 +160,54 @@ export const LIBRARIES: LibraryProfile[] = [
     typescript: '一等支持',
     styling: 'CSS Variables + SCSS（默认主题可配置）',
     tagline: 'Vue 生态企业中后台组件库，默认观感完整、文档友好。',
+  },
+  {
+    id: 'naive-ui',
+    framework: 'vue',
+    name: 'Naive UI',
+    frameworks: 'Vue 3',
+    starsSnapshot: 17000,
+    license: 'MIT',
+    homepage: 'https://www.naiveui.com',
+    docs: 'https://www.naiveui.com/zh-CN/os-theme/docs/introduction',
+    githubRepo: 'tusen-ai/naive-ui',
+    activity: 'Vue 3 + TypeScript 现代组件库，API 一致性高、主题定制灵活',
+    bundleSize: '按需引入友好，全量中等',
+    typescript: '一等支持（源码级 TS）',
+    styling: 'CSS 变量 / 主题覆盖（无预处理器强制）',
+    tagline: '现代 Vue 3 DX 路线，类型友好、组件面完整。',
+  },
+  {
+    id: 'ant-design-vue',
+    framework: 'vue',
+    name: 'Ant Design Vue',
+    frameworks: 'Vue 3',
+    starsSnapshot: 21000,
+    license: 'MIT',
+    homepage: 'https://antdv.com',
+    docs: 'https://antdv.com/components/overview-cn',
+    githubRepo: 'vueComponent/ant-design-vue',
+    activity: 'Ant Design 官方 Vue 实现，企业中后台常用',
+    bundleSize: '全量偏大，可按需引入',
+    typescript: '一等支持',
+    styling: 'CSS-in-JS / less 主题（随 antdv 版本）',
+    tagline: '与 Ant Design 设计语言对齐的 Vue 企业中后台方案。',
+  },
+  {
+    id: 'arco-design-vue',
+    framework: 'vue',
+    name: 'Arco Design Vue',
+    frameworks: 'Vue 3',
+    starsSnapshot: 3100,
+    license: 'MIT',
+    homepage: 'https://arco.design/vue',
+    docs: 'https://arco.design/vue/docs/start',
+    githubRepo: 'arco-design/arco-design-vue',
+    activity: '字节跳动 Arco 的 Vue 实现，中后台组件面完整',
+    bundleSize: '全量偏大，可按需引入',
+    typescript: '一等支持',
+    styling: 'Less / CSS 变量（可主题定制）',
+    tagline: '国产中后台另一套完整默认观感的 Vue 实现。',
   },
 ]
 

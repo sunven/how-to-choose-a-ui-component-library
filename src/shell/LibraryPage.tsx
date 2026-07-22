@@ -8,6 +8,8 @@ import {
   libraryPath,
   resolveRouteLibrary,
   type LibraryId,
+  type ReactLibraryId,
+  type VueLibraryId,
 } from '@/domain/libraries'
 import { rememberLibrary } from '@/domain/frameworkMemory'
 import { useUsers } from '@/domain/useUsers'
@@ -25,19 +27,52 @@ const MuiShowcase = lazy(() =>
 const ShadcnShowcase = lazy(() =>
   import('@/showcases/shadcn/ShadcnShowcase').then((m) => ({ default: m.ShadcnShowcase })),
 )
+const ArcoDesignShowcase = lazy(() =>
+  import('@/showcases/arco-design/ArcoDesignShowcase').then((m) => ({
+    default: m.ArcoDesignShowcase,
+  })),
+)
+const SemiDesignShowcase = lazy(() =>
+  import('@/showcases/semi-design/SemiDesignShowcase').then((m) => ({
+    default: m.SemiDesignShowcase,
+  })),
+)
+const MantineShowcase = lazy(() =>
+  import('@/showcases/mantine/MantineShowcase').then((m) => ({ default: m.MantineShowcase })),
+)
 const ElementPlusIsland = lazy(() =>
   import('@/showcases/element-plus/ElementPlusIsland').then((m) => ({
     default: m.ElementPlusIsland,
   })),
 )
+const NaiveUiIsland = lazy(() =>
+  import('@/showcases/naive-ui/NaiveUiIsland').then((m) => ({ default: m.NaiveUiIsland })),
+)
+const AntDesignVueIsland = lazy(() =>
+  import('@/showcases/ant-design-vue/AntDesignVueIsland').then((m) => ({
+    default: m.AntDesignVueIsland,
+  })),
+)
+const ArcoDesignVueIsland = lazy(() =>
+  import('@/showcases/arco-design-vue/ArcoDesignVueIsland').then((m) => ({
+    default: m.ArcoDesignVueIsland,
+  })),
+)
 
-const REACT_SHOWCASES: Record<
-  Exclude<LibraryId, 'element-plus'>,
-  ComponentType<ShowcaseProps>
-> = {
+const REACT_SHOWCASES: Record<ReactLibraryId, ComponentType<ShowcaseProps>> = {
   'ant-design': AntDesignShowcase,
   mui: MuiShowcase,
   shadcn: ShadcnShowcase,
+  'arco-design': ArcoDesignShowcase,
+  'semi-design': SemiDesignShowcase,
+  mantine: MantineShowcase,
+}
+
+const VUE_ISLANDS: Record<VueLibraryId, ComponentType> = {
+  'element-plus': ElementPlusIsland,
+  'naive-ui': NaiveUiIsland,
+  'ant-design-vue': AntDesignVueIsland,
+  'arco-design-vue': ArcoDesignVueIsland,
 }
 
 export function LibraryPage() {
@@ -70,6 +105,7 @@ function LibraryPageBody({
   }, [library.framework, library.id])
 
   const isVue = library.framework === 'vue'
+  const VueIsland = isVue ? VUE_ISLANDS[libraryId as VueLibraryId] : null
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
@@ -79,7 +115,10 @@ function LibraryPageBody({
             <h2 className="text-base font-semibold text-slate-900">用户管理 · Showcase</h2>
             <p className="text-sm text-slate-500">
               当前实现：{library.name}
-              <span className="text-slate-400"> · {library.framework === 'react' ? 'React' : 'Vue'}</span>
+              <span className="text-slate-400">
+                {' '}
+                · {library.framework === 'react' ? 'React' : 'Vue'}
+              </span>
             </p>
           </div>
         </div>
@@ -90,11 +129,7 @@ function LibraryPageBody({
             </div>
           }
         >
-          {isVue ? (
-            <ElementPlusIsland />
-          ) : (
-            <ReactShowcase libraryId={libraryId} users={users} />
-          )}
+          {VueIsland ? <VueIsland /> : <ReactShowcase libraryId={libraryId} users={users} />}
         </Suspense>
       </section>
       <LibraryProfileCard library={library} />
@@ -109,12 +144,12 @@ function ReactShowcase({
   libraryId: LibraryId
   users: ReturnType<typeof useUsers>
 }) {
-  if (libraryId === 'element-plus') return null
-  const Showcase = REACT_SHOWCASES[libraryId]
+  if (getLibrary(libraryId).framework !== 'react') return null
+  const Showcase = REACT_SHOWCASES[libraryId as ReactLibraryId]
   return <Showcase users={users} />
 }
 
-/** Redirect v1 `/libs/:libraryId` → `/libs/react/:libraryId` when valid. */
+/** Redirect v1 `/libs/:libraryId` → `/libs/:framework/:libraryId` by registry. */
 export function LegacyLibraryRedirect() {
   const { libraryId } = useParams()
   if (isLibraryId(libraryId)) {

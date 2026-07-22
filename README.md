@@ -6,17 +6,25 @@
 
 ## 候选库
 
-**React**
+**React**（默认 `/libs/react/ant-design`）
 
-- [Ant Design](https://ant.design)
-- [MUI](https://mui.com)
-- [shadcn/ui](https://ui.shadcn.com)
+- [Ant Design](https://ant.design) — `ant-design`
+- [MUI](https://mui.com) — `mui`
+- [shadcn/ui](https://ui.shadcn.com) — `shadcn`
+- [Arco Design](https://arco.design) — `arco-design`
+- [Semi Design](https://semi.design) — `semi-design`
+- [Mantine](https://mantine.dev) — `mantine`
 
-**Vue**
+**Vue**（默认 `/libs/vue/element-plus`）
 
-- [Element Plus](https://element-plus.org)
+- [Element Plus](https://element-plus.org) — `element-plus`
+- [Naive UI](https://www.naiveui.com) — `naive-ui`
+- [Ant Design Vue](https://antdv.com) — `ant-design-vue`
+- [Arco Design Vue](https://arco.design/vue) — `arco-design-vue`
 
-路由示例：`/libs/react/ant-design`、`/libs/vue/element-plus`。旧路径 `/libs/mui` 会重定向到 React 前缀。
+路由形态：`/libs/:framework/:libraryId`（例：`/libs/react/mui`、`/libs/vue/naive-ui`）。旧路径 `/libs/mui` 会重定向到带框架前缀的路径。
+
+Ant Design（React）与 Ant Design Vue 是两个独立候选，不合并对比为同一库。
 
 ## 本地运行
 
@@ -68,4 +76,4 @@ pnpm deploy
 
 ## 领域说明
 
-见 [`CONTEXT.md`](./CONTEXT.md) 与 [`docs/adr/`](./docs/adr/)。
+见 [`CONTEXT.md`](./CONTEXT.md) 与 [`docs/adr/`](./docs/adr/)（含 React / Vue 候选扩展 ADR-0014、ADR-0015）。
