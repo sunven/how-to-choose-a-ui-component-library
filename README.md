@@ -37,7 +37,7 @@ pnpm preview
 | Framework preset | Vite（或 None） |
 | Build command | `pnpm install && pnpm run build` |
 | Build output directory | `dist` |
-| Node version | `20`（可用环境变量 `NODE_VERSION=20`） |
+| Node version | `22`（或环境变量 `NODE_VERSION=22`；pnpm 11 需要 Node ≥22） |
 
 4. **Save and Deploy**
 
