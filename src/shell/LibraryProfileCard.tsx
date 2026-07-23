@@ -5,7 +5,7 @@ export function LibraryProfileCard({ library }: { library: LibraryProfile }) {
   const { state, retry } = useGitHubStars(library.githubRepo, library.starsSnapshot)
 
   return (
-    <aside className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <aside className="ui-chooser-profile-panel">
       <div className="mb-3 flex items-start justify-between gap-2">
         <div>
           <h2 className="text-lg font-semibold text-slate-900">{library.name}</h2>

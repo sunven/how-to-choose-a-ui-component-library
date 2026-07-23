@@ -17,6 +17,8 @@ export type LibraryId =
   | 'vuestic-ui'
   | 'flowbite-vue'
   | 'daisyui'
+  | 'bootstrap'
+  | 'bulma'
 
 export type VueLibraryId =
   | 'element-plus'
@@ -29,7 +31,7 @@ export type VueLibraryId =
   | 'vuestic-ui'
   | 'flowbite-vue'
 
-export type VanillaLibraryId = 'daisyui'
+export type VanillaLibraryId = 'daisyui' | 'bootstrap' | 'bulma'
 
 export type ReactLibraryId = Exclude<LibraryId, VueLibraryId | VanillaLibraryId>
 
@@ -323,6 +325,38 @@ export const LIBRARIES: LibraryProfile[] = [
     typescript: '不适用（CSS class 体系；TS 由宿主项目决定）',
     styling: 'Tailwind CSS 插件 + 语义组件 class（btn / table / modal 等）',
     tagline: '与框架无关的 CSS 向组件库：有默认观感，不绑 React/Vue 组件包。',
+  },
+  {
+    id: 'bootstrap',
+    framework: 'vanilla',
+    name: 'Bootstrap',
+    frameworks: 'HTML/CSS + 官方 JS（可嵌入任意框架）',
+    starsSnapshot: 172000,
+    license: 'MIT',
+    homepage: 'https://getbootstrap.com',
+    docs: 'https://getbootstrap.com/docs/5.3/getting-started/introduction/',
+    githubRepo: 'twbs/bootstrap',
+    activity: '经典 CSS 框架事实标准，组件面与文档极完整、长期维护',
+    bundleSize: '全量 CSS+JS 中等；可按需拆 grid/reboot 或 tree-shake ESM',
+    typescript: '官方类型（@types/bootstrap）；TS 由宿主项目决定',
+    styling: '全局 CSS 工具/组件 class + 可选官方 JS（Modal 等）',
+    tagline: '经典全家桶：默认可对比观感完整，不绑 React/Vue 组件包。',
+  },
+  {
+    id: 'bulma',
+    framework: 'vanilla',
+    name: 'Bulma',
+    frameworks: 'HTML/CSS（可嵌入任意框架）',
+    starsSnapshot: 49000,
+    license: 'MIT',
+    homepage: 'https://bulma.io',
+    docs: 'https://bulma.io/documentation/',
+    githubRepo: 'jgthms/bulma',
+    activity: '纯 CSS Flexbox 框架，无官方 JS，社区长期维护',
+    bundleSize: '单 CSS 包中等；无 JS 运行时',
+    typescript: '不适用（CSS class 体系；TS 由宿主项目决定）',
+    styling: '纯 CSS 组件 class（button / table / modal 等），无预处理器强制',
+    tagline: '纯 CSS 向组件层：有默认观感，交互用原生 HTML/轻量逻辑补齐。',
   },
 ]
 

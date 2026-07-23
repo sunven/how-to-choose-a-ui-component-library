@@ -72,6 +72,9 @@ function scopeVuesticCss(): Plugin {
 }
 
 export default defineConfig({
+  // Bootstrap/Bulma CSS is imported as ?raw and injected as scoped <style>
+  // (see showcases/vanillaCss.ts) — never through this PostCSS/Tailwind pipeline,
+  // which hung the build on those multi-hundred-KB stylesheets.
   plugins: [scopeVuesticCss(), vue(), react()],
   resolve: {
     alias: {

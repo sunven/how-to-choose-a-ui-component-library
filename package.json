@@ -37,6 +37,8 @@
     "@radix-ui/react-switch": "^1.1.2",
     "ant-design-vue": "^4.2.6",
     "antd": "^5.23.0",
+    "bootstrap": "^5.3.8",
+    "bulma": "^1.0.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
@@ -61,6 +63,7 @@
     "vuetify": "^3.12.10"
   },
   "devDependencies": {
+    "@types/bootstrap": "^5.2.11",
     "@types/node": "^26.1.1",
     "@types/react": "^18.3.18",
     "@types/react-dom": "^18.3.5",

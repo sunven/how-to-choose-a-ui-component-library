@@ -59,7 +59,10 @@ export default {
   },
   // S4/S1: daisyUI in shared Tailwind pipeline; base:false reduces body-level
   // pollution so the neutral shell is less likely to pick up daisy chrome.
+  // prefix is required: daisyUI's .btn/.input/.select/.table/.modal collide with
+  // Bootstrap & Bulma on the same global sheet and corrupt Vanilla showcases.
   daisyui: {
+    prefix: 'dy-',
     themes: ['light'],
     darkTheme: false,
     base: false,

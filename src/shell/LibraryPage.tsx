@@ -2,7 +2,6 @@ import { lazy, Suspense, type ComponentType, useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import {
   defaultPath,
-  getFramework,
   getLibrary,
   isFrameworkId,
   isLibraryId,
@@ -81,6 +80,14 @@ const FlowbiteVueIsland = lazy(() =>
 const DaisyUiShowcase = lazy(() =>
   import('@/showcases/daisyui/DaisyUiShowcase').then((m) => ({ default: m.DaisyUiShowcase })),
 )
+const BootstrapShowcase = lazy(() =>
+  import('@/showcases/bootstrap/BootstrapShowcase').then((m) => ({
+    default: m.BootstrapShowcase,
+  })),
+)
+const BulmaShowcase = lazy(() =>
+  import('@/showcases/bulma/BulmaShowcase').then((m) => ({ default: m.BulmaShowcase })),
+)
 
 const REACT_SHOWCASES: Record<ReactLibraryId, ComponentType<ShowcaseProps>> = {
   'ant-design': AntDesignShowcase,
@@ -105,6 +112,8 @@ const VUE_ISLANDS: Record<VueLibraryId, ComponentType> = {
 
 const VANILLA_SHOWCASES: Record<VanillaLibraryId, ComponentType<ShowcaseProps>> = {
   daisyui: DaisyUiShowcase,
+  bootstrap: BootstrapShowcase,
+  bulma: BulmaShowcase,
 }
 
 export function LibraryPage() {
@@ -139,23 +148,17 @@ function LibraryPageBody({
     rememberLibrary(library.framework, library.id)
   }, [library.framework, library.id])
 
-  const frameworkName = getFramework(library.framework).name
   const isVue = library.framework === 'vue'
   const isVanilla = library.framework === 'vanilla'
   const VueIsland = isVue ? VUE_ISLANDS[libraryId as VueLibraryId] : null
 
+  // Layout uses dedicated class names (not Tailwind gap/grid utilities) so Bootstrap
+  // !important spacing utilities cannot change the showcase vs profile column ratio.
+  // Panel title ("用户管理 · Showcase / 当前实现") is omitted — framework + library are
+  // already shown in the shell switchers and profile card.
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <section className="min-w-0 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
-        <div className="mb-4 flex flex-wrap items-end justify-between gap-2 border-b border-slate-100 pb-3">
-          <div>
-            <h2 className="text-base font-semibold text-slate-900">用户管理 · Showcase</h2>
-            <p className="text-sm text-slate-500">
-              当前实现：{library.name}
-              <span className="text-slate-400"> · {frameworkName}</span>
-            </p>
-          </div>
-        </div>
+    <div className="ui-chooser-library-layout">
+      <section className="ui-chooser-showcase-panel">
         <Suspense
           fallback={
             <div className="flex h-48 items-center justify-center text-sm text-slate-500">

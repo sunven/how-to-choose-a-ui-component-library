@@ -40,15 +40,75 @@ body {
   color: hsl(var(--foreground));
 }
 
-/* daisyUI: theme applied via data-theme on .showcase-daisyui (S4/S1 root scope) */
+/*
+ * Showcase (left) + Profile (right). Dedicated class names + !important so
+ * Bootstrap utilities cannot rewrite the shell ratio when Vanilla CSS is active.
+ * Default is side-by-side; only narrow viewports stack vertically.
+ */
+.ui-chooser-library-layout {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  align-items: flex-start !important;
+  gap: 1.5rem !important;
+}
+.ui-chooser-showcase-panel {
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+@media (min-width: 640px) {
+  .ui-chooser-showcase-panel {
+    padding: 1.25rem;
+  }
+}
+.ui-chooser-profile-panel {
+  flex: 0 0 320px !important;
+  width: 320px !important;
+  max-width: 320px !important;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  padding: 1rem;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+@media (max-width: 767px) {
+  .ui-chooser-library-layout {
+    flex-direction: column !important;
+  }
+  .ui-chooser-profile-panel {
+    flex: 1 1 auto !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+}
+
+/*
+ * Official Bootstrap/Bulma sheets map `body { overflow-y: scroll }` onto :scope
+ * (showcase root), which paints a permanent scrollbar gutter inside the panel.
+ * Keep overflow visible so the page scrolls normally like other libraries.
+ */
+.showcase-bootstrap,
+.showcase-bulma {
+  overflow: visible !important;
+  overflow-x: visible !important;
+  overflow-y: visible !important;
+  min-height: 0 !important;
+  min-width: 0 !important;
+}
+
+/* daisyUI: theme via data-theme on .showcase-daisyui; classes use dy- prefix */
 /*
  * Flowbite's Tailwind plugin injects form base styles on bare `select`/`input`
- * (padding-top/bottom: 0.5rem). daisyUI .select-sm / .input-sm fix height to 2rem
- * but do not zero vertical padding, so Chinese labels clip into unreadable glyphs.
- * Scope the undo to the showcase root so shell / flowbite-vue keep their base.
+ * (padding-top/bottom: 0.5rem). daisyUI size classes fix height but not padding,
+ * so Chinese labels can clip. Undo only under the daisy showcase root.
  */
-.showcase-daisyui .select,
-.showcase-daisyui .input {
+.showcase-daisyui .dy-select,
+.showcase-daisyui .dy-input {
   padding-top: 0;
   padding-bottom: 0;
 }

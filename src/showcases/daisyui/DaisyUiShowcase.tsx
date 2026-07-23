@@ -13,7 +13,8 @@ import type { ShowcaseProps } from '../types'
 
 /**
  * Vanilla Showcase (V2): React only prints DOM with daisyUI semantic classes.
- * No React/Vue component wrappers; no second UI library for chrome.
+ * Classes use the `dy-` prefix (tailwind daisyui.prefix) so they do not collide
+ * with Bootstrap/Bulma global class names.
  */
 export function DaisyUiShowcase({ users }: ShowcaseProps) {
   const [open, setOpen] = useState(false)
@@ -68,13 +69,13 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <input
             type="search"
-            className="input input-bordered input-sm w-full sm:w-56"
+            className="dy-input dy-input-bordered dy-input-sm w-full sm:w-56"
             placeholder="搜索姓名 / 邮箱"
             value={users.filters.keyword}
             onChange={(e) => users.setKeyword(e.target.value)}
           />
           <select
-            className="select select-bordered select-sm w-full sm:w-[140px]"
+            className="dy-select dy-select-bordered dy-select-sm w-full sm:w-[140px]"
             value={users.filters.role}
             onChange={(e) => users.setRoleFilter(e.target.value as typeof users.filters.role)}
             aria-label="角色筛选"
@@ -87,7 +88,7 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
             ))}
           </select>
           <select
-            className="select select-bordered select-sm w-full sm:w-[140px]"
+            className="dy-select dy-select-bordered dy-select-sm w-full sm:w-[140px]"
             value={users.filters.status}
             onChange={(e) =>
               users.setStatusFilter(e.target.value as typeof users.filters.status)
@@ -98,7 +99,7 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
             <option value="active">{STATUS_LABELS.active}</option>
             <option value="disabled">{STATUS_LABELS.disabled}</option>
           </select>
-          <button type="button" className="btn btn-outline btn-sm" onClick={users.cycleHireDateSort}>
+          <button type="button" className="dy-btn dy-btn-outline dy-btn-sm" onClick={users.cycleHireDateSort}>
             入职排序：
             {users.hireDateSort === 'none'
               ? '默认'
@@ -107,19 +108,19 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
                 : '降序'}
           </button>
         </div>
-        <button type="button" className="btn btn-primary btn-sm" onClick={openCreate}>
+        <button type="button" className="dy-btn dy-btn-primary dy-btn-sm" onClick={openCreate}>
           新建用户
         </button>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-base-300">
-        <table className="table table-sm table-zebra min-w-[720px]">
+        <table className="dy-table dy-table-sm dy-table-zebra min-w-[720px]">
           <thead>
             <tr>
               <th className="w-10">
                 <input
                   type="checkbox"
-                  className="checkbox checkbox-sm"
+                  className="dy-checkbox dy-checkbox-sm"
                   checked={allPageSelected}
                   onChange={(e) => users.toggleSelectAllPage(e.target.checked)}
                   aria-label="全选本页"
@@ -139,7 +140,7 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
                 <td>
                   <input
                     type="checkbox"
-                    className="checkbox checkbox-sm"
+                    className="dy-checkbox dy-checkbox-sm"
                     checked={users.selectedIds.includes(row.id)}
                     onChange={(e) => users.toggleSelect(row.id, e.target.checked)}
                     aria-label={`选择 ${row.name}`}
@@ -152,8 +153,8 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
                   <span
                     className={
                       row.status === 'active'
-                        ? 'badge badge-success badge-sm'
-                        : 'badge badge-ghost badge-sm'
+                        ? 'dy-badge dy-badge-success dy-badge-sm'
+                        : 'dy-badge dy-badge-ghost dy-badge-sm'
                     }
                   >
                     {STATUS_LABELS[row.status]}
@@ -163,14 +164,14 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
                 <td className="text-right">
                   <button
                     type="button"
-                    className="btn btn-ghost btn-xs"
+                    className="dy-btn dy-btn-ghost dy-btn-xs"
                     onClick={() => openEdit(row)}
                   >
                     编辑
                   </button>
                   <button
                     type="button"
-                    className="btn btn-ghost btn-xs text-error"
+                    className="dy-btn dy-btn-ghost dy-btn-xs text-error"
                     onClick={() => {
                       if (window.confirm('确认删除该用户？')) users.deleteUser(row.id)
                     }}
@@ -195,10 +196,10 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
         <span>
           共 {users.total} 条 · 第 {users.page} / {users.pageCount} 页
         </span>
-        <div className="join">
+        <div className="dy-join">
           <button
             type="button"
-            className="btn btn-outline btn-sm join-item"
+            className="dy-btn dy-btn-outline dy-btn-sm dy-join-item"
             disabled={users.page <= 1}
             onClick={() => users.setPage(users.page - 1)}
           >
@@ -206,7 +207,7 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
           </button>
           <button
             type="button"
-            className="btn btn-outline btn-sm join-item"
+            className="dy-btn dy-btn-outline dy-btn-sm dy-join-item"
             disabled={users.page >= users.pageCount}
             onClick={() => users.setPage(users.page + 1)}
           >
@@ -215,38 +216,38 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
         </div>
       </div>
 
-      <dialog className={`modal ${open ? 'modal-open' : ''}`} aria-labelledby="daisyui-modal-title">
-        <div className="modal-box max-w-lg">
+      <dialog className={`dy-modal ${open ? 'dy-modal-open' : ''}`} aria-labelledby="daisyui-modal-title">
+        <div className="dy-modal-box max-w-lg">
           <h3 id="daisyui-modal-title" className="text-lg font-bold">
             {editing ? '编辑用户' : '新建用户'}
           </h3>
           <div className="mt-4 grid gap-3">
-            <label className="form-control w-full">
-              <span className="label-text mb-1">姓名</span>
+            <label className="dy-form-control w-full">
+              <span className="dy-label-text mb-1">姓名</span>
               <input
                 type="text"
-                className={`input input-bordered input-sm w-full ${errors.name ? 'input-error' : ''}`}
+                className={`dy-input dy-input-bordered dy-input-sm w-full ${errors.name ? 'dy-input-error' : ''}`}
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
               />
-              {errors.name && <span className="label-text-alt text-error mt-1">{errors.name}</span>}
+              {errors.name && <span className="dy-label-text-alt text-error mt-1">{errors.name}</span>}
             </label>
-            <label className="form-control w-full">
-              <span className="label-text mb-1">邮箱</span>
+            <label className="dy-form-control w-full">
+              <span className="dy-label-text mb-1">邮箱</span>
               <input
                 type="email"
-                className={`input input-bordered input-sm w-full ${errors.email ? 'input-error' : ''}`}
+                className={`dy-input dy-input-bordered dy-input-sm w-full ${errors.email ? 'dy-input-error' : ''}`}
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
               />
               {errors.email && (
-                <span className="label-text-alt text-error mt-1">{errors.email}</span>
+                <span className="dy-label-text-alt text-error mt-1">{errors.email}</span>
               )}
             </label>
-            <label className="form-control w-full">
-              <span className="label-text mb-1">角色</span>
+            <label className="dy-form-control w-full">
+              <span className="dy-label-text mb-1">角色</span>
               <select
-                className="select select-bordered select-sm w-full"
+                className="dy-select dy-select-bordered dy-select-sm w-full"
                 value={form.role}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, role: e.target.value as UserInput['role'] }))
@@ -260,10 +261,10 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
               </select>
             </label>
             <div className="flex items-center justify-between rounded-lg border border-base-300 px-3 py-2">
-              <span className="label-text">状态（启用）</span>
+              <span className="dy-label-text">状态（启用）</span>
               <input
                 type="checkbox"
-                className="toggle toggle-primary toggle-sm"
+                className="dy-toggle dy-toggle-primary dy-toggle-sm"
                 checked={form.status === 'active'}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, status: e.target.checked ? 'active' : 'disabled' }))
@@ -271,35 +272,35 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
                 aria-label="状态启用"
               />
             </div>
-            <label className="form-control w-full">
-              <span className="label-text mb-1">入职日期</span>
+            <label className="dy-form-control w-full">
+              <span className="dy-label-text mb-1">入职日期</span>
               <input
                 type="date"
-                className="input input-bordered input-sm w-full"
+                className="dy-input dy-input-bordered dy-input-sm w-full"
                 value={form.hireDate}
                 onChange={(e) => setForm((f) => ({ ...f, hireDate: e.target.value }))}
               />
             </label>
-            <label className="form-control w-full">
-              <span className="label-text mb-1">备注</span>
+            <label className="dy-form-control w-full">
+              <span className="dy-label-text mb-1">备注</span>
               <textarea
-                className="textarea textarea-bordered textarea-sm w-full"
+                className="dy-textarea dy-textarea-bordered dy-textarea-sm w-full"
                 rows={3}
                 value={form.remark}
                 onChange={(e) => setForm((f) => ({ ...f, remark: e.target.value }))}
               />
             </label>
           </div>
-          <div className="modal-action">
-            <button type="button" className="btn btn-ghost btn-sm" onClick={closeModal}>
+          <div className="dy-modal-action">
+            <button type="button" className="dy-btn dy-btn-ghost dy-btn-sm" onClick={closeModal}>
               取消
             </button>
-            <button type="button" className="btn btn-primary btn-sm" onClick={submit}>
+            <button type="button" className="dy-btn dy-btn-primary dy-btn-sm" onClick={submit}>
               提交
             </button>
           </div>
         </div>
-        <div className="modal-backdrop">
+        <div className="dy-modal-backdrop">
           <button type="button" onClick={closeModal}>
             关闭
           </button>
