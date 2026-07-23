@@ -30,11 +30,13 @@ import {
   type UserFormErrors,
   type UserInput,
 } from '@/domain/user'
+import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 
 dayjs.locale('zh-cn')
 
 export function MantineShowcase({ users }: ShowcaseProps) {
+  const mode = useThemeMode()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [form, setForm] = useState<UserInput>(emptyUserInput())
@@ -87,7 +89,7 @@ export function MantineShowcase({ users }: ShowcaseProps) {
   }, [users.hireDateSort])
 
   return (
-    <MantineProvider defaultColorScheme="light">
+    <MantineProvider forceColorScheme={mode} defaultColorScheme={mode}>
       <DatesProvider settings={{ locale: 'zh-cn', firstDayOfWeek: 1 }}>
         <Stack gap="md">
           <Group justify="space-between" align="flex-end" wrap="wrap">

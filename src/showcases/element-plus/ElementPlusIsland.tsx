@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { App } from 'vue'
+import { useThemeMode } from '@/domain/useThemeMode'
 
-/**
- * React host that mounts the Element Plus Vue Showcase as an island.
- * Styles and Vue runtime load only via the async mount chunk.
- */
+/** React host for Element Plus Showcase island. Remounts when Theme Mode changes. */
 export function ElementPlusIsland() {
   const hostRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const mode = useThemeMode()
 
   useEffect(() => {
     const el = hostRef.current
@@ -32,11 +31,11 @@ export function ElementPlusIsland() {
       app?.unmount()
       el.replaceChildren()
     }
-  }, [])
+  }, [mode])
 
   if (error) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-red-600">
+      <div className="flex h-48 items-center justify-center text-sm text-red-600 dark:text-red-400">
         Element Plus Showcase 加载失败：{error}
       </div>
     )

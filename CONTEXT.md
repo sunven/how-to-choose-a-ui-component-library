@@ -28,14 +28,16 @@ _Avoid_: 详情页, about；百科式长文档案（非 v1）；因 Profile 失�
 通过切换组件库查看同一表单与表格的观感差异，辅助选型；档案信息为辅助，不是百科全书。
 
 **App Shell** (应用外壳):
-站点导航、Library Switcher、Library Profile 与页面骨架使用中立实现，不采用任一候选组件库的组件。v1 外壳样式使用 Tailwind CSS。外壳不得抢戏或暗示「推荐某一候选库」。
-_Avoid_: 用 Ant Design/MUI/shadcn 组件搭外壳；切换库时连外壳一起换皮
+站点导航、Framework/Library Switcher、**Theme Toggle**、Library Profile 与页面骨架使用中立实现，不采用任一候选组件库的组件。外壳样式使用 Tailwind CSS（含 `darkMode: 'class'` 下的中立 dark 皮）。外壳不得抢戏或暗示「推荐某一候选库」。
+_Avoid_: 用 Ant Design/MUI/shadcn 组件搭外壳；切换库时连外壳一起换皮；用候选库组件做 Theme Toggle
 
 **Style Isolation** (样式隔离):
 同一时间只挂载当前候选库的 Showcase（React 子树、Vue Island 或 Vanilla Showcase 三选一）；各库样式按库分入口引入；离开当前库时卸载对应子树/应用，并由 `useLibraryStyleIsolation` 缓存并移除本会话注入的**静态 / Vite 全局样式表**（CSS-in-JS 运行时表不拆，避免缓存错乱）。shadcn 等与外壳共享 Tailwind 的区域需 root scope。不承诺零泄漏；不做全站 iframe 沙箱。默认 L1（懒加载 + 单挂载 + 全局 CSS 生命周期）；某库仍明显污染时再对该库做前缀 / popup 容器或 Showcase 级 iframe 例外，不先上微前端。
-**Vanilla / daisyUI（S4）**：落地顺序为先与壳同构建 Tailwind + daisy 插件并 root scope（近 S1）→ 污染明显再独立 CSS 入口（近 S3）→ 仍失败才对该库 Showcase iframe（近 S2）。验收红线：壳的导航/控件不得变成 daisy 皮；离开 Vanilla 后 daisy 主题/组件类不得残留影响 React/Vue Showcase；不得把 daisyUI 配成全站主题。
-**Vanilla / Bootstrap·Bulma（策略 B）**：各库独立 CSS 异步入口 + 离开时卸表 + 尽量 root scope / 容器限定；**不**默认 iframe。验收红线同 daisy：壳不变皮；离开后不得残留影响 React/Vue；红线不过再对该库单独升 iframe（例外，不改全站策略）。Bootstrap 官方 JS 须与样式同生命周期（挂载 init、卸载 dispose）。
-_Avoid_: 多库同时挂载; 全站 iframe; 为隔离上完整微前端框架; 本批为新库默认上 iframe; 拆除 Emotion/antd cssinjs 节点; 首版就为 daisyUI 上 iframe; daisy 进全局 theme 污染壳; Bootstrap/Bulma 默认 iframe
+**与 Theme Mode**：换库**不**清除全站 Theme Mode，也**不**因卸库而移除 `html.dark`（仅 Mode 变为 light 时移除）。各库官方 dark 的 Provider / `data-theme` 等仍挂在该库 Showcase 根或入口上，由同一 Mode 驱动。
+**工具类碰撞**：Vuetify / Vuestic 等带 `!important` 的全局 utility（如 `.bg-white`）必须经 Vite 前缀到各自 island 根（`.vuetify-island` / `.vuestic-island`），否则会覆盖壳 Tailwind（暗色 Mode 下顶栏被刷白、浅字不可读）。
+**Vanilla / daisyUI（S4）**：落地顺序为先与壳同构建 Tailwind + daisy 插件并 root scope（近 S1）→ 污染明显再独立 CSS 入口（近 S3）→ 仍失败才对该库 Showcase iframe（近 S2）。验收红线：壳的导航/控件不得变成 daisy 皮；离开 Vanilla 后 daisy 主题/组件类不得残留影响 React/Vue Showcase；不得把 daisyUI 配成全站主题（全站 Mode 由壳与 `html` class 拥有，daisy 仅映射到其 Showcase 根 `data-theme`）。
+**Vanilla / Bootstrap·Bulma（策略 B）**：各库独立 CSS 异步入口 + 离开时卸表 + 尽量 root scope / 容器限定；**不**默认 iframe。验收红线同 daisy：壳不变皮；离开后不得残留影响 React/Vue；红线不过再对该库单独升 iframe（例外，不改全站策略）。Bootstrap 官方 JS 须与样式同生命周期（挂载 init、卸载 dispose）。Bootstrap dark 用官方 `data-bs-theme` 映射全站 Mode。
+_Avoid_: 多库同时挂载; 全站 iframe; 为隔离上完整微前端框架; 本批为新库默认上 iframe; 拆除 Emotion/antd cssinjs 节点; 首版就为 daisyUI 上 iframe; daisy 进全局 theme 污染壳; Bootstrap/Bulma 默认 iframe; 卸库时误清全站 Theme Mode / `html.dark`
 
 **Delivery Stack** (交付技术栈):
 单一 Vite 应用：React 外壳（React Router、TypeScript、pnpm）与 Vue Island 共存，构建启用 React + Vue 双插件。领域状态与注册表放在框架无关模块；各 Vue 候选 Showcase 源码与样式走各自异步入口，避免访问 React 库时下载 Vue 运行时与无关库样式。不改为 Next.js/SSR，不拆同域双主应用，不为 Vue 多库先上 workspace 多包。
@@ -50,8 +52,16 @@ _Avoid_: 把整个站点改成 Vue; 用 iframe 充当默认 Island; 微前端编
 _Avoid_: 全站英文; 完整 i18n; Vue 侧默认英文 locale 导致观感对比失真; 为凑「全中文」把本批做成翻译工程; 业务层中英混用双标准
 
 **Theme Mode** (主题模式):
-v1 仅亮色（light）。各候选库使用其官方默认 light 主题；外壳亦为 light。不做亮暗切换。
-_Avoid_: 暗色主题; 跟随系统; 每库文档默认主题不一致（非 v1）
+全站唯一的亮/暗观看模式，取值仅 `light` | `dark`（无 `system`）。**产品目的是选型对比**：在同一 Form/Table Showcase 上对比各库**官方默认** light 与 dark 观感，不是给本站做阅读主题或设计 token 工厂。默认 `light`。外壳与当前 Showcase **同步跟随**同一 Mode；换 Framework / Candidate Library 时**继承**当前 Mode，不重置。持久化：`localStorage`；**不进 URL**（路由真源仍是库身份）。DOM：`dark` 时在 `document.documentElement` 上挂 `class="dark"`，`light` 时移除；`index.html` 内同步脚本在首屏前读 LS 写 class，减少 FOUC。各库必须用**该库官方文档推荐的** light/dark 方式映射同一 Mode（ConfigProvider / palette / `data-theme` / `data-bs-theme` / `darkModeSelector` 等）；禁止手写伪 dark 凑数。**全量 Candidate 官方映射就绪后才上线**开关；不做半支持、不做「当前库无 dark 则禁用开关」。
+_Avoid_: 跟随系统; 每库或每框架一份 Mode; 仅壳或仅 Showcase 单侧切换; URL query/path 携带 theme; 手写覆盖色冒充官方 dark; 渐进半支持导致壳 dark、Showcase light 撕裂
+
+**Theme Toggle** (主题切换控件):
+App Shell 顶栏的 sun/moon 图标按钮，一键在 `light` ↔ `dark` 间切换。中立 Tailwind 实现，不用任一 Candidate 组件。`aria-label` / 提示文案中文（如「切换为暗色」/「切换为亮色」）。
+_Avoid_: 放进 Library Profile; 仅快捷键无常驻 UI; 用分段文案强占主切换带; 候选库 Button/Switch 做外壳控件
+
+**Theme Mode Expansion** (主题模式扩展):
+在既有多框架对比台之上，新增全站 Theme Mode + Theme Toggle，并要求当前 Switcher 内全部 Candidate Library 完成官方 light/dark 映射后一并交付。不改变 Primary Goal、Showcase Scenario、Style Isolation 主策略与 Library Route 形态。
+_Avoid_: 只接部分热门库就开开关; 把本站做成通用 dark-mode 演示站; 借扩展重做推荐引擎/并排对比
 
 **Showcase Data** (展示数据):
 用户管理的业务实体数据（User 列表）存在于浏览器内存、且跨 Framework / Candidate Library 共享同一份；React Showcase 与 Vue Island 读写同一领域状态。支持新建/编辑写回、删除移除；刷新后恢复初始种子数据。无后端、无登录、无权限。筛选关键字、页码、Modal 开闭等纯 UI 状态由各 Showcase 自持，切换库或框架时可不保留。
@@ -66,10 +76,10 @@ Showcase 中的领域实体。字段：姓名、邮箱、角色（管理员/编�
 _Avoid_: 头像上传、部门树、权限矩阵、导入导出
 
 **V1 Scope** (第一版范围):
-已交付：可切换的三库（React）用户管理观感对比台：中立外壳、Form/Table Showcase、内存 CRUD、Library Profile、URL 同步。v1 本身不做并排对比、推荐引擎、多框架真机、暗色、i18n、后端、全站 iframe/微前端、专业 a11y/bundle 实验室、专门移动端适配。
+已交付：可切换的三库（React）用户管理观感对比台：中立外壳、Form/Table Showcase、内存 CRUD、Library Profile、URL 同步。v1 本身不做并排对比、推荐引擎、多框架真机、暗色、i18n、后端、全站 iframe/微前端、专业 a11y/bundle 实验室、专门移动端适配。（亮暗切换见后续 **Theme Mode Expansion**，不回溯改写 v1 已交付边界的历史表述以外的产品承诺。）
 
 **Multi-framework Expansion** (多框架扩展范围):
-已交付的基建：Framework-first 双级切换、Supported Framework 真机 React + Vue、React Shell + Vue Island、共享 Showcase Data、URL `/libs/:framework/:libraryId`。Vue 候选批次见 **Vue Candidate Expansion** 与 **Vue ui-libs Candidate Expansion**。已决议（尚未全部落地）：第三 Supported Framework = **Vanilla**（id `vanilla`），用于 **CSS-only Library** 真机，不叫 headless。仍不做：并排对比、推荐引擎、暗色、完整 i18n、后端、iframe/微前端框架、a11y/bundle 实验室、外壳改 Vue、专门移动端适配、以 headless 原语库冒充 Vanilla。
+已交付的基建：Framework-first 双级切换、Supported Framework 真机 React + Vue + Vanilla、React Shell + Vue Island、共享 Showcase Data、URL `/libs/:framework/:libraryId`。Vue / Vanilla 候选批次见对应 Expansion 词条。亮暗对比见 **Theme Mode Expansion**（决议中/落地中）。仍不做：并排对比、推荐引擎、完整 i18n、后端、iframe/微前端框架、a11y/bundle 实验室、外壳改 Vue、专门移动端适配、以 headless 原语库冒充 Vanilla。
 _Avoid_: 把站点做成跨框架百科；Framework=`headless`；把 Radix/Reka 等真 headless 塞进 Vanilla
 
 **Framework** (框架):

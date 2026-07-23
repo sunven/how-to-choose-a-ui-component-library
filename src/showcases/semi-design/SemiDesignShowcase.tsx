@@ -30,11 +30,14 @@ import {
   type UserRole,
   type UserStatus,
 } from '@/domain/user'
+import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 
 dayjs.locale('zh-cn')
 
 export function SemiDesignShowcase({ users }: ShowcaseProps) {
+  // body[theme-mode] is applied by themeModeStore (Semi official dark)
+  useThemeMode()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [statusActive, setStatusActive] = useState(true)

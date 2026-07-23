@@ -12,7 +12,7 @@
 2. **分入口 CSS**：各库样式随 showcase / `mount.ts` 异步 chunk 引入，不进外壳公共包。
 3. **切换时卸载全局 CSS**：`useLibraryStyleIsolation` 观察 `<head>` 中本库会话新增的静态 / Vite 样式表，离开时缓存并移除，返回时重放（ESM CSS 副作用只执行一次）。**不**拆除 Emotion / antd cssinjs / css-render 等运行时表，避免破坏 CSS-in-JS 缓存。
 4. **共享 Tailwind 作用域**：shadcn / shadcn-vue 使用 `.showcase-shadcn*` root token。
-5. **按库前缀（已有）**：Vuestic 工具类经 Vite + `postcss-prefix-selector` 挂到 `.vuestic-island`。
+5. **按库前缀（已有）**：Vuestic 工具类经 Vite + `postcss-prefix-selector` 挂到 `.vuestic-island`；**Vuetify** 同理挂到 `.vuetify-island`（其 `.bg-white { !important }` 等会与壳 Tailwind 冲突，暗色下顶栏被刷白）。
 
 ## 升级路径（仍属产品例外，非默认）
 

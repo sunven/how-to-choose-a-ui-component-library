@@ -1,11 +1,62 @@
 /**
  * Regenerate scoped CSS for Vanilla showcases (Bootstrap / Bulma).
  * Usage: node scripts/scope-vanilla-css.mjs
+ *
+ * Theme Mode note:
+ * Official Bootstrap/Bulma light tokens live on `:root` (always). Naively
+ * rewriting `:root` → `:scope` makes light tokens always win on the showcase
+ * root. Dark tokens use `[data-bs-theme=dark]` / `[data-theme=dark]`, which
+ * inside `@scope` often match only *descendants*, not the scope root itself.
+ * Result: Showcase stays light even when the root has data-*-theme=dark.
+ *
+ * Fix: bind light/dark tokens to the scope root via compound selectors, e.g.
+ *   :root, [data-bs-theme=light]  →  :scope[data-bs-theme=light]
+ *   [data-bs-theme=dark]          →  :scope[data-bs-theme=dark]
+ * Showcase roots always set the attribute from Theme Mode.
  */
 import fs from 'node:fs'
 import postcss from 'postcss'
 
-function scopeWithAtScope(css, scopeSelector, keepGlobal) {
+/**
+ * Rewrite a single selector for @scope + Theme Mode attributes.
+ *
+ * Bootstrap model: `:root` always carries base + light tokens; `[data-bs-theme=dark]`
+ * overrides color-mode vars. So `:root` → bare `:scope` is correct (light defaults).
+ * The bug was only that lone `[data-*-theme=dark]` did not match the scope root
+ * inside `@scope` — pin those to `:scope[attr=…]`.
+ *
+ * @param {string} selector
+ * @param {{ themeAttr: 'data-bs-theme' | 'data-theme' }} opts
+ */
+function rewriteSelector(selector, { themeAttr }) {
+  let s = selector.trim()
+  if (!s) return selector
+
+  // Document roots → scope root (Bootstrap: keeps light/base tokens always on root)
+  s = s
+    .replace(/:root\b/g, ':scope')
+    .replace(/:host\b/g, ':scope')
+    .replace(/\bhtml\b/g, ':scope')
+    .replace(/\bbody\b/g, ':scope')
+
+  // Lone `[data-*-theme=light|dark]` → match the scope root (not only descendants)
+  const loneTheme = s.match(new RegExp(`^\\[${themeAttr}=(light|dark|"light"|"dark")\\]$`))
+  if (loneTheme) {
+    const mode = loneTheme[1].replace(/"/g, '')
+    return `:scope[${themeAttr}=${mode}]`
+  }
+
+  // Bulma compound class form (postcss splits lists; handle each half)
+  if (themeAttr === 'data-theme') {
+    if (s === '.theme-dark') return ':scope.theme-dark, :scope[data-theme=dark]'
+    if (s === '.theme-light') return ':scope.theme-light, :scope[data-theme=light]'
+  }
+
+  // Compound like `.navbar[data-bs-theme=dark]` — leave for descendant matching in @scope
+  return s
+}
+
+function scopeWithAtScope(css, scopeSelector, keepGlobal, themeAttr) {
   const keep = []
   const result = postcss([
     {
@@ -15,6 +66,12 @@ function scopeWithAtScope(css, scopeSelector, keepGlobal) {
           const n = atrule.name
           if (n === 'keyframes' || n.endsWith('keyframes') || n === 'font-face') {
             keep.push(atrule.toString())
+            atrule.remove()
+          }
+          // Theme Mode is explicit light|dark only (no system). Bulma ships
+          // prefers-color-scheme blocks that re-write :scope tokens and would
+          // override data-theme — drop them so official attr themes win.
+          if (n === 'media' && /prefers-color-scheme/i.test(atrule.params)) {
             atrule.remove()
           }
         })
@@ -40,17 +97,11 @@ function scopeWithAtScope(css, scopeSelector, keepGlobal) {
       },
     },
     {
-      postcssPlugin: 'rewrite-roots',
+      postcssPlugin: 'rewrite-roots-and-themes',
       Rule(rule) {
-        const rewritten = rule.selectors.map((selector) => {
-          const s = selector.trim()
-          if (!s) return selector
-          return s
-            .replace(/:root\b/g, ':scope')
-            .replace(/:host\b/g, ':scope')
-            .replace(/\bhtml\b/g, ':scope')
-            .replace(/\bbody\b/g, ':scope')
-        })
+        const rewritten = rule.selectors.map((selector) =>
+          rewriteSelector(selector, { themeAttr }),
+        )
         rule.selectors = rewritten
         // body→:scope would otherwise force a permanent scrollbar on the showcase
         const onlyScope = rewritten.every((s) => {
@@ -59,7 +110,11 @@ function scopeWithAtScope(css, scopeSelector, keepGlobal) {
         })
         if (onlyScope) {
           rule.walkDecls((decl) => {
-            if (/^overflow(-[xy])?$/i.test(decl.prop) || decl.prop === 'min-width' || decl.prop === 'min-height') {
+            if (
+              /^overflow(-[xy])?$/i.test(decl.prop) ||
+              decl.prop === 'min-width' ||
+              decl.prop === 'min-height'
+            ) {
               decl.remove()
             }
           })
@@ -81,6 +136,7 @@ const jobs = [
     src: 'node_modules/bootstrap/dist/css/bootstrap.min.css',
     dest: 'src/showcases/bootstrap/bootstrap.scoped.css',
     scope: '.showcase-bootstrap',
+    themeAttr: 'data-bs-theme',
     keepGlobal: (s) =>
       s.includes('.modal-backdrop') ||
       s === 'body.modal-open' ||
@@ -90,11 +146,31 @@ const jobs = [
     src: 'node_modules/bulma/css/bulma.min.css',
     dest: 'src/showcases/bulma/bulma.scoped.css',
     scope: '.showcase-bulma',
+    themeAttr: 'data-theme',
   },
 ]
 
 for (const j of jobs) {
-  const out = scopeWithAtScope(fs.readFileSync(j.src, 'utf8'), j.scope, j.keepGlobal)
+  const out = scopeWithAtScope(
+    fs.readFileSync(j.src, 'utf8'),
+    j.scope,
+    j.keepGlobal,
+    j.themeAttr,
+  )
   fs.writeFileSync(j.dest, out)
   console.log('wrote', j.dest, `(${out.length} bytes)`)
+}
+
+// Sanity checks
+const bs = fs.readFileSync('src/showcases/bootstrap/bootstrap.scoped.css', 'utf8')
+const bu = fs.readFileSync('src/showcases/bulma/bulma.scoped.css', 'utf8')
+const checks = [
+  // Bootstrap keeps light/base on bare :scope (from :root); dark must hit root
+  ['bs base :scope tokens', /:scope[,{]/.test(bs) && bs.includes('--bs-body-bg')],
+  ['bs dark on scope root', bs.includes(':scope[data-bs-theme=dark]')],
+  ['bulma dark on scope root', bu.includes(':scope[data-theme=dark]')],
+  ['bulma no prefers-color-scheme', !bu.includes('prefers-color-scheme')],
+]
+for (const [name, ok] of checks) {
+  console.log(ok ? '✓' : '✗', name)
 }

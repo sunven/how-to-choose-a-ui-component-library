@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { App } from 'vue'
+import { useThemeMode } from '@/domain/useThemeMode'
 
-/** React host for PrimeVue Showcase island. */
+/** React host for PrimeVue Showcase island. Remounts when Theme Mode changes. */
 export function PrimeVueIsland() {
   const hostRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const mode = useThemeMode()
 
   useEffect(() => {
     const el = hostRef.current
@@ -29,11 +31,11 @@ export function PrimeVueIsland() {
       app?.unmount()
       el.replaceChildren()
     }
-  }, [])
+  }, [mode])
 
   if (error) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-red-600">
+      <div className="flex h-48 items-center justify-center text-sm text-red-600 dark:text-red-400">
         PrimeVue Showcase 加载失败：{error}
       </div>
     )

@@ -9,6 +9,7 @@ import {
   type UserFormErrors,
   type UserInput,
 } from '@/domain/user'
+import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 
 /**
@@ -17,6 +18,7 @@ import type { ShowcaseProps } from '../types'
  * with Bootstrap/Bulma global class names.
  */
 export function DaisyUiShowcase({ users }: ShowcaseProps) {
+  const mode = useThemeMode()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [form, setForm] = useState<UserInput>(emptyUserInput())
@@ -64,7 +66,7 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
     users.users.length > 0 && users.users.every((u) => users.selectedIds.includes(u.id))
 
   return (
-    <div className="showcase-daisyui space-y-4" data-theme="light">
+    <div className="showcase-daisyui space-y-4" data-theme={mode}>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <input

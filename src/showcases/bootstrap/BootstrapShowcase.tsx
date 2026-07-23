@@ -14,6 +14,7 @@ import {
   type UserFormErrors,
   type UserInput,
 } from '@/domain/user'
+import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 import { injectScopedShowcaseCss } from '../vanillaCss'
 
@@ -22,6 +23,7 @@ import { injectScopedShowcaseCss } from '../vanillaCss'
  * Modal uses official Bootstrap JS (init on mount, dispose on leave).
  */
 export function BootstrapShowcase({ users }: ShowcaseProps) {
+  const mode = useThemeMode()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [form, setForm] = useState<UserInput>(emptyUserInput())
@@ -103,7 +105,7 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
     users.users.length > 0 && users.users.every((u) => users.selectedIds.includes(u.id))
 
   return (
-    <div className="showcase-bootstrap">
+    <div className="showcase-bootstrap" data-bs-theme={mode}>
       <div className="d-flex flex-column flex-sm-row gap-3 align-items-sm-end justify-content-between mb-3">
         <div className="d-flex flex-column flex-sm-row flex-wrap gap-2">
           <input

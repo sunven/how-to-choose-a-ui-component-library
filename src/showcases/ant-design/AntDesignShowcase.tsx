@@ -13,6 +13,7 @@ import {
   Table,
   Tag,
   message,
+  theme,
 } from 'antd'
 import type { ColumnsType, TableProps } from 'antd/es/table'
 import zhCN from 'antd/locale/zh_CN'
@@ -28,11 +29,13 @@ import {
   type UserRole,
   type UserStatus,
 } from '@/domain/user'
+import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 
 dayjs.locale('zh-cn')
 
 export function AntDesignShowcase({ users }: ShowcaseProps) {
+  const mode = useThemeMode()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [form] = Form.useForm<UserInput>()
@@ -144,7 +147,12 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
   }
 
   return (
-    <ConfigProvider locale={zhCN}>
+    <ConfigProvider
+      locale={zhCN}
+      theme={{
+        algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
       <div className="space-y-4">
         <Space wrap className="w-full justify-between">
           <Space wrap>

@@ -13,7 +13,8 @@ export function mountPrimeVueShowcase(el: HTMLElement): App {
     theme: {
       preset: Aura,
       options: {
-        darkModeSelector: false,
+        // Follow html.dark from Theme Mode (PrimeVue official darkModeSelector)
+        darkModeSelector: 'html.dark',
       },
     },
     locale: zhCN['zh-CN'],

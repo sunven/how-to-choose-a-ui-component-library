@@ -41,14 +41,19 @@ import {
   type UserInput,
   type UserFormErrors,
 } from '@/domain/user'
+import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 
-const theme = createTheme({
-  palette: { mode: 'light' },
-  typography: { fontFamily: 'inherit' },
-})
-
 export function MuiShowcase({ users }: ShowcaseProps) {
+  const mode = useThemeMode()
+  const theme = useMemo(
+    () =>
+      createTheme({
+        palette: { mode },
+        typography: { fontFamily: 'inherit' },
+      }),
+    [mode],
+  )
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [form, setForm] = useState<UserInput>(emptyUserInput())

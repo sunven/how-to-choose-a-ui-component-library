@@ -5,13 +5,23 @@ import * as directives from 'vuetify/directives'
 import { zhHans } from 'vuetify/locale'
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
+import { themeModeStore } from '@/domain/themeMode'
 import VuetifyShowcase from './VuetifyShowcase.vue'
 
 export function mountVuetifyShowcase(el: HTMLElement): App {
+  // Host for scoped Vuetify utilities (see vite.config scopeVuetifyCss)
+  el.classList.add('vuetify-island')
+  const mode = themeModeStore.getSnapshot()
   const vuetify = createVuetify({
     components,
     directives,
-    theme: { defaultTheme: 'light' },
+    theme: {
+      defaultTheme: mode,
+      themes: {
+        light: { dark: false },
+        dark: { dark: true },
+      },
+    },
     locale: {
       locale: 'zhHans',
       messages: { zhHans },

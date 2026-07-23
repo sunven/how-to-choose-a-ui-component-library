@@ -161,7 +161,7 @@ function LibraryPageBody({
       <section className="ui-chooser-showcase-panel">
         <Suspense
           fallback={
-            <div className="flex h-48 items-center justify-center text-sm text-slate-500">
+            <div className="flex h-48 items-center justify-center text-sm text-slate-500 dark:text-slate-400">
               加载 {library.name} Showcase…
             </div>
           }

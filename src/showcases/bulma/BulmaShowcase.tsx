@@ -13,6 +13,7 @@ import {
   type UserFormErrors,
   type UserInput,
 } from '@/domain/user'
+import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 import { injectScopedShowcaseCss } from '../vanillaCss'
 
@@ -21,6 +22,7 @@ import { injectScopedShowcaseCss } from '../vanillaCss'
  * Pure CSS library — Modal via class + native toggle (no official JS).
  */
 export function BulmaShowcase({ users }: ShowcaseProps) {
+  const mode = useThemeMode()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [form, setForm] = useState<UserInput>(emptyUserInput())
@@ -70,7 +72,7 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
     users.users.length > 0 && users.users.every((u) => users.selectedIds.includes(u.id))
 
   return (
-    <div className="showcase-bulma">
+    <div className="showcase-bulma" data-theme={mode}>
       <div className="level is-mobile mb-4" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
         <div className="level-left" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
           <div className="level-item">

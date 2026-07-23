@@ -29,6 +29,7 @@ import {
   type UserRole,
   type UserStatus,
 } from '@/domain/user'
+import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 
 dayjs.locale('zh-cn')
@@ -36,6 +37,8 @@ dayjs.locale('zh-cn')
 const FormItem = Form.Item
 
 export function ArcoDesignShowcase({ users }: ShowcaseProps) {
+  // body[arco-theme] is applied by themeModeStore; mode keeps ConfigProvider in sync if needed
+  useThemeMode()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<User | null>(null)
   const [form] = Form.useForm<UserInput>()

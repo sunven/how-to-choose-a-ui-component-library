@@ -4,6 +4,8 @@ import zhCN from '@arco-design/web-vue/es/locale/lang/zh-cn'
 import '@arco-design/web-vue/dist/arco.css'
 import ArcoDesignVueShowcase from './ArcoDesignVueShowcase.vue'
 
+// Dark: body[arco-theme=dark] set by themeModeStore (Arco official)
+
 const Root = defineComponent({
   name: 'ArcoDesignVueShowcaseRoot',
   setup() {

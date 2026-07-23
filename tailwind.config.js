@@ -3,6 +3,7 @@ import daisyui from 'daisyui'
 
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   // Scan flowbite-vue source so utility classes on FwbButton etc. are generated
   // (primary button uses text-white bg-blue-700 — missing CSS made it look "empty").
   content: [
@@ -63,8 +64,9 @@ export default {
   // Bootstrap & Bulma on the same global sheet and corrupt Vanilla showcases.
   daisyui: {
     prefix: 'dy-',
-    themes: ['light'],
-    darkTheme: false,
+    // Official light + dark presets; Showcase sets data-theme from Theme Mode.
+    themes: ['light', 'dark'],
+    darkTheme: 'dark',
     base: false,
     styled: true,
     utils: true,

@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { App } from 'vue'
+import { useThemeMode } from '@/domain/useThemeMode'
 
-/** React host for Vuetify Vue Showcase island. */
+/** React host for Vuetify Showcase island. Remounts when Theme Mode changes. */
 export function VuetifyIsland() {
   const hostRef = useRef<HTMLDivElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const mode = useThemeMode()
 
   useEffect(() => {
     const el = hostRef.current
@@ -29,11 +31,11 @@ export function VuetifyIsland() {
       app?.unmount()
       el.replaceChildren()
     }
-  }, [])
+  }, [mode])
 
   if (error) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-red-600">
+      <div className="flex h-48 items-center justify-center text-sm text-red-600 dark:text-red-400">
         Vuetify Showcase 加载失败：{error}
       </div>
     )

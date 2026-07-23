@@ -10,6 +10,11 @@
  * Class-name isolation vs daisyUI: daisyUI uses prefix `dy-` so it no longer
  * owns global `.btn`/`.select`/`.table`/`.modal`/`.input`.
  * Regenerate sheets: `node scripts/scope-vanilla-css.mjs`
+ *
+ * Theme Mode: Showcase roots set `data-bs-theme` / `data-theme` from the global
+ * Mode. The scope script pins dark selectors to `:scope[attr=dark]` so tokens
+ * apply on the root (not only descendants), and strips Bulma
+ * `prefers-color-scheme` so OS preference cannot override explicit Mode.
  */
 import type { LibraryId } from '@/domain/libraries'
 

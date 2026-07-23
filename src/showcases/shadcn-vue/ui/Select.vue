@@ -49,7 +49,7 @@ defineEmits<{ 'update:modelValue': [value: string] }>()
     </SelectTrigger>
     <SelectPortal>
       <SelectContent
-        class="showcase-shadcn-vue relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border bg-white text-popover-foreground shadow-md"
+        class="showcase-shadcn-vue relative z-50 max-h-96 min-w-[8rem] overflow-hidden rounded-md border border-border bg-background text-foreground shadow-md"
         position="popper"
         :side-offset="4"
       >
