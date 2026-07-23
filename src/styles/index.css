@@ -40,8 +40,9 @@ body {
   color: hsl(var(--foreground));
 }
 
-/* Scope shadcn tokens so shell and showcase can share Tailwind safely */
-.showcase-shadcn {
+/* Scope shadcn / shadcn-vue tokens so shell and showcase can share Tailwind safely */
+.showcase-shadcn,
+.showcase-shadcn-vue {
   --background: 0 0% 100%;
   --foreground: 240 10% 3.9%;
   --card: 0 0% 100%;

@@ -56,7 +56,7 @@ _Avoid_: 暗色主题; 跟随系统; 每库文档默认主题不一致（非 v1�
 _Avoid_: 纯死展示按钮; localStorage/后端持久化; 每库或每框架各一份互不同步的业务数据; 把 UI 瞬态强行做成全局共享
 
 **Library Route** (组件库路由):
-当前 Framework 与 Candidate Library 同步到 URL path：`/libs/:framework/:libraryId`（如 `/libs/react/mui`、`/libs/react/arco-design`、`/libs/vue/element-plus`、`/libs/vue/naive-ui`），可分享、刷新保持。站点默认 `/libs/react/ant-design`；`/libs/react`、`/libs/vue` 回落到该框架默认库（React→ant-design，Vue→element-plus）；无效组合回退到默认。v1 旧路径 `/libs/:libraryId` 按该 id 所属框架重定向到 `/libs/:framework/:libraryId`。扩展库 id 固定 kebab-case（如 `arco-design`、`semi-design`、`mantine`、`naive-ui`、`ant-design-vue`、`arco-design-vue`）。跨框架切换时的「会话内上次库」是导航辅助，不写入 URL 以外的持久化。
+当前 Framework 与 Candidate Library 同步到 URL path：`/libs/:framework/:libraryId`（如 `/libs/react/mui`、`/libs/vue/element-plus`、`/libs/vue/vuetify`），可分享、刷新保持。站点默认 `/libs/react/ant-design`；`/libs/react`、`/libs/vue` 回落到该框架默认库（React→ant-design，Vue→element-plus）；无效组合回退到默认。v1 旧路径 `/libs/:libraryId` 按该 id 所属框架重定向到 `/libs/:framework/:libraryId`。扩展库 id 固定 kebab-case（如 `arco-design`、`naive-ui`、`ant-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`）。跨框架切换时的「会话内上次库」是导航辅助，不写入 URL 以外的持久化。
 _Avoid_: 仅内存 state 不进 URL; framework 只放 query; 扁平混排 id 却假装有框架维度; 强制先选手动空态; localStorage 持久化上次选择（非必要）; 用 npm scope 包名当 path; 为同一库维护多个别名 id
 
 **User** (用户):
@@ -67,7 +67,7 @@ _Avoid_: 头像上传、部门树、权限矩阵、导入导出
 已交付：可切换的三库（React）用户管理观感对比台：中立外壳、Form/Table Showcase、内存 CRUD、Library Profile、URL 同步。v1 本身不做并排对比、推荐引擎、多框架真机、暗色、i18n、后端、全站 iframe/微前端、专业 a11y/bundle 实验室、专门移动端适配。
 
 **Multi-framework Expansion** (多框架扩展范围):
-已交付的基建：Framework-first 双级切换、Supported Framework = React + Vue、React Shell + Vue Island、共享 Showcase Data、URL `/libs/:framework/:libraryId`。历史上首批 Vue 真机仅为 Element Plus；更多 Vue 候选见 **Vue Candidate Expansion**。仍不做：并排对比、推荐引擎、暗色、完整 i18n、后端、iframe/微前端框架、a11y/bundle 实验室、外壳改 Vue、专门移动端适配。
+已交付的基建：Framework-first 双级切换、Supported Framework = React + Vue、React Shell + Vue Island、共享 Showcase Data、URL `/libs/:framework/:libraryId`。Vue 候选批次见 **Vue Candidate Expansion** 与 **Vue ui-libs Candidate Expansion**。仍不做：并排对比、推荐引擎、暗色、完整 i18n、后端、iframe/微前端框架、a11y/bundle 实验室、外壳改 Vue、专门移动端适配。
 _Avoid_: 把站点做成跨框架百科；未决议的第三框架真机
 
 **Framework** (框架):
@@ -88,16 +88,20 @@ _Avoid_: 并排对比, side-by-side, 双栏模式；跨框架扁平混排；单�
 
 
 **Candidate Library** (候选组件库):
-某一 Framework 下用于 Showcase 的组件库集合。React：`ant-design`、`mui`、`shadcn`、`arco-design`、`semi-design`、`mantine`。Vue：`element-plus`、`naive-ui`、`ant-design-vue`、`arco-design-vue`（企业中后台、现代 TS、Ant Design 设计语言 Vue 实现、国产中后台 Vue 实现）。Ant Design（React）与 Ant Design Vue 为两个 Candidate Library，不合并。架构上按可扩展注册；每框架清单单独决议，不按「知名度」无限扩容。
-_Avoid_: 全量组件库目录；把不同 Framework 的库当成同一候选集；把 Ant Design 与 Ant Design Vue 当成同一 Candidate Library；本批塞入未决议库
+某一 Framework 下用于 Showcase 的组件库集合。React：`ant-design`、`mui`、`shadcn`、`arco-design`、`semi-design`、`mantine`。Vue（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`element-plus`、`naive-ui`、`ant-design-vue`、`arco-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`。Ant Design（React）与 Ant Design Vue 为两个 Candidate Library；React `shadcn` 与 Vue `shadcn-vue` 亦为两个，不合并。架构上按可扩展注册；每框架清单单独决议，不按「知名度」或外部目录无限扩容。
+_Avoid_: 全量组件库目录；把不同 Framework 的库当成同一候选集；把 Ant Design 与 Ant Design Vue、shadcn 与 shadcn-vue 当成同一 Candidate Library；本批塞入未决议库
 
 **React Candidate Expansion** (React 候选扩展):
 在已有 React 三库之上，新增 Arco Design、Semi Design、Mantine 三个 React Candidate Library 的真机 Showcase 与 Library Profile。场景全对齐；React Switcher 顺序：Ant Design → MUI → shadcn/ui → Arco Design → Semi Design → Mantine；默认库仍为 Ant Design。
 _Avoid_: 借扩展之名加新框架；用档案页代替真机 Showcase；把默认库换成新库以「推广」某候选
 
 **Vue Candidate Expansion** (Vue 候选扩展):
-在 Element Plus 之上，新增 Naive UI（`naive-ui`）、Ant Design Vue（`ant-design-vue`）、Arco Design Vue（`arco-design-vue`）三个 Vue Candidate Library。均以 Vue Island 挂载；Showcase Scenario / Form / Table / Form Chrome / Showcase Data / User **全对齐**；Vue 默认库仍为 Element Plus；Switcher 顺序：Element Plus → Naive UI → Ant Design Vue → Arco Design Vue。样式隔离默认 L1；中文业务层 + 官方 locale（C1）。不做更多未决议 Vue 库、并排对比、推荐引擎、外壳 Vue 化。
+在 Element Plus 之上，首批 Vue 扩展新增 Naive UI（`naive-ui`）、Ant Design Vue（`ant-design-vue`）、Arco Design Vue（`arco-design-vue`）。均以 Vue Island 挂载；Showcase Scenario / Form / Table / Form Chrome / Showcase Data / User **全对齐**；Vue 默认库仍为 Element Plus。后续批次见 **Vue ui-libs Candidate Expansion**。
 _Avoid_: Vue 库缩水场景；把 Ant Design Vue 与 React Ant Design 合成一项；一次收尽所有 Vue 生态库
+
+**Vue ui-libs Candidate Expansion** (Vue ui-libs 候选扩展):
+以 [UI Lib Picker](https://ui-libs.vercel.app/) 为 **候选来源**（非产品形态对齐、非整表搬迁），在已有 Vue 四库之上串行新增五个真机 Candidate Library：`vuetify` → `primevue` → `shadcn-vue` → `vuestic-ui` → `flowbite-vue`。每库 Form/Table/Modal/Profile/共享 Showcase Data **全对齐** 后才注册进 Switcher/路由；Vue 默认库仍为 Element Plus；Switcher 在既有四库之后按上序追加。`shadcn-vue` 与 React `shadcn` 同口径：复制场景所需组件源码进仓库（非传统 npm 全家桶）。样式隔离默认 L1（污染再按库加强，不上默认 iframe）。界面语言 C1（业务中文 + 有则官方 locale）。各库官方默认观感所需最小 icon/font 按库引入（K1），不统一跨库图标。本批明确排除（ui-libs 差额内）：Reka UI、Ark UI、Daisy UI、Nuxt UI、Quasar、Volt UI。已重叠的 Element Plus / Naive UI / Ant Design Vue 不重做。
+_Avoid_: 把本站改成特性/组件清单筛选站；整表搬迁 ui-libs；headless/CSS 插件/Nuxt 强绑/Quasar 框架级方案混入本批；占位或缩水场景；半成品进 Switcher；默认 iframe；改默认库以推广新候选
 
 **Showcase Scenario** (展示场景):
 唯一业务场景为「用户管理」：表格为主展示用户列表；通过 Modal 打开表单进行新建/编辑。全部 Candidate Library 共用同一字段、列、校验语义与文案；任一库不得降级场景。

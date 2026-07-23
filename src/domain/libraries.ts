@@ -11,8 +11,22 @@ export type LibraryId =
   | 'naive-ui'
   | 'ant-design-vue'
   | 'arco-design-vue'
+  | 'vuetify'
+  | 'primevue'
+  | 'shadcn-vue'
+  | 'vuestic-ui'
+  | 'flowbite-vue'
 
-export type VueLibraryId = 'element-plus' | 'naive-ui' | 'ant-design-vue' | 'arco-design-vue'
+export type VueLibraryId =
+  | 'element-plus'
+  | 'naive-ui'
+  | 'ant-design-vue'
+  | 'arco-design-vue'
+  | 'vuetify'
+  | 'primevue'
+  | 'shadcn-vue'
+  | 'vuestic-ui'
+  | 'flowbite-vue'
 export type ReactLibraryId = Exclude<LibraryId, VueLibraryId>
 
 export interface FrameworkMeta {
@@ -208,6 +222,86 @@ export const LIBRARIES: LibraryProfile[] = [
     typescript: '一等支持',
     styling: 'Less / CSS 变量（可主题定制）',
     tagline: '国产中后台另一套完整默认观感的 Vue 实现。',
+  },
+  {
+    id: 'vuetify',
+    framework: 'vue',
+    name: 'Vuetify',
+    frameworks: 'Vue 3',
+    starsSnapshot: 41000,
+    license: 'MIT',
+    homepage: 'https://vuetifyjs.com',
+    docs: 'https://vuetifyjs.com/en/getting-started/installation/',
+    githubRepo: 'vuetifyjs/vuetify',
+    activity: 'Vue 生态 Material Design 长期维护方案，组件与布局体系完整',
+    bundleSize: '全量偏大，可按需/树摇引入',
+    typescript: '一等支持',
+    styling: 'SASS / CSS 变量 + Material 主题',
+    tagline: 'Material Design 风格的 Vue 组件库，国际与中后台项目常见。',
+  },
+  {
+    id: 'primevue',
+    framework: 'vue',
+    name: 'PrimeVue',
+    frameworks: 'Vue 3',
+    starsSnapshot: 14500,
+    license: 'MIT',
+    homepage: 'https://primevue.org',
+    docs: 'https://primevue.org/installation/',
+    githubRepo: 'primefaces/primevue',
+    activity: 'PrimeTek Vue 组件库，组件面宽、主题体系完整',
+    bundleSize: '按组件引入可控，全量偏大',
+    typescript: '一等支持',
+    styling: '主题预设（Aura 等）/ 可 unstyled',
+    tagline: '组件面完整的 Vue 企业级方案，默认主题观感鲜明。',
+  },
+  {
+    id: 'shadcn-vue',
+    framework: 'vue',
+    name: 'shadcn-vue',
+    frameworks: 'Vue 3',
+    starsSnapshot: 8000,
+    license: 'MIT',
+    homepage: 'https://www.shadcn-vue.com',
+    docs: 'https://www.shadcn-vue.com/docs/introduction',
+    githubRepo: 'unovue/shadcn-vue',
+    activity: '基于 Reka UI 的复制源码组件集，社区增长快',
+    bundleSize: '取决于你复制了哪些组件（无统一 runtime 包体积）',
+    typescript: '一等支持',
+    styling: 'Tailwind CSS + Reka UI 原语',
+    tagline: 'Vue 侧 shadcn 路线：可拥有、可改的组件源码，非传统 npm 全家桶。',
+  },
+  {
+    id: 'vuestic-ui',
+    framework: 'vue',
+    name: 'Vuestic UI',
+    frameworks: 'Vue 3',
+    starsSnapshot: 3700,
+    license: 'MIT',
+    homepage: 'https://ui.vuestic.dev',
+    docs: 'https://ui.vuestic.dev/getting-started/installation',
+    githubRepo: 'epicmaxco/vuestic-ui',
+    activity: 'Epicmax 维护的 Vue 组件库，中后台场景组件面完整',
+    bundleSize: '全量中等偏大，可按需引入',
+    typescript: '一等支持',
+    styling: 'CSS 变量主题系统',
+    tagline: '现代 Vue 中后台组件库，默认观感完整、文档友好。',
+  },
+  {
+    id: 'flowbite-vue',
+    framework: 'vue',
+    name: 'Flowbite Vue',
+    frameworks: 'Vue 3',
+    starsSnapshot: 950,
+    license: 'MIT',
+    homepage: 'https://flowbite-vue.com',
+    docs: 'https://flowbite-vue.com/pages/getting-started',
+    githubRepo: 'themesberg/flowbite-vue',
+    activity: 'Flowbite 的 Vue 实现，Tailwind 组件风格',
+    bundleSize: '按组件引入，依赖 Tailwind 工具类',
+    typescript: '一等支持',
+    styling: 'Tailwind CSS（Flowbite 主题）',
+    tagline: 'Tailwind 路线的 Vue 组件库，默认观感偏产品站/后台通用。',
   },
 ]
 

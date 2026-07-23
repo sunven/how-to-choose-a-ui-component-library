@@ -1,6 +1,15 @@
+import flowbite from 'flowbite/plugin'
+
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  // Scan flowbite-vue source so utility classes on FwbButton etc. are generated
+  // (primary button uses text-white bg-blue-700 — missing CSS made it look "empty").
+  content: [
+    './index.html',
+    './src/**/*.{js,ts,jsx,tsx,vue}',
+    './node_modules/flowbite-vue/**/*.{js,jsx,ts,tsx,vue}',
+    './node_modules/flowbite/**/*.{js,jsx,ts,tsx}',
+  ],
   theme: {
     extend: {
       colors: {
@@ -41,7 +50,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [flowbite],
   // Avoid nuking Ant Design / MUI baselines more than necessary on body.
   // Shell + shadcn still get utilities; preflight is kept for a clean shell.
   corePlugins: {

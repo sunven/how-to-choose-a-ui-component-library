@@ -58,6 +58,23 @@ const ArcoDesignVueIsland = lazy(() =>
     default: m.ArcoDesignVueIsland,
   })),
 )
+const VuetifyIsland = lazy(() =>
+  import('@/showcases/vuetify/VuetifyIsland').then((m) => ({ default: m.VuetifyIsland })),
+)
+const PrimeVueIsland = lazy(() =>
+  import('@/showcases/primevue/PrimeVueIsland').then((m) => ({ default: m.PrimeVueIsland })),
+)
+const ShadcnVueIsland = lazy(() =>
+  import('@/showcases/shadcn-vue/ShadcnVueIsland').then((m) => ({ default: m.ShadcnVueIsland })),
+)
+const VuesticIsland = lazy(() =>
+  import('@/showcases/vuestic-ui/VuesticIsland').then((m) => ({ default: m.VuesticIsland })),
+)
+const FlowbiteVueIsland = lazy(() =>
+  import('@/showcases/flowbite-vue/FlowbiteVueIsland').then((m) => ({
+    default: m.FlowbiteVueIsland,
+  })),
+)
 
 const REACT_SHOWCASES: Record<ReactLibraryId, ComponentType<ShowcaseProps>> = {
   'ant-design': AntDesignShowcase,
@@ -73,6 +90,11 @@ const VUE_ISLANDS: Record<VueLibraryId, ComponentType> = {
   'naive-ui': NaiveUiIsland,
   'ant-design-vue': AntDesignVueIsland,
   'arco-design-vue': ArcoDesignVueIsland,
+  vuetify: VuetifyIsland,
+  primevue: PrimeVueIsland,
+  'shadcn-vue': ShadcnVueIsland,
+  'vuestic-ui': VuesticIsland,
+  'flowbite-vue': FlowbiteVueIsland,
 }
 
 export function LibraryPage() {

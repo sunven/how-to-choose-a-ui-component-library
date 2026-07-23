@@ -1,7 +1,9 @@
 export default {
   plugins: {
     'postcss-preset-mantine': {},
+    // silent: ignore non-Mantine $vars (e.g. Vuetify CSS) so they are not treated as simple-vars
     'postcss-simple-vars': {
+      silent: true,
       variables: {
         'mantine-breakpoint-xs': '36em',
         'mantine-breakpoint-sm': '48em',
