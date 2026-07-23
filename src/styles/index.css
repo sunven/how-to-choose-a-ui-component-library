@@ -40,6 +40,19 @@ body {
   color: hsl(var(--foreground));
 }
 
+/* daisyUI: theme applied via data-theme on .showcase-daisyui (S4/S1 root scope) */
+/*
+ * Flowbite's Tailwind plugin injects form base styles on bare `select`/`input`
+ * (padding-top/bottom: 0.5rem). daisyUI .select-sm / .input-sm fix height to 2rem
+ * but do not zero vertical padding, so Chinese labels clip into unreadable glyphs.
+ * Scope the undo to the showcase root so shell / flowbite-vue keep their base.
+ */
+.showcase-daisyui .select,
+.showcase-daisyui .input {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
 /* Scope shadcn / shadcn-vue tokens so shell and showcase can share Tailwind safely */
 .showcase-shadcn,
 .showcase-shadcn-vue {

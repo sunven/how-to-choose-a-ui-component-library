@@ -1,4 +1,5 @@
 import flowbite from 'flowbite/plugin'
+import daisyui from 'daisyui'
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -50,10 +51,20 @@ export default {
       },
     },
   },
-  plugins: [flowbite],
+  plugins: [flowbite, daisyui],
   // Avoid nuking Ant Design / MUI baselines more than necessary on body.
   // Shell + shadcn still get utilities; preflight is kept for a clean shell.
   corePlugins: {
     preflight: true,
+  },
+  // S4/S1: daisyUI in shared Tailwind pipeline; base:false reduces body-level
+  // pollution so the neutral shell is less likely to pick up daisy chrome.
+  daisyui: {
+    themes: ['light'],
+    darkTheme: false,
+    base: false,
+    styled: true,
+    utils: true,
+    logs: false,
   },
 }

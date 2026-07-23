@@ -2,6 +2,7 @@ import { lazy, Suspense, type ComponentType, useEffect } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import {
   defaultPath,
+  getFramework,
   getLibrary,
   isFrameworkId,
   isLibraryId,
@@ -9,6 +10,7 @@ import {
   resolveRouteLibrary,
   type LibraryId,
   type ReactLibraryId,
+  type VanillaLibraryId,
   type VueLibraryId,
 } from '@/domain/libraries'
 import { rememberLibrary } from '@/domain/frameworkMemory'
@@ -76,6 +78,9 @@ const FlowbiteVueIsland = lazy(() =>
     default: m.FlowbiteVueIsland,
   })),
 )
+const DaisyUiShowcase = lazy(() =>
+  import('@/showcases/daisyui/DaisyUiShowcase').then((m) => ({ default: m.DaisyUiShowcase })),
+)
 
 const REACT_SHOWCASES: Record<ReactLibraryId, ComponentType<ShowcaseProps>> = {
   'ant-design': AntDesignShowcase,
@@ -96,6 +101,10 @@ const VUE_ISLANDS: Record<VueLibraryId, ComponentType> = {
   'shadcn-vue': ShadcnVueIsland,
   'vuestic-ui': VuesticIsland,
   'flowbite-vue': FlowbiteVueIsland,
+}
+
+const VANILLA_SHOWCASES: Record<VanillaLibraryId, ComponentType<ShowcaseProps>> = {
+  daisyui: DaisyUiShowcase,
 }
 
 export function LibraryPage() {
@@ -130,7 +139,9 @@ function LibraryPageBody({
     rememberLibrary(library.framework, library.id)
   }, [library.framework, library.id])
 
+  const frameworkName = getFramework(library.framework).name
   const isVue = library.framework === 'vue'
+  const isVanilla = library.framework === 'vanilla'
   const VueIsland = isVue ? VUE_ISLANDS[libraryId as VueLibraryId] : null
 
   return (
@@ -141,10 +152,7 @@ function LibraryPageBody({
             <h2 className="text-base font-semibold text-slate-900">用户管理 · Showcase</h2>
             <p className="text-sm text-slate-500">
               当前实现：{library.name}
-              <span className="text-slate-400">
-                {' '}
-                · {library.framework === 'react' ? 'React' : 'Vue'}
-              </span>
+              <span className="text-slate-400"> · {frameworkName}</span>
             </p>
           </div>
         </div>
@@ -155,7 +163,13 @@ function LibraryPageBody({
             </div>
           }
         >
-          {VueIsland ? <VueIsland /> : <ReactShowcase libraryId={libraryId} users={users} />}
+          {VueIsland ? (
+            <VueIsland />
+          ) : isVanilla ? (
+            <VanillaShowcase libraryId={libraryId} users={users} />
+          ) : (
+            <ReactShowcase libraryId={libraryId} users={users} />
+          )}
         </Suspense>
       </section>
       <LibraryProfileCard library={library} />
@@ -172,6 +186,18 @@ function ReactShowcase({
 }) {
   if (getLibrary(libraryId).framework !== 'react') return null
   const Showcase = REACT_SHOWCASES[libraryId as ReactLibraryId]
+  return <Showcase users={users} />
+}
+
+function VanillaShowcase({
+  libraryId,
+  users,
+}: {
+  libraryId: LibraryId
+  users: ReturnType<typeof useUsers>
+}) {
+  if (getLibrary(libraryId).framework !== 'vanilla') return null
+  const Showcase = VANILLA_SHOWCASES[libraryId as VanillaLibraryId]
   return <Showcase users={users} />
 }
 

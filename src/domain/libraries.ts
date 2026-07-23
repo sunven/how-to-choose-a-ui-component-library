@@ -1,4 +1,4 @@
-export type FrameworkId = 'react' | 'vue'
+export type FrameworkId = 'react' | 'vue' | 'vanilla'
 
 export type LibraryId =
   | 'ant-design'
@@ -16,6 +16,7 @@ export type LibraryId =
   | 'shadcn-vue'
   | 'vuestic-ui'
   | 'flowbite-vue'
+  | 'daisyui'
 
 export type VueLibraryId =
   | 'element-plus'
@@ -27,7 +28,10 @@ export type VueLibraryId =
   | 'shadcn-vue'
   | 'vuestic-ui'
   | 'flowbite-vue'
-export type ReactLibraryId = Exclude<LibraryId, VueLibraryId>
+
+export type VanillaLibraryId = 'daisyui'
+
+export type ReactLibraryId = Exclude<LibraryId, VueLibraryId | VanillaLibraryId>
 
 export interface FrameworkMeta {
   id: FrameworkId
@@ -57,6 +61,7 @@ export interface LibraryProfile {
 export const FRAMEWORKS: FrameworkMeta[] = [
   { id: 'react', name: 'React', defaultLibraryId: 'ant-design' },
   { id: 'vue', name: 'Vue', defaultLibraryId: 'element-plus' },
+  { id: 'vanilla', name: 'Vanilla', defaultLibraryId: 'daisyui' },
 ]
 
 export const DEFAULT_FRAMEWORK_ID: FrameworkId = 'react'
@@ -302,6 +307,22 @@ export const LIBRARIES: LibraryProfile[] = [
     typescript: '一等支持',
     styling: 'Tailwind CSS（Flowbite 主题）',
     tagline: 'Tailwind 路线的 Vue 组件库，默认观感偏产品站/后台通用。',
+  },
+  {
+    id: 'daisyui',
+    framework: 'vanilla',
+    name: 'daisyUI',
+    frameworks: 'HTML/CSS（可嵌入 React / Vue / 任意框架）',
+    starsSnapshot: 37000,
+    license: 'MIT',
+    homepage: 'https://daisyui.com',
+    docs: 'https://daisyui.com/docs/install/',
+    githubRepo: 'saadeghi/daisyui',
+    activity: 'Tailwind 语义化 class 组件层，社区活跃、主题丰富',
+    bundleSize: '随 Tailwind 构建；无独立 React/Vue 运行时包',
+    typescript: '不适用（CSS class 体系；TS 由宿主项目决定）',
+    styling: 'Tailwind CSS 插件 + 语义组件 class（btn / table / modal 等）',
+    tagline: '与框架无关的 CSS 向组件库：有默认观感，不绑 React/Vue 组件包。',
   },
 ]
 
