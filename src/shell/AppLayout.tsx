@@ -43,10 +43,6 @@ export function AppLayout() {
             <h1 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl">
               同一业务形态，切换组件库看表单与表格
             </h1>
-            <p className="mt-1 max-w-3xl text-sm text-slate-600">
-              先选框架（React / Vue），再切换该框架下的组件库。以「用户管理」为场景：表格列表 +
-              Modal 表单；切换只换实现，不换业务语义。右侧为 Library Profile。
-            </p>
           </div>
           <div className="flex flex-col gap-3">
             <div>

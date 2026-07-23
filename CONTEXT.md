@@ -32,8 +32,8 @@ _Avoid_: 详情页, about；百科式长文档案（非 v1）；因 Profile 失�
 _Avoid_: 用 Ant Design/MUI/shadcn 组件搭外壳；切换库时连外壳一起换皮
 
 **Style Isolation** (样式隔离):
-同一时间只挂载当前候选库的 Showcase（React 子树或 Vue Island 二选一）；各库样式按库分入口引入；离开当前库时卸载对应子树/应用并尽量移除其运行时副作用（含 teleport/popup）。shadcn 等与外壳共享 Tailwind 的区域需 root scope。不承诺零泄漏；不做全站 iframe 沙箱。React Candidate Expansion 默认沿用同一档（懒加载 + 单挂载）；Arco/Semi 等全局 CSS 库若切换后明显污染外壳或其它库，再对该库做「离开时移除本库注入样式」的加强，不先上 iframe。
-_Avoid_: 多库同时挂载; 全站 iframe; 为隔离上完整微前端框架; 本批为新库默认上 iframe
+同一时间只挂载当前候选库的 Showcase（React 子树或 Vue Island 二选一）；各库样式按库分入口引入；离开当前库时卸载对应子树/应用，并由 `useLibraryStyleIsolation` 缓存并移除本会话注入的**静态 / Vite 全局样式表**（CSS-in-JS 运行时表不拆，避免缓存错乱）。shadcn 等与外壳共享 Tailwind 的区域需 root scope。不承诺零泄漏；不做全站 iframe 沙箱。默认 L1（懒加载 + 单挂载 + 全局 CSS 生命周期）；某库仍明显污染时再对该库做前缀 / popup 容器或 Showcase 级 iframe 例外，不先上微前端。
+_Avoid_: 多库同时挂载; 全站 iframe; 为隔离上完整微前端框架; 本批为新库默认上 iframe; 拆除 Emotion/antd cssinjs 节点
 
 **Delivery Stack** (交付技术栈):
 单一 Vite 应用：React 外壳（React Router、TypeScript、pnpm）与 Vue Island 共存，构建启用 React + Vue 双插件。领域状态与注册表放在框架无关模块；各 Vue 候选 Showcase 源码与样式走各自异步入口，避免访问 React 库时下载 Vue 运行时与无关库样式。不改为 Next.js/SSR，不拆同域双主应用，不为 Vue 多库先上 workspace 多包。

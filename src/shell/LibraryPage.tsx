@@ -13,6 +13,7 @@ import {
 } from '@/domain/libraries'
 import { rememberLibrary } from '@/domain/frameworkMemory'
 import { useUsers } from '@/domain/useUsers'
+import { useLibraryStyleIsolation } from '@/showcases/styleIsolation'
 import type { ShowcaseProps } from '@/showcases/types'
 import { LibraryProfileCard } from './LibraryProfileCard'
 
@@ -121,6 +122,9 @@ function LibraryPageBody({
   users: ReturnType<typeof useUsers>
 }) {
   const library = getLibrary(libraryId)
+
+  // L1: track / unload global CSS injected while this library is active
+  useLibraryStyleIsolation(libraryId)
 
   useEffect(() => {
     rememberLibrary(library.framework, library.id)
