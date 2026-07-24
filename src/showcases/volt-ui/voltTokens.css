@@ -1,0 +1,145 @@
+/**
+ * Volt / PrimeVue design tokens (from volt.primevue.org defaults).
+ * Scoped under .volt-island so shell + shadcn hsl(--primary) stay intact when not on Volt.
+ *
+ * Important: keep the surface scale fixed (0=light … 950=dark). Volt components use
+ * Tailwind `dark:bg-surface-900` etc.; inverting the scale under html.dark makes
+ * dark: variants paint white and breaks Theme Mode.
+ * Dark Mode only remaps semantic tokens (primary-color, content-border, text, …)
+ * — same as official :root.p-dark.
+ */
+.volt-island {
+  --p-primary-50: #f5f3ff;
+  --p-primary-100: #ede9fe;
+  --p-primary-200: #ddd6fe;
+  --p-primary-300: #c4b5fd;
+  --p-primary-400: #a78bfa;
+  --p-primary-500: #8b5cf6;
+  --p-primary-600: #7c3aed;
+  --p-primary-700: #6d28d9;
+  --p-primary-800: #5b21b6;
+  --p-primary-900: #4c1d95;
+  --p-primary-950: #2e1065;
+  --p-primary-color: var(--p-primary-500);
+  --p-primary-contrast-color: var(--p-surface-0);
+  --p-primary-hover-color: var(--p-primary-600);
+  --p-primary-active-color: var(--p-primary-700);
+
+  --p-surface-0: #ffffff;
+  --p-surface-50: #fafafa;
+  --p-surface-100: #f4f4f5;
+  --p-surface-200: #e4e4e7;
+  --p-surface-300: #d4d4d8;
+  --p-surface-400: #a1a1aa;
+  --p-surface-500: #71717a;
+  --p-surface-600: #52525b;
+  --p-surface-700: #3f3f46;
+  --p-surface-800: #27272a;
+  --p-surface-900: #18181b;
+  --p-surface-950: #09090b;
+
+  --p-content-border-color: var(--p-surface-200);
+  --p-content-hover-background: var(--p-surface-100);
+  --p-content-hover-color: var(--p-surface-800);
+  --p-content-border-radius: 6px;
+  --p-highlight-background: var(--p-primary-50);
+  --p-highlight-color: var(--p-primary-700);
+  --p-highlight-focus-background: var(--p-primary-100);
+  --p-highlight-focus-color: var(--p-primary-800);
+  --p-text-color: var(--p-surface-700);
+  --p-text-hover-color: var(--p-surface-800);
+  --p-text-muted-color: var(--p-surface-500);
+  --p-text-hover-muted-color: var(--p-surface-600);
+
+  /* Map shadcn-style primary utilities to Volt purple while on this island */
+  --primary: 258 90% 66%;
+  --primary-foreground: 0 0% 100%;
+}
+
+/* Official semantic dark tokens only — do not invert surface-0…950 */
+html.dark .volt-island {
+  --p-primary-color: var(--p-primary-400);
+  --p-primary-contrast-color: var(--p-surface-900);
+  --p-primary-hover-color: var(--p-primary-300);
+  --p-primary-active-color: var(--p-primary-200);
+  --p-content-border-color: var(--p-surface-700);
+  --p-content-hover-background: var(--p-surface-800);
+  --p-content-hover-color: var(--p-surface-0);
+  --p-highlight-background: color-mix(in srgb, var(--p-primary-400) 16%, transparent);
+  --p-highlight-color: rgba(255, 255, 255, 0.87);
+  --p-highlight-focus-background: color-mix(in srgb, var(--p-primary-400) 24%, transparent);
+  --p-highlight-focus-color: rgba(255, 255, 255, 0.87);
+  --p-text-color: var(--p-surface-0);
+  --p-text-hover-color: var(--p-surface-0);
+  --p-text-muted-color: var(--p-surface-400);
+  --p-text-hover-muted-color: var(--p-surface-300);
+  --primary: 263 70% 70%;
+  --primary-foreground: 240 10% 4%;
+}
+
+/*
+ * Teleported overlays (Dialog / Select / DatePicker) may leave .volt-island.
+ * Mirror tokens on common PrimeVue portal roots when island is active is hard;
+ * Showcase sets appendTo on Dialog — Select/DatePicker still portal to body.
+ * Ensure surface utilities resolve on body portals under html.dark via :root
+ * fallbacks that match the fixed scale (no invert).
+ */
+:root {
+  --p-surface-0: #ffffff;
+  --p-surface-50: #fafafa;
+  --p-surface-100: #f4f4f5;
+  --p-surface-200: #e4e4e7;
+  --p-surface-300: #d4d4d8;
+  --p-surface-400: #a1a1aa;
+  --p-surface-500: #71717a;
+  --p-surface-600: #52525b;
+  --p-surface-700: #3f3f46;
+  --p-surface-800: #27272a;
+  --p-surface-900: #18181b;
+  --p-surface-950: #09090b;
+  --p-primary-50: #f5f3ff;
+  --p-primary-100: #ede9fe;
+  --p-primary-200: #ddd6fe;
+  --p-primary-300: #c4b5fd;
+  --p-primary-400: #a78bfa;
+  --p-primary-500: #8b5cf6;
+  --p-primary-600: #7c3aed;
+  --p-primary-700: #6d28d9;
+  --p-primary-800: #5b21b6;
+  --p-primary-900: #4c1d95;
+  --p-primary-950: #2e1065;
+  --p-primary-color: var(--p-primary-500);
+  --p-primary-contrast-color: #ffffff;
+  --p-primary-hover-color: var(--p-primary-600);
+  --p-primary-active-color: var(--p-primary-700);
+  --p-content-border-color: var(--p-surface-200);
+  --p-content-hover-background: var(--p-surface-100);
+  --p-content-hover-color: var(--p-surface-800);
+  --p-content-border-radius: 6px;
+  --p-highlight-background: var(--p-primary-50);
+  --p-highlight-color: var(--p-primary-700);
+  --p-highlight-focus-background: var(--p-primary-100);
+  --p-highlight-focus-color: var(--p-primary-800);
+  --p-text-color: var(--p-surface-700);
+  --p-text-hover-color: var(--p-surface-800);
+  --p-text-muted-color: var(--p-surface-500);
+  --p-text-hover-muted-color: var(--p-surface-600);
+}
+
+html.dark {
+  --p-primary-color: var(--p-primary-400);
+  --p-primary-contrast-color: var(--p-surface-900);
+  --p-primary-hover-color: var(--p-primary-300);
+  --p-primary-active-color: var(--p-primary-200);
+  --p-content-border-color: var(--p-surface-700);
+  --p-content-hover-background: var(--p-surface-800);
+  --p-content-hover-color: var(--p-surface-0);
+  --p-highlight-background: color-mix(in srgb, var(--p-primary-400) 16%, transparent);
+  --p-highlight-color: rgba(255, 255, 255, 0.87);
+  --p-highlight-focus-background: color-mix(in srgb, var(--p-primary-400) 24%, transparent);
+  --p-highlight-focus-color: rgba(255, 255, 255, 0.87);
+  --p-text-color: var(--p-surface-0);
+  --p-text-hover-color: var(--p-surface-0);
+  --p-text-muted-color: var(--p-surface-400);
+  --p-text-hover-muted-color: var(--p-surface-300);
+}

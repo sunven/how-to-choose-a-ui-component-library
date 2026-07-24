@@ -145,11 +145,81 @@ function scopeVuetifyCss(): Plugin {
   }
 }
 
+/**
+ * Quasar ships utility helpers (`.bg-white { background: #fff !important }`, flex
+ * helpers, etc.) that collide with Tailwind on the App Shell — same class of problem
+ * as Vuetify. Scope non-component selectors under `.quasar-island`; keep pure `.q-*`
+ * component rules global so teleported dialogs / notifications still style correctly.
+ */
+function scopeQuasarCss(): Plugin {
+  return {
+    name: 'scope-quasar-css',
+    enforce: 'pre',
+    async transform(code, id) {
+      const cleanId = id.split('?')[0].replace(/\\/g, '/')
+      if (
+        !cleanId.endsWith('/quasar/dist/quasar.css') &&
+        !cleanId.endsWith('/quasar/dist/quasar.prod.css')
+      ) {
+        return null
+      }
+
+      const result = await postcss([
+        prefixSelector({
+          prefix: '.quasar-island',
+          transform(_prefix, selector, prefixedSelector) {
+            const s = selector.trim()
+
+            if (
+              s === ':root' ||
+              s.startsWith(':root') ||
+              s === 'html' ||
+              s.startsWith('html.') ||
+              s.startsWith('html ') ||
+              s.startsWith('html,') ||
+              s === 'body' ||
+              s.startsWith('body.') ||
+              s.startsWith('body ') ||
+              s.startsWith('body,')
+            ) {
+              // Keep body.body--dark .q-* global (Dark plugin sets body class);
+              // only re-home bare html/body token roots to the island.
+              if (s.includes('.q-') || s.includes('body--')) {
+                return selector
+              }
+              return s
+                .replace(/:root\b/g, '.quasar-island')
+                .replace(/\bhtml\b/g, '.quasar-island')
+                .replace(/\bbody\b/g, '.quasar-island')
+            }
+
+            // Pure Quasar component / state selectors stay global (teleport)
+            if (s.includes('.q-') || s.includes('[class*="q-"]') || s.includes("[class*='q-']")) {
+              const nonQResidue = s
+                .replace(/\.q-[\w-]+/g, '')
+                .replace(/::?[\w-]+(\([^)]*\))?/g, '')
+                .replace(/\[[^\]]*]/g, '')
+                .replace(/#[\w-]+/g, '')
+                .replace(/[\s>+~.,*='"()]/g, '')
+                .trim()
+              if (!nonQResidue) return selector
+            }
+
+            return prefixedSelector
+          },
+        }),
+      ]).process(code, { from: cleanId })
+
+      return { code: result.css, map: null }
+    },
+  }
+}
+
 export default defineConfig({
   // Bootstrap/Bulma CSS is imported as ?raw and injected as scoped <style>
   // (see showcases/vanillaCss.ts) — never through this PostCSS/Tailwind pipeline,
   // which hung the build on those multi-hundred-KB stylesheets.
-  plugins: [scopeVuesticCss(), scopeVuetifyCss(), vue(), react()],
+  plugins: [scopeVuesticCss(), scopeVuetifyCss(), scopeQuasarCss(), vue(), react()],
   resolve: {
     alias: {
       '@': path.resolve(rootDir, 'src'),
@@ -157,6 +227,11 @@ export default defineConfig({
       '@douyinfe/semi-ui/dist/css/semi.min.css': path.resolve(
         rootDir,
         'node_modules/@douyinfe/semi-ui/dist/css/semi.min.css',
+      ),
+      // Quasar extras 2.x only exports the JS icon map; CSS/fonts live under exports/.
+      '@quasar/extras/material-icons/material-icons.css': path.resolve(
+        rootDir,
+        'node_modules/@quasar/extras/exports/material-icons/material-icons.css',
       ),
     },
   },

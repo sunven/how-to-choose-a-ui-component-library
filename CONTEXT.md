@@ -68,7 +68,7 @@ _Avoid_: 只接部分热门库就开开关; 把本站做成通用 dark-mode 演�
 _Avoid_: 纯死展示按钮; localStorage/后端持久化; 每库或每框架各一份互不同步的业务数据; 把 UI 瞬态强行做成全局共享
 
 **Library Route** (组件库路由):
-当前 Framework 与 Candidate Library 同步到 URL path：`/libs/:framework/:libraryId`（如 `/libs/react/mui`、`/libs/vue/element-plus`、`/libs/vue/vuetify`、`/libs/vanilla/daisyui`、`/libs/vanilla/bootstrap`），可分享、刷新保持。站点默认 `/libs/react/ant-design`；`/libs/react`、`/libs/vue`、`/libs/vanilla` 回落到该框架默认库（React→ant-design，Vue→element-plus；Vanilla→daisyui）；无效组合回退到默认。v1 旧路径 `/libs/:libraryId` 按该 id 所属框架重定向到 `/libs/:framework/:libraryId`。扩展库 id 固定 kebab-case（如 `arco-design`、`naive-ui`、`ant-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`、`daisyui`、`bootstrap`、`bulma`）。跨框架切换时的「会话内上次库」是导航辅助，不写入 URL 以外的持久化。
+当前 Framework 与 Candidate Library 同步到 URL path：`/libs/:framework/:libraryId`（如 `/libs/react/mui`、`/libs/vue/element-plus`、`/libs/vue/vuetify`、`/libs/vanilla/daisyui`、`/libs/vanilla/bootstrap`），可分享、刷新保持。站点默认 `/libs/react/ant-design`；`/libs/react`、`/libs/vue`、`/libs/vanilla` 回落到该框架默认库（React→ant-design，Vue→element-plus；Vanilla→daisyui）；无效组合回退到默认。v1 旧路径 `/libs/:libraryId` 按该 id 所属框架重定向到 `/libs/:framework/:libraryId`。扩展库 id 固定 kebab-case（如 `arco-design`、`naive-ui`、`ant-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`、`quasar`、`volt-ui`、`reka-ui`、`daisyui`、`bootstrap`、`bulma`）。跨框架切换时的「会话内上次库」是导航辅助，不写入 URL 以外的持久化。
 _Avoid_: 仅内存 state 不进 URL; framework 只放 query; 扁平混排 id 却假装有框架维度; 强制先选手动空态; localStorage 持久化上次选择（非必要）; 用 npm scope 包名当 path; 为同一库维护多个别名 id
 
 **User** (用户):
@@ -112,8 +112,8 @@ _Avoid_: 并排对比, side-by-side, 双栏模式；跨框架扁平混排；单�
 
 
 **Candidate Library** (候选组件库):
-某一 Framework 下用于 Showcase 的组件库集合。React：`ant-design`、`mui`、`shadcn`、`arco-design`、`semi-design`、`mantine`。Vue（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`element-plus`、`naive-ui`、`ant-design-vue`、`arco-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`。Vanilla（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`daisyui`、`bootstrap`、`bulma`。Ant Design（React）与 Ant Design Vue 为两个 Candidate Library；React `shadcn` 与 Vue `shadcn-vue` 亦为两个，不合并。架构上按可扩展注册；每框架清单单独决议，不按「知名度」或外部目录无限扩容。
-_Avoid_: 全量组件库目录；把不同 Framework 的库当成同一候选集；把 Ant Design 与 Ant Design Vue、shadcn 与 shadcn-vue 当成同一 Candidate Library；把 CSS-only 库挂进 react/vue；本批塞入未决议库
+某一 Framework 下用于 Showcase 的组件库集合。React：`ant-design`、`mui`、`shadcn`、`arco-design`、`semi-design`、`mantine`。Vue（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`element-plus`、`naive-ui`、`ant-design-vue`、`arco-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`、`quasar`、`volt-ui`、`reka-ui`。Vanilla（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`daisyui`、`bootstrap`、`bulma`。Ant Design（React）与 Ant Design Vue 为两个 Candidate Library；React `shadcn` 与 Vue `shadcn-vue` 亦为两个；`primevue` 与 `volt-ui` 亦为两个，不合并。架构上按可扩展注册；每框架清单单独决议，不按「知名度」或外部目录无限扩容。
+_Avoid_: 全量组件库目录；把不同 Framework 的库当成同一候选集；把 Ant Design 与 Ant Design Vue、shadcn 与 shadcn-vue、primevue 与 volt-ui 当成同一 Candidate Library；把 CSS-only 库挂进 react/vue；本批塞入未决议库
 
 **React Candidate Expansion** (React 候选扩展):
 在已有 React 三库之上，新增 Arco Design、Semi Design、Mantine 三个 React Candidate Library 的真机 Showcase 与 Library Profile。场景全对齐；React Switcher 顺序：Ant Design → MUI → shadcn/ui → Arco Design → Semi Design → Mantine；默认库仍为 Ant Design。
@@ -124,8 +124,16 @@ _Avoid_: 借扩展之名加新框架；用档案页代替真机 Showcase；把�
 _Avoid_: Vue 库缩水场景；把 Ant Design Vue 与 React Ant Design 合成一项；一次收尽所有 Vue 生态库
 
 **Vue ui-libs Candidate Expansion** (Vue ui-libs 候选扩展):
-以 [UI Lib Picker](https://ui-libs.vercel.app/) 为 **候选来源**（非产品形态对齐、非整表搬迁），在已有 Vue 四库之上串行新增五个真机 Candidate Library：`vuetify` → `primevue` → `shadcn-vue` → `vuestic-ui` → `flowbite-vue`。每库 Form/Table/Modal/Profile/共享 Showcase Data **全对齐** 后才注册进 Switcher/路由；Vue 默认库仍为 Element Plus；Switcher 在既有四库之后按上序追加。`shadcn-vue` 与 React `shadcn` 同口径：复制场景所需组件源码进仓库（非传统 npm 全家桶）。样式隔离默认 L1（污染再按库加强，不上默认 iframe）。界面语言 C1（业务中文 + 有则官方 locale）。各库官方默认观感所需最小 icon/font 按库引入（K1），不统一跨库图标。本批明确排除（ui-libs 差额内）：Reka UI、Ark UI、Daisy UI、Nuxt UI、Quasar、Volt UI。已重叠的 Element Plus / Naive UI / Ant Design Vue 不重做。Daisy UI 等 CSS-only 不在本批 Vue 轴消化，见 **Vanilla Candidate Expansion**。
-_Avoid_: 把本站改成特性/组件清单筛选站；整表搬迁 ui-libs；headless/CSS 插件/Nuxt 强绑/Quasar 框架级方案混入本批；占位或缩水场景；半成品进 Switcher；默认 iframe；改默认库以推广新候选
+以 [UI Lib Picker](https://ui-libs.vercel.app/) 为 **候选来源**（非产品形态对齐、非整表搬迁），在已有 Vue 四库之上串行新增五个真机 Candidate Library：`vuetify` → `primevue` → `shadcn-vue` → `vuestic-ui` → `flowbite-vue`。每库 Form/Table/Modal/Profile/共享 Showcase Data **全对齐** 后才注册进 Switcher/路由；Vue 默认库仍为 Element Plus；Switcher 在既有四库之后按上序追加。`shadcn-vue` 与 React `shadcn` 同口径：复制场景所需组件源码进仓库（非传统 npm 全家桶）。样式隔离默认 L1（污染再按库加强，不上默认 iframe）。界面语言 C1（业务中文 + 有则官方 locale）。各库官方默认观感所需最小 icon/font 按库引入（K1），不统一跨库图标。本批当时排除（ui-libs 差额内）：Reka UI、Ark UI、Daisy UI、Nuxt UI、Quasar、Volt UI——其中 Quasar / Volt / Reka 由 **Vue ui-libs Remainder Expansion** 纳入真机；Nuxt UI 仍排除（宿主 TW 栈）；Daisy 仍不进 Vue。已重叠的 Element Plus / Naive UI / Ant Design Vue 不重做。Daisy UI 等 CSS-only 见 **Vanilla Candidate Expansion**。
+_Avoid_: 把本站改成特性/组件清单筛选站；整表搬迁 ui-libs；占位或缩水场景；半成品进 Switcher；默认 iframe；改默认库以推广新候选
+
+**Vue ui-libs Remainder Expansion** (Vue ui-libs 差额扩展):
+在 ui-libs 五库批（已交付）之后，按 ui-libs 相对本站 Vue 轴的**剩余差额**串行补齐真机 Candidate：`quasar` → `volt-ui` → `reka-ui`。Switcher 挂在既有 Vue 九库之后按该序追加；默认库仍 `element-plus`。门槛与现网一致：Form/Table/Modal + 共享 Showcase Data + Profile + **官方 light/dark 映射**全齐才注册；禁止半成品。Quasar：Vue Island 内官方插件/组件，非 CLI 整站、非默认 iframe。Volt：独立 Candidate，不与 `primevue` 合并；场景组件复制进仓。Reka：headless，Showcase 使用 **Documented Example Skin**；Profile 与页内短提示标明非 npm 默认主题。**Nuxt UI 不纳入本批交付**（`@nuxt/ui` v4 要求 Tailwind v4 与现网 TW3 管道冲突；不上 iframe、不升全站 TW4）。Daisy UI **不**纳入本扩展的 Vue 轴，维持 Vanilla。Primary Goal 全文不改；仅 Reka 作局部例外标注。
+_Avoid_: 差额五库含 Daisy 双挂 Vue；Reka 自研皮或裸奔却声称默认主题；Nuxt/Quasar 默认 iframe；Volt 并入 primevue；整表搬迁 ui-libs；改 Primary Goal 为全局「演示观感」；改默认库推广新候选；为 Nuxt UI 强行升 Tailwind v4
+
+**Documented Example Skin** (文档示例皮):
+headless / unstyled 库在本站 Showcase 上采用的、复刻**该库官网文档示例**的样式层（非 npm 包自带的默认主题）。仅在决议明确允许时使用（本批：`reka-ui`）；必须在 Library Profile 与 Showcase 短提示中披露，避免被当成「官方默认观感」。
+_Avoid_: 本站自研中立皮冒充库默认；文档皮却不披露；把 Documented Example Skin 推广为所有库的默认策略
 
 **Vanilla Candidate Expansion** (Vanilla 候选扩展):
 选型原则 **D**：热度初筛 + 范式差异 + 中后台 Form/Table/Modal 能落地；非热度百科。范式槽位：T0 Tailwind 语义 class（已有 `daisyui`）+ 本批 **T1 经典全家桶** + **T2 纯 CSS**；本批不做 T3 Web Components、T4 classless、T5 第二套 Tailwind 组件层。

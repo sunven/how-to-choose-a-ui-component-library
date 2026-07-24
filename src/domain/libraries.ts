@@ -16,6 +16,9 @@ export type LibraryId =
   | 'shadcn-vue'
   | 'vuestic-ui'
   | 'flowbite-vue'
+  | 'quasar'
+  | 'volt-ui'
+  | 'reka-ui'
   | 'daisyui'
   | 'bootstrap'
   | 'bulma'
@@ -30,6 +33,9 @@ export type VueLibraryId =
   | 'shadcn-vue'
   | 'vuestic-ui'
   | 'flowbite-vue'
+  | 'quasar'
+  | 'volt-ui'
+  | 'reka-ui'
 
 export type VanillaLibraryId = 'daisyui' | 'bootstrap' | 'bulma'
 
@@ -309,6 +315,54 @@ export const LIBRARIES: LibraryProfile[] = [
     typescript: '一等支持',
     styling: 'Tailwind CSS（Flowbite 主题）',
     tagline: 'Tailwind 路线的 Vue 组件库，默认观感偏产品站/后台通用。',
+  },
+  {
+    id: 'quasar',
+    framework: 'vue',
+    name: 'Quasar',
+    frameworks: 'Vue 3（亦可配合 Quasar CLI / 多端）',
+    starsSnapshot: 27000,
+    license: 'MIT',
+    homepage: 'https://quasar.dev',
+    docs: 'https://quasar.dev/start/vite-plugin',
+    githubRepo: 'quasarframework/quasar',
+    activity: 'Vue 生态重型 UI + 构建体系，组件与布局完整、长期维护',
+    bundleSize: '全量偏大；可按组件与插件引入',
+    typescript: '一等支持',
+    styling: 'Sass / CSS 变量 + Material 风格主题（含官方 Dark）',
+    tagline: '框架级完整度的 Vue 组件库，默认观感偏 Material 中后台。',
+  },
+  {
+    id: 'volt-ui',
+    framework: 'vue',
+    name: 'Volt UI',
+    frameworks: 'Vue 3（基于 PrimeVue unstyled + 复制源码）',
+    starsSnapshot: 14500,
+    license: 'MIT',
+    homepage: 'https://volt.primevue.org',
+    docs: 'https://volt.primevue.org',
+    githubRepo: 'primefaces/primevue',
+    activity: 'PrimeTek 官方 Tailwind 粘贴层，与 PrimeVue 同仓维护',
+    bundleSize: '取决于复制的组件；底层依赖 PrimeVue unstyled',
+    typescript: '一等支持',
+    styling: 'Tailwind CSS + PrimeVue PassThrough（复制进仓库）',
+    tagline: 'PrimeVue 的 shadcn 式粘贴层：Tailwind 默认示例观感，与 styled PrimeVue 分列对比。',
+  },
+  {
+    id: 'reka-ui',
+    framework: 'vue',
+    name: 'Reka UI',
+    frameworks: 'Vue 3（unstyled 原语）',
+    starsSnapshot: 6000,
+    license: 'MIT',
+    homepage: 'https://reka-ui.com',
+    docs: 'https://reka-ui.com/docs/overview/introduction',
+    githubRepo: 'unovue/reka-ui',
+    activity: 'Radix Vue 后继；无默认主题的无障碍原语库，文档示例活跃',
+    bundleSize: '按原语引入，无统一默认样式体积',
+    typescript: '一等支持',
+    styling: 'Unstyled；本站 Showcase 使用 Documented Example Skin（非 npm 默认主题）',
+    tagline: 'Headless 原语：本站用文档示例皮展示可交互形态，勿当作官方默认观感。',
   },
   {
     id: 'daisyui',

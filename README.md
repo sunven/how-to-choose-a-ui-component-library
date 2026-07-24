@@ -21,10 +21,24 @@
 - [Naive UI](https://www.naiveui.com) — `naive-ui`
 - [Ant Design Vue](https://antdv.com) — `ant-design-vue`
 - [Arco Design Vue](https://arco.design/vue) — `arco-design-vue`
+- [Vuetify](https://vuetifyjs.com) — `vuetify`
+- [PrimeVue](https://primevue.org) — `primevue`
+- [shadcn-vue](https://www.shadcn-vue.com) — `shadcn-vue`
+- [Vuestic UI](https://ui.vuestic.dev) — `vuestic-ui`
+- [Flowbite Vue](https://flowbite-vue.com) — `flowbite-vue`
+- [Quasar](https://quasar.dev) — `quasar`
+- [Volt UI](https://volt.primevue.org) — `volt-ui`（与 `primevue` 分列）
+- [Reka UI](https://reka-ui.com) — `reka-ui`（Documented Example Skin，非默认主题）
 
-路由形态：`/libs/:framework/:libraryId`（例：`/libs/react/mui`、`/libs/vue/naive-ui`）。旧路径 `/libs/mui` 会重定向到带框架前缀的路径。
+**Vanilla**（默认 `/libs/vanilla/daisyui`）
 
-Ant Design（React）与 Ant Design Vue 是两个独立候选，不合并对比为同一库。
+- [daisyUI](https://daisyui.com) — `daisyui`
+- [Bootstrap](https://getbootstrap.com) — `bootstrap`
+- [Bulma](https://bulma.io) — `bulma`
+
+路由形态：`/libs/:framework/:libraryId`（例：`/libs/react/mui`、`/libs/vue/naive-ui`、`/libs/vue/quasar`）。旧路径 `/libs/mui` 会重定向到带框架前缀的路径。
+
+Ant Design（React）与 Ant Design Vue、PrimeVue 与 Volt UI、React `shadcn` 与 Vue `shadcn-vue` 均为独立候选，不合并。
 
 ## 本地运行
 

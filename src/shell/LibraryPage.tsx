@@ -77,6 +77,15 @@ const FlowbiteVueIsland = lazy(() =>
     default: m.FlowbiteVueIsland,
   })),
 )
+const QuasarIsland = lazy(() =>
+  import('@/showcases/quasar/QuasarIsland').then((m) => ({ default: m.QuasarIsland })),
+)
+const VoltUiIsland = lazy(() =>
+  import('@/showcases/volt-ui/VoltUiIsland').then((m) => ({ default: m.VoltUiIsland })),
+)
+const RekaUiIsland = lazy(() =>
+  import('@/showcases/reka-ui/RekaUiIsland').then((m) => ({ default: m.RekaUiIsland })),
+)
 const DaisyUiShowcase = lazy(() =>
   import('@/showcases/daisyui/DaisyUiShowcase').then((m) => ({ default: m.DaisyUiShowcase })),
 )
@@ -108,6 +117,9 @@ const VUE_ISLANDS: Record<VueLibraryId, ComponentType> = {
   'shadcn-vue': ShadcnVueIsland,
   'vuestic-ui': VuesticIsland,
   'flowbite-vue': FlowbiteVueIsland,
+  quasar: QuasarIsland,
+  'volt-ui': VoltUiIsland,
+  'reka-ui': RekaUiIsland,
 }
 
 const VANILLA_SHOWCASES: Record<VanillaLibraryId, ComponentType<ShowcaseProps>> = {

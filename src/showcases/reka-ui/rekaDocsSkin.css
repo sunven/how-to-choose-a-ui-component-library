@@ -1,0 +1,305 @@
+/**
+ * Documented Example Skin for Reka UI — approximate reka-ui.com docs chrome
+ * (not an npm default theme). Scoped to .reka-island.
+ */
+/* Variables also on teleported dialog (portal → body) */
+.reka-island,
+.reka-dialog {
+  --reka-bg: #ffffff;
+  --reka-fg: #18181b;
+  --reka-muted: #f4f4f5;
+  --reka-muted-fg: #71717a;
+  --reka-border: #e4e4e7;
+  --reka-primary: #18181b;
+  --reka-primary-fg: #fafafa;
+  --reka-accent: #f4f4f5;
+  --reka-ring: #a1a1aa;
+  --reka-danger: #dc2626;
+  --reka-success-bg: #ecfdf5;
+  --reka-success-fg: #047857;
+}
+
+.reka-island {
+  color: var(--reka-fg);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+html.dark .reka-island,
+html.dark .reka-dialog {
+  --reka-bg: #09090b;
+  --reka-fg: #fafafa;
+  --reka-muted: #27272a;
+  --reka-muted-fg: #a1a1aa;
+  --reka-border: #3f3f46;
+  --reka-primary: #fafafa;
+  --reka-primary-fg: #18181b;
+  --reka-accent: #27272a;
+  --reka-ring: #71717a;
+  --reka-danger: #f87171;
+  --reka-success-bg: #064e3b;
+  --reka-success-fg: #6ee7b7;
+}
+
+.reka-island .reka-banner {
+  border: 1px solid var(--reka-border);
+  background: var(--reka-muted);
+  color: var(--reka-muted-fg);
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 12px;
+}
+
+.reka-island .reka-btn,
+.reka-dialog .reka-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 0.375rem;
+  border: 1px solid transparent;
+  font-weight: 500;
+  font-size: 0.875rem;
+  height: 2.25rem;
+  padding: 0 1rem;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+  background: var(--reka-primary);
+  color: var(--reka-primary-fg);
+}
+.reka-island .reka-btn:hover,
+.reka-dialog .reka-btn:hover {
+  opacity: 0.9;
+}
+.reka-island .reka-btn:disabled,
+.reka-dialog .reka-btn:disabled {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.reka-island .reka-btn--outline,
+.reka-dialog .reka-btn--outline {
+  background: transparent;
+  border-color: var(--reka-border);
+  color: var(--reka-fg);
+}
+.reka-island .reka-btn--outline:hover,
+.reka-dialog .reka-btn--outline:hover {
+  background: var(--reka-accent);
+  opacity: 1;
+}
+.reka-island .reka-btn--ghost,
+.reka-dialog .reka-btn--ghost {
+  background: transparent;
+  color: var(--reka-fg);
+}
+.reka-island .reka-btn--ghost:hover,
+.reka-dialog .reka-btn--ghost:hover {
+  background: var(--reka-accent);
+  opacity: 1;
+}
+.reka-island .reka-btn--danger,
+.reka-dialog .reka-btn--danger {
+  color: var(--reka-danger);
+  background: transparent;
+}
+.reka-island .reka-btn--sm,
+.reka-dialog .reka-btn--sm {
+  height: 2rem;
+  padding: 0 0.75rem;
+  font-size: 0.75rem;
+}
+
+.reka-island .reka-input,
+.reka-island .reka-select,
+.reka-island .reka-textarea,
+.reka-dialog .reka-input,
+.reka-dialog .reka-select,
+.reka-dialog .reka-textarea {
+  box-sizing: border-box;
+  border-radius: 0.375rem;
+  border: 1px solid var(--reka-border);
+  background: var(--reka-bg);
+  color: var(--reka-fg);
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  font-size: 0.875rem;
+  outline: none;
+  /* Toolbar controls size themselves; form fields use .reka-field full width */
+  width: auto;
+  max-width: 100%;
+}
+.reka-island .reka-field .reka-input,
+.reka-island .reka-field .reka-select,
+.reka-island .reka-field .reka-textarea,
+.reka-dialog .reka-field .reka-input,
+.reka-dialog .reka-field .reka-select,
+.reka-dialog .reka-field .reka-textarea {
+  width: 100%;
+}
+.reka-island .reka-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+.reka-island .reka-toolbar-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.reka-island .reka-input--search {
+  width: 220px;
+}
+.reka-island .reka-select--filter {
+  width: 120px;
+}
+.reka-island .reka-textarea,
+.reka-dialog .reka-textarea {
+  height: auto;
+  min-height: 4.5rem;
+  padding: 0.5rem 0.75rem;
+  resize: vertical;
+}
+.reka-island .reka-input:focus,
+.reka-island .reka-select:focus,
+.reka-island .reka-textarea:focus,
+.reka-dialog .reka-input:focus,
+.reka-dialog .reka-select:focus,
+.reka-dialog .reka-textarea:focus {
+  box-shadow: 0 0 0 2px var(--reka-ring);
+}
+
+.reka-island .reka-table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--reka-border);
+  border-radius: 0.5rem;
+  background: var(--reka-bg);
+}
+.reka-island .reka-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.reka-island .reka-table th {
+  text-align: left;
+  font-weight: 500;
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--reka-border);
+  background: var(--reka-muted);
+  color: var(--reka-fg);
+}
+.reka-island .reka-table td {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--reka-border);
+}
+.reka-island .reka-table tr:last-child td {
+  border-bottom: none;
+}
+.reka-island .reka-table tbody tr:hover {
+  background: color-mix(in srgb, var(--reka-muted) 50%, transparent);
+}
+
+.reka-island .reka-badge {
+  display: inline-flex;
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  background: var(--reka-muted);
+  color: var(--reka-muted-fg);
+}
+.reka-island .reka-badge--ok {
+  background: var(--reka-success-bg);
+  color: var(--reka-success-fg);
+}
+
+.reka-island .reka-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgb(0 0 0 / 0.5);
+}
+.reka-island .reka-dialog {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 50;
+  width: min(100% - 2rem, 28rem);
+  transform: translate(-50%, -50%);
+  border-radius: 0.5rem;
+  border: 1px solid var(--reka-border);
+  background: var(--reka-bg);
+  color: var(--reka-fg);
+  padding: 1.5rem;
+  box-shadow: 0 10px 40px rgb(0 0 0 / 0.15);
+}
+.reka-island .reka-dialog-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+}
+.reka-island .reka-field,
+.reka-dialog .reka-field {
+  display: grid;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+.reka-island .reka-label,
+.reka-dialog .reka-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.reka-island .reka-error,
+.reka-dialog .reka-error {
+  font-size: 0.75rem;
+  color: var(--reka-danger);
+}
+.reka-island .reka-switch,
+.reka-dialog .reka-switch {
+  width: 2.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: var(--reka-border);
+  position: relative;
+  border: none;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.reka-island .reka-switch[data-state='checked'],
+.reka-dialog .reka-switch[data-state='checked'] {
+  background: var(--reka-primary);
+}
+.reka-island .reka-switch-thumb,
+.reka-dialog .reka-switch-thumb {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  background: #fff;
+  transform: translateX(2px);
+  transition: transform 0.15s;
+}
+.reka-island .reka-switch[data-state='checked'] .reka-switch-thumb,
+.reka-dialog .reka-switch[data-state='checked'] .reka-switch-thumb {
+  transform: translateX(1rem);
+}
+.reka-island .reka-checkbox,
+.reka-dialog .reka-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 1px solid var(--reka-border);
+  background: var(--reka-bg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.reka-island .reka-checkbox[data-state='checked'],
+.reka-dialog .reka-checkbox[data-state='checked'] {
+  background: var(--reka-primary);
+  border-color: var(--reka-primary);
+  color: var(--reka-primary-fg);
+}
