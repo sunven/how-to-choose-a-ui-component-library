@@ -107,7 +107,7 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
   return (
     <div className="showcase-bootstrap" data-bs-theme={mode}>
       <div className="d-flex flex-column flex-sm-row gap-3 align-items-sm-end justify-content-between mb-3">
-        <div className="d-flex flex-column flex-sm-row flex-wrap gap-2">
+        <div className="d-flex flex-column flex-sm-row flex-wrap gap-2 flex-sm-grow-1">
           <input
             type="search"
             className="form-control form-control-sm"

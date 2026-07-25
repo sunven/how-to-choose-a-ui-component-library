@@ -431,7 +431,9 @@ export function getLibrary(id: string | undefined): LibraryProfile {
 }
 
 export function getLibrariesForFramework(framework: FrameworkId): LibraryProfile[] {
-  return LIBRARIES.filter((lib) => lib.framework === framework)
+  return LIBRARIES.filter((lib) => lib.framework === framework).sort((a, b) =>
+    a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }),
+  )
 }
 
 export function libraryPath(framework: FrameworkId, libraryId: LibraryId): string {

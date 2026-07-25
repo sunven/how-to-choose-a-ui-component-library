@@ -6,11 +6,37 @@ export function LibraryProfileCard({ library }: { library: LibraryProfile }) {
 
   return (
     <aside className="ui-chooser-profile-panel">
-      <div className="mb-3 flex items-start justify-between gap-2">
-        <div>
+      <div className="mb-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-50">{library.name}</h2>
-          <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{library.tagline}</p>
+          <nav className="flex flex-wrap gap-x-3 gap-y-1 text-sm" aria-label="组件库链接">
+            <a
+              className="text-blue-600 hover:underline dark:text-blue-400"
+              href={library.homepage}
+              target="_blank"
+              rel="noreferrer"
+            >
+              官网
+            </a>
+            <a
+              className="text-blue-600 hover:underline dark:text-blue-400"
+              href={library.docs}
+              target="_blank"
+              rel="noreferrer"
+            >
+              文档
+            </a>
+            <a
+              className="text-blue-600 hover:underline dark:text-blue-400"
+              href={`https://github.com/${library.githubRepo}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              GitHub
+            </a>
+          </nav>
         </div>
+        <p className="mt-1 text-sm text-slate-600 dark:text-slate-300">{library.tagline}</p>
       </div>
 
       <dl className="space-y-2 text-sm">
@@ -41,35 +67,6 @@ export function LibraryProfileCard({ library }: { library: LibraryProfile }) {
         <Row label="样式方案" value={library.styling} />
         <Row label="包体积" value={library.bundleSize} />
         <Row label="活跃度" value={library.activity} />
-        <div className="flex gap-2 pt-1">
-          <dt className="w-28 shrink-0 text-slate-500 dark:text-slate-400">链接</dt>
-          <dd className="flex flex-wrap gap-3">
-            <a
-              className="text-blue-600 hover:underline dark:text-blue-400"
-              href={library.homepage}
-              target="_blank"
-              rel="noreferrer"
-            >
-              官网
-            </a>
-            <a
-              className="text-blue-600 hover:underline dark:text-blue-400"
-              href={library.docs}
-              target="_blank"
-              rel="noreferrer"
-            >
-              文档
-            </a>
-            <a
-              className="text-blue-600 hover:underline dark:text-blue-400"
-              href={`https://github.com/${library.githubRepo}`}
-              target="_blank"
-              rel="noreferrer"
-            >
-              GitHub
-            </a>
-          </dd>
-        </div>
       </dl>
     </aside>
   )

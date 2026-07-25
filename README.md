@@ -71,7 +71,7 @@ pnpm preview
 | Build output directory | `dist` |
 | Node version | `22`（或环境变量 `NODE_VERSION=22`；pnpm 11 需要 Node ≥22） |
 
-4. **Save and Deploy**
+1. **Save and Deploy**
 
 之后每次 push 到默认分支会自动部署。生产地址形如：
 
@@ -91,3 +91,7 @@ pnpm deploy
 ## 领域说明
 
 见 [`CONTEXT.md`](./CONTEXT.md) 与 [`docs/adr/`](./docs/adr/)（含 React / Vue 候选扩展 ADR-0014、ADR-0015）。
+
+## 参考
+
+<https://ui-libs.vercel.app/>

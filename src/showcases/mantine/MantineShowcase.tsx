@@ -93,7 +93,7 @@ export function MantineShowcase({ users }: ShowcaseProps) {
       <DatesProvider settings={{ locale: 'zh-cn', firstDayOfWeek: 1 }}>
         <Stack gap="md">
           <Group justify="space-between" align="flex-end" wrap="wrap">
-            <Group gap="sm" wrap="wrap">
+            <Group gap="sm" wrap="wrap" align="flex-end">
               <TextInput
                 label="搜索"
                 placeholder="搜索姓名 / 邮箱"
@@ -124,7 +124,7 @@ export function MantineShowcase({ users }: ShowcaseProps) {
                   { value: 'disabled', label: STATUS_LABELS.disabled },
                 ]}
               />
-              <Button variant="default" onClick={users.cycleHireDateSort}>
+              <Button variant="default" size="sm" onClick={users.cycleHireDateSort}>
                 入职排序：{sortLabel}
               </Button>
             </Group>

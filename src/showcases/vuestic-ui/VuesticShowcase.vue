@@ -60,6 +60,11 @@ const sortingOrder = computed(() => {
   if (hireDateSort.value === 'desc') return 'desc' as const
   return null
 })
+const sortLabel = computed(() => {
+  if (hireDateSort.value === 'asc') return '升序'
+  if (hireDateSort.value === 'desc') return '降序'
+  return '默认'
+})
 
 const pages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 
@@ -125,6 +130,12 @@ function onSorted(payload: { sortBy?: string; sortingOrder?: 'asc' | 'desc' | nu
   setHireDateSortFromOrder(payload.sortingOrder ?? null)
 }
 
+function cycleHireDateSort() {
+  if (hireDateSort.value === 'none') setHireDateSortFromOrder('asc')
+  else if (hireDateSort.value === 'asc') setHireDateSortFromOrder('desc')
+  else setHireDateSortFromOrder(null)
+}
+
 function onOk(hide: () => void) {
   submit()
   if (!Object.keys(errors).length) hide()
@@ -137,6 +148,7 @@ function onOk(hide: () => void) {
       <div class="flex min-w-0 flex-1 flex-wrap items-end gap-3">
         <VaInput
           v-model="keyword"
+          class="flex-none"
           label="搜索"
           placeholder="搜索姓名 / 邮箱"
           style="width: 220px; min-width: 180px"
@@ -144,6 +156,7 @@ function onOk(hide: () => void) {
         />
         <VaSelect
           v-model="roleFilter"
+          class="flex-none"
           :options="roleFilterOptions"
           text-by="text"
           value-by="value"
@@ -153,6 +166,7 @@ function onOk(hide: () => void) {
         />
         <VaSelect
           v-model="statusFilter"
+          class="flex-none"
           :options="statusFilterOptions"
           text-by="text"
           value-by="value"
@@ -160,8 +174,11 @@ function onOk(hide: () => void) {
           style="width: 140px; min-width: 120px"
           @update:model-value="resetFiltersPage"
         />
+        <VaButton preset="secondary" class="flex-none" @click="cycleHireDateSort">
+          入职排序：{{ sortLabel }}
+        </VaButton>
       </div>
-      <VaButton class="shrink-0" @click="openCreate">新建用户</VaButton>
+      <VaButton class="shrink-0 flex-none" @click="openCreate">新建用户</VaButton>
     </div>
 
     <VaDataTable
