@@ -19,7 +19,8 @@
     "noUncheckedSideEffectImports": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "vue/jsx": ["./src/types/vue-jsx-stub.d.ts"]
     }
   },
   "include": ["src"]
