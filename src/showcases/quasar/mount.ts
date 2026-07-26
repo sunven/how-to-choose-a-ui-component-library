@@ -1,4 +1,4 @@
-import { createApp, type App } from 'vue'
+import { createApp } from 'vue'
 import {
   Quasar,
   Dark,
@@ -22,10 +22,10 @@ import 'quasar/dist/quasar.css'
 // @quasar/extras package exports only JS entry for material-icons; CSS lives under exports/
 import '@quasar/extras/material-icons/material-icons.css'
 import { themeModeStore } from '@/domain/themeMode'
+import type { DisposeVueShowcase } from '@/showcases/vue-island/VueIslandHost'
 import QuasarShowcase from './QuasarShowcase.vue'
 
-export function mountQuasarShowcase(el: HTMLElement): App {
-  el.classList.add('quasar-island')
+export function mountQuasarShowcase(el: HTMLElement): DisposeVueShowcase {
   const mode = themeModeStore.getSnapshot()
 
   const app = createApp(QuasarShowcase)
@@ -58,10 +58,12 @@ export function mountQuasarShowcase(el: HTMLElement): App {
   Dark.set(mode === 'dark')
 
   app.mount(el)
-  return app
+  return () => {
+    app.unmount()
+    cleanupQuasarBodyClasses()
+  }
 }
 
-/** Remove Quasar Dark body classes so leaving the island does not leave body--dark/light. */
-export function cleanupQuasarBodyClasses(): void {
+function cleanupQuasarBodyClasses(): void {
   document.body.classList.remove('body--dark', 'body--light')
 }

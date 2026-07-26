@@ -1,4 +1,4 @@
-import { createApp, defineComponent, h, type App } from 'vue'
+import { createApp, defineComponent, h } from 'vue'
 import {
   NConfigProvider,
   NDialogProvider,
@@ -8,6 +8,7 @@ import {
   zhCN,
 } from 'naive-ui'
 import { themeModeStore } from '@/domain/themeMode'
+import type { DisposeVueShowcase } from '@/showcases/vue-island/VueIslandHost'
 import NaiveUiShowcase from './NaiveUiShowcase.vue'
 
 const Root = defineComponent({
@@ -36,8 +37,8 @@ const Root = defineComponent({
   },
 })
 
-export function mountNaiveUiShowcase(el: HTMLElement): App {
+export function mountNaiveUiShowcase(el: HTMLElement): DisposeVueShowcase {
   const app = createApp(Root)
   app.mount(el)
-  return app
+  return () => app.unmount()
 }

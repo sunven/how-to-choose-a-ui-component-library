@@ -1,14 +1,14 @@
-import { createApp, type App } from 'vue'
+import { createApp } from 'vue'
 import PrimeVue from 'primevue/config'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 import zhCN from 'primelocale/zh-CN.json'
 import './voltTokens.css'
+import type { DisposeVueShowcase } from '@/showcases/vue-island/VueIslandHost'
 import VoltUiShowcase from './VoltUiShowcase.vue'
 
 /** PrimeVue unstyled + copied Volt PT components (official Volt copy-source path). */
-export function mountVoltUiShowcase(el: HTMLElement): App {
-  el.classList.add('volt-island')
+export function mountVoltUiShowcase(el: HTMLElement): DisposeVueShowcase {
   const app = createApp(VoltUiShowcase)
   app.use(PrimeVue, {
     unstyled: true,
@@ -17,5 +17,5 @@ export function mountVoltUiShowcase(el: HTMLElement): App {
   app.use(ToastService)
   app.use(ConfirmationService)
   app.mount(el)
-  return app
+  return () => app.unmount()
 }

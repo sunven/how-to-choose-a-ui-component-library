@@ -1,13 +1,14 @@
-import { createApp, type App } from 'vue'
+import { createApp } from 'vue'
 import PrimeVue from 'primevue/config'
 import ToastService from 'primevue/toastservice'
 import ConfirmationService from 'primevue/confirmationservice'
 import Aura from '@primeuix/themes/aura'
 import zhCN from 'primelocale/zh-CN.json'
 import 'primeicons/primeicons.css'
+import type { DisposeVueShowcase } from '@/showcases/vue-island/VueIslandHost'
 import PrimeVueShowcase from './PrimeVueShowcase.vue'
 
-export function mountPrimeVueShowcase(el: HTMLElement): App {
+export function mountPrimeVueShowcase(el: HTMLElement): DisposeVueShowcase {
   const app = createApp(PrimeVueShowcase)
   app.use(PrimeVue, {
     theme: {
@@ -22,5 +23,5 @@ export function mountPrimeVueShowcase(el: HTMLElement): App {
   app.use(ToastService)
   app.use(ConfirmationService)
   app.mount(el)
-  return app
+  return () => app.unmount()
 }

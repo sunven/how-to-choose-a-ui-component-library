@@ -1,14 +1,14 @@
-import { createApp, type App } from 'vue'
+import { createApp } from 'vue'
 import { createVuestic } from 'vuestic-ui'
 // Full CSS; vite plugin scopes leaky globals under .vuestic-island (see vite.config.ts)
 import 'vuestic-ui/dist/vuestic-ui.css'
 // Default icon set: Material Icons (chevrons otherwise render as raw "expand_more")
 import 'material-icons/iconfont/material-icons.css'
 import { themeModeStore } from '@/domain/themeMode'
+import type { DisposeVueShowcase } from '@/showcases/vue-island/VueIslandHost'
 import VuesticShowcase from './VuesticShowcase.vue'
 
-export function mountVuesticShowcase(el: HTMLElement): App {
-  el.classList.add('vuestic-island')
+export function mountVuesticShowcase(el: HTMLElement): DisposeVueShowcase {
   const mode = themeModeStore.getSnapshot()
   const app = createApp(VuesticShowcase)
   app.use(
@@ -21,5 +21,5 @@ export function mountVuesticShowcase(el: HTMLElement): App {
     }),
   )
   app.mount(el)
-  return app
+  return () => app.unmount()
 }

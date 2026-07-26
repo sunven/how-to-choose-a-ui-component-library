@@ -1,4 +1,4 @@
-import { createApp, type App } from 'vue'
+import { createApp } from 'vue'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
@@ -6,11 +6,11 @@ import { zhHans } from 'vuetify/locale'
 import 'vuetify/styles'
 import '@mdi/font/css/materialdesignicons.css'
 import { themeModeStore } from '@/domain/themeMode'
+import type { DisposeVueShowcase } from '@/showcases/vue-island/VueIslandHost'
 import VuetifyShowcase from './VuetifyShowcase.vue'
 
-export function mountVuetifyShowcase(el: HTMLElement): App {
+export function mountVuetifyShowcase(el: HTMLElement): DisposeVueShowcase {
   // Host for scoped Vuetify utilities (see vite.config scopeVuetifyCss)
-  el.classList.add('vuetify-island')
   const mode = themeModeStore.getSnapshot()
   const vuetify = createVuetify({
     components,
@@ -34,5 +34,5 @@ export function mountVuetifyShowcase(el: HTMLElement): App {
   const app = createApp(VuetifyShowcase)
   app.use(vuetify)
   app.mount(el)
-  return app
+  return () => app.unmount()
 }
