@@ -1,37 +1,28 @@
 import { Outlet, useParams } from 'react-router-dom'
 import {
-  DEFAULT_FRAMEWORK_ID,
-  DEFAULT_LIBRARY_ID,
-  getLibrary,
-  isFrameworkId,
-  isLibraryId,
-  resolveRouteLibrary,
-  type FrameworkId,
-  type LibraryId,
+  candidateLibraryCatalog,
+  type ResolvedLibraryRoute,
 } from '@/domain/libraries'
 import { FrameworkSwitcher } from './FrameworkSwitcher'
 import { LibrarySwitcher } from './LibrarySwitcher'
 import { ThemeToggle } from './ThemeToggle'
 
-function useActiveSelection(): { framework: FrameworkId; libraryId: LibraryId } {
-  const { framework, libraryId } = useParams()
+function useResolvedLibraryRoute(): ResolvedLibraryRoute {
+  const { framework, libraryId, segment } = useParams()
 
-  if (isFrameworkId(framework)) {
-    const lib = resolveRouteLibrary(framework, libraryId)
-    return { framework: lib.framework, libraryId: lib.id }
+  if (framework !== undefined || libraryId !== undefined) {
+    return candidateLibraryCatalog.resolveRoute({ kind: 'pair', framework, candidate: libraryId })
   }
 
-  // Legacy `/libs/:libraryId` or empty
-  if (isLibraryId(libraryId)) {
-    const lib = getLibrary(libraryId)
-    return { framework: lib.framework, libraryId: lib.id }
+  if (segment !== undefined) {
+    return candidateLibraryCatalog.resolveRoute({ kind: 'single', segment })
   }
 
-  return { framework: DEFAULT_FRAMEWORK_ID, libraryId: DEFAULT_LIBRARY_ID }
+  return candidateLibraryCatalog.resolveRoute({ kind: 'root' })
 }
 
 export function AppLayout() {
-  const { framework, libraryId } = useActiveSelection()
+  const route = useResolvedLibraryRoute()
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -55,17 +46,20 @@ export function AppLayout() {
           <div className="flex flex-col gap-3">
             <div>
               <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">框架</p>
-              <FrameworkSwitcher current={framework} />
+              <FrameworkSwitcher current={route.framework.id} />
             </div>
             <div>
               <p className="mb-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">组件库</p>
-              <LibrarySwitcher framework={framework} currentLibraryId={libraryId} />
+              <LibrarySwitcher
+                framework={route.framework}
+                currentLibraryId={route.candidate.id}
+              />
             </div>
           </div>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        <Outlet />
+        <Outlet context={route} />
       </main>
     </div>
   )

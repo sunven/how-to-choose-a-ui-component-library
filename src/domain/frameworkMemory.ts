@@ -1,22 +1,20 @@
 import {
+  type CandidateLibrary,
+  type CatalogFramework,
   type FrameworkId,
-  type LibraryId,
-  getFramework,
-  getLibrary,
-  isLibraryId,
 } from './libraries'
 
 /** Session-only last library per framework (not persisted). */
-const lastByFramework = new Map<FrameworkId, LibraryId>()
+const lastByFramework = new Map<FrameworkId, CandidateLibrary>()
 
-export function rememberLibrary(framework: FrameworkId, libraryId: LibraryId): void {
-  lastByFramework.set(framework, libraryId)
+export function rememberLibrary(candidate: CandidateLibrary): void {
+  lastByFramework.set(candidate.framework, candidate)
 }
 
-export function targetLibraryForFramework(framework: FrameworkId): LibraryId {
-  const last = lastByFramework.get(framework)
-  if (last && isLibraryId(last) && getLibrary(last).framework === framework) {
+export function targetLibraryForFramework(framework: CatalogFramework): CandidateLibrary {
+  const last = lastByFramework.get(framework.id)
+  if (last?.framework === framework.id) {
     return last
   }
-  return getFramework(framework).defaultLibraryId
+  return framework.defaultCandidate
 }

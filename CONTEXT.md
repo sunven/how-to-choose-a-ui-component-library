@@ -68,7 +68,7 @@ _Avoid_: 只接部分热门库就开开关; 把本站做成通用 dark-mode 演�
 _Avoid_: 纯死展示按钮; localStorage/后端持久化; 每库或每框架各一份互不同步的业务数据; 把 UI 瞬态强行做成全局共享
 
 **Library Route** (组件库路由):
-当前 Framework 与 Candidate Library 同步到 URL path：`/libs/:framework/:libraryId`（如 `/libs/react/mui`、`/libs/vue/element-plus`、`/libs/vue/vuetify`、`/libs/vanilla/daisyui`、`/libs/vanilla/bootstrap`），可分享、刷新保持。站点默认 `/libs/react/ant-design`；`/libs/react`、`/libs/vue`、`/libs/vanilla` 回落到该框架默认库（React→ant-design，Vue→element-plus；Vanilla→daisyui）；无效组合回退到默认。v1 旧路径 `/libs/:libraryId` 按该 id 所属框架重定向到 `/libs/:framework/:libraryId`。扩展库 id 固定 kebab-case（如 `arco-design`、`naive-ui`、`ant-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`、`quasar`、`volt-ui`、`reka-ui`、`daisyui`、`bootstrap`、`bulma`）。跨框架切换时的「会话内上次库」是导航辅助，不写入 URL 以外的持久化。
+当前 Framework 与 Candidate Library 同步到 URL path：`/libs/:framework/:libraryId`（如 `/libs/react/mui`、`/libs/vue/element-plus`、`/libs/vue/vuetify`、`/libs/vanilla/daisyui`、`/libs/vanilla/bootstrap`），可分享、刷新保持。站点默认 `/libs/react/ant-design`；`/libs/react`、`/libs/vue`、`/libs/vanilla` 回落到该框架默认库（React→ant-design，Vue→element-plus；Vanilla→daisyui）。Framework 有效但 libraryId 无效或归属不匹配时，回退到该 Framework 默认库；Framework 无效时回退到站点默认。v1 旧路径 `/libs/:libraryId` 按该 id 所属框架重定向到 `/libs/:framework/:libraryId`。Framework id 与 Candidate Library id 的命名空间互斥，使单段 `/libs/:segment` 可先识别 Framework、再识别旧 Candidate 路径。扩展库 id 固定 kebab-case（如 `arco-design`、`naive-ui`、`ant-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`、`quasar`、`volt-ui`、`reka-ui`、`daisyui`、`bootstrap`、`bulma`）。跨框架切换时的「会话内上次库」是导航辅助，不写入 URL 以外的持久化。
 _Avoid_: 仅内存 state 不进 URL; framework 只放 query; 扁平混排 id 却假装有框架维度; 强制先选手动空态; localStorage 持久化上次选择（非必要）; 用 npm scope 包名当 path; 为同一库维护多个别名 id
 
 **User** (用户):
@@ -114,6 +114,10 @@ _Avoid_: 并排对比, side-by-side, 双栏模式；跨框架扁平混排；单�
 **Candidate Library** (候选组件库):
 某一 Framework 下用于 Showcase 的组件库集合。React：`ant-design`、`mui`、`shadcn`、`arco-design`、`semi-design`、`mantine`。Vue（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`element-plus`、`naive-ui`、`ant-design-vue`、`arco-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`、`quasar`、`volt-ui`、`reka-ui`。Vanilla（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`daisyui`、`bootstrap`、`bulma`。Ant Design（React）与 Ant Design Vue 为两个 Candidate Library；React `shadcn` 与 Vue `shadcn-vue` 亦为两个；`primevue` 与 `volt-ui` 亦为两个，不合并。架构上按可扩展注册；每框架清单单独决议，不按「知名度」或外部目录无限扩容。
 _Avoid_: 全量组件库目录；把不同 Framework 的库当成同一候选集；把 Ant Design 与 Ant Design Vue、shadcn 与 shadcn-vue、primevue 与 volt-ui 当成同一 Candidate Library；把 CSS-only 库挂进 react/vue；本批塞入未决议库
+
+**Candidate Library Catalog** (候选库目录):
+本站已完成交付门槛、可出现在 Library Switcher 与 Library Route 中的 Candidate Library 有序集合；每项具有唯一 id、唯一 Framework 归属和 Library Profile，且每个 Framework 有固定默认项。Catalog 不包含 Showcase 加载方式或渲染实现。
+_Avoid_: Showcase loader；npm 包清单；跨 Framework 扁平列表
 
 **React Candidate Expansion** (React 候选扩展):
 在已有 React 三库之上，新增 Arco Design、Semi Design、Mantine 三个 React Candidate Library 的真机 Showcase 与 Library Profile。场景全对齐；React Switcher 顺序：Ant Design → MUI → shadcn/ui → Arco Design → Semi Design → Mantine；默认库仍为 Ant Design。

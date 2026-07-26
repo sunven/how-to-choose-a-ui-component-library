@@ -1,82 +1,43 @@
 export type FrameworkId = 'react' | 'vue' | 'vanilla'
 
-export type LibraryId =
-  | 'ant-design'
-  | 'mui'
-  | 'shadcn'
-  | 'arco-design'
-  | 'semi-design'
-  | 'mantine'
-  | 'element-plus'
-  | 'naive-ui'
-  | 'ant-design-vue'
-  | 'arco-design-vue'
-  | 'vuetify'
-  | 'primevue'
-  | 'shadcn-vue'
-  | 'vuestic-ui'
-  | 'flowbite-vue'
-  | 'quasar'
-  | 'volt-ui'
-  | 'reka-ui'
-  | 'daisyui'
-  | 'bootstrap'
-  | 'bulma'
-
-export type VueLibraryId =
-  | 'element-plus'
-  | 'naive-ui'
-  | 'ant-design-vue'
-  | 'arco-design-vue'
-  | 'vuetify'
-  | 'primevue'
-  | 'shadcn-vue'
-  | 'vuestic-ui'
-  | 'flowbite-vue'
-  | 'quasar'
-  | 'volt-ui'
-  | 'reka-ui'
-
-export type VanillaLibraryId = 'daisyui' | 'bootstrap' | 'bulma'
-
-export type ReactLibraryId = Exclude<LibraryId, VueLibraryId | VanillaLibraryId>
-
-export interface FrameworkMeta {
+interface FrameworkDefinition {
   id: FrameworkId
   name: string
-  defaultLibraryId: LibraryId
+  defaultCandidateId: string
 }
 
 export interface LibraryProfile {
-  id: LibraryId
-  framework: FrameworkId
-  name: string
+  readonly name: string
   /** Display string for profile card */
-  frameworks: string
+  readonly frameworks: string
   /** Snapshot used when GitHub fetch fails */
-  starsSnapshot: number
-  license: string
-  homepage: string
-  docs: string
-  githubRepo: `${string}/${string}`
-  activity: string
-  bundleSize: string
-  typescript: string
-  styling: string
-  tagline: string
+  readonly starsSnapshot: number
+  readonly license: string
+  readonly homepage: string
+  readonly docs: string
+  readonly githubRepo: `${string}/${string}`
+  readonly activity: string
+  readonly bundleSize: string
+  readonly typescript: string
+  readonly styling: string
+  readonly tagline: string
 }
 
-export const FRAMEWORKS: FrameworkMeta[] = [
-  { id: 'react', name: 'React', defaultLibraryId: 'ant-design' },
-  { id: 'vue', name: 'Vue', defaultLibraryId: 'element-plus' },
-  { id: 'vanilla', name: 'Vanilla', defaultLibraryId: 'daisyui' },
-]
+interface CandidateDefinition extends LibraryProfile {
+  readonly id: string
+  readonly framework: FrameworkId
+}
 
-export const DEFAULT_FRAMEWORK_ID: FrameworkId = 'react'
-export const DEFAULT_LIBRARY_ID: LibraryId = 'ant-design'
+const FRAMEWORK_DEFINITIONS = [
+  { id: 'react', name: 'React', defaultCandidateId: 'ant-design' },
+  { id: 'vue', name: 'Vue', defaultCandidateId: 'element-plus' },
+  { id: 'vanilla', name: 'Vanilla', defaultCandidateId: 'daisyui' },
+] as const satisfies readonly FrameworkDefinition[]
+
+const DEFAULT_FRAMEWORK_ID: FrameworkId = 'react'
 export const LIBRARY_PROFILE_SNAPSHOT_DATE = '2026-07-25'
 
-export const LIBRARIES: LibraryProfile[] = [
+const CANDIDATE_DEFINITIONS = [
   {
     id: 'ant-design',
     framework: 'react',
@@ -413,49 +374,175 @@ export const LIBRARIES: LibraryProfile[] = [
     styling: '纯 CSS 组件 class（button / table / modal 等），无预处理器强制',
     tagline: '纯 CSS 向组件层：有默认观感，交互用原生 HTML/轻量逻辑补齐。',
   },
-]
+] as const satisfies readonly CandidateDefinition[]
 
-export function isFrameworkId(id: string | undefined): id is FrameworkId {
-  return FRAMEWORKS.some((f) => f.id === id)
+type CandidateDefinitionValue = (typeof CANDIDATE_DEFINITIONS)[number]
+
+export type LibraryId = CandidateDefinitionValue['id']
+export type ReactLibraryId = Extract<CandidateDefinitionValue, { framework: 'react' }>['id']
+export type VueLibraryId = Extract<CandidateDefinitionValue, { framework: 'vue' }>['id']
+export type VanillaLibraryId = Extract<
+  CandidateDefinitionValue,
+  { framework: 'vanilla' }
+>['id']
+
+export type LibraryPath = `/libs/${FrameworkId}/${LibraryId}`
+
+export interface CandidateLibrary {
+  readonly id: LibraryId
+  readonly framework: FrameworkId
+  readonly profile: LibraryProfile
+  readonly path: LibraryPath
 }
 
-export function isLibraryId(id: string | undefined): id is LibraryId {
-  return LIBRARIES.some((lib) => lib.id === id)
+export interface CatalogFramework {
+  readonly id: FrameworkId
+  readonly name: string
+  readonly candidates: readonly CandidateLibrary[]
+  readonly defaultCandidate: CandidateLibrary
 }
 
-export function getFramework(id: FrameworkId): FrameworkMeta {
-  return FRAMEWORKS.find((f) => f.id === id) ?? FRAMEWORKS[0]
+export type LibraryRouteInput =
+  | Readonly<{
+      kind: 'pair'
+      framework?: string
+      candidate?: string
+    }>
+  | Readonly<{
+      kind: 'single'
+      segment?: string
+    }>
+  | Readonly<{
+      kind: 'root'
+    }>
+
+export interface ResolvedLibraryRoute {
+  readonly framework: CatalogFramework
+  readonly candidate: CandidateLibrary
+  readonly redirect: boolean
+  readonly reason: 'exact' | 'framework-default' | 'legacy-candidate' | 'site-default'
 }
 
-export function getLibrary(id: string | undefined): LibraryProfile {
-  return LIBRARIES.find((lib) => lib.id === id) ?? LIBRARIES[0]
+const frameworkIds = new Set<string>(FRAMEWORK_DEFINITIONS.map((framework) => framework.id))
+const candidateIds = new Set<string>()
+
+for (const candidate of CANDIDATE_DEFINITIONS) {
+  if (frameworkIds.has(candidate.id)) {
+    throw new Error(`Framework and Candidate Library ids overlap: ${candidate.id}`)
+  }
+  if (candidateIds.has(candidate.id)) {
+    throw new Error(`Duplicate Candidate Library id: ${candidate.id}`)
+  }
+  candidateIds.add(candidate.id)
 }
 
-export function getLibrariesForFramework(framework: FrameworkId): LibraryProfile[] {
-  return LIBRARIES.filter((lib) => lib.framework === framework).sort((a, b) =>
-    a.name.localeCompare(b.name, 'en', { sensitivity: 'base' }),
+const catalogCandidates: readonly CandidateLibrary[] = CANDIDATE_DEFINITIONS.map(
+  ({ id, framework, ...profile }) => ({
+    id,
+    framework,
+    profile,
+    path: `/libs/${framework}/${id}`,
+  }),
+)
+
+const catalogFrameworks: readonly CatalogFramework[] = FRAMEWORK_DEFINITIONS.map((framework) => {
+  const candidates = catalogCandidates.filter((candidate) => candidate.framework === framework.id)
+  const defaultCandidate = candidates.find(
+    (candidate) => candidate.id === framework.defaultCandidateId,
   )
-}
 
-export function libraryPath(framework: FrameworkId, libraryId: LibraryId): string {
-  return `/libs/${framework}/${libraryId}`
-}
-
-export function defaultPath(): string {
-  return libraryPath(DEFAULT_FRAMEWORK_ID, DEFAULT_LIBRARY_ID)
-}
-
-/** Resolve a valid library for the given route segments; invalid combos fall back. */
-export function resolveRouteLibrary(
-  framework: string | undefined,
-  libraryId: string | undefined,
-): LibraryProfile {
-  if (isFrameworkId(framework) && isLibraryId(libraryId)) {
-    const lib = getLibrary(libraryId)
-    if (lib.framework === framework) return lib
+  if (!defaultCandidate) {
+    throw new Error(`Missing default Candidate Library for ${framework.id}`)
   }
-  if (isFrameworkId(framework)) {
-    return getLibrary(getFramework(framework).defaultLibraryId)
+
+  return {
+    id: framework.id,
+    name: framework.name,
+    candidates,
+    defaultCandidate,
   }
-  return getLibrary(DEFAULT_LIBRARY_ID)
+})
+
+function findCatalogCandidate(id: string | undefined): CandidateLibrary | undefined {
+  return catalogCandidates.find((candidate) => candidate.id === id)
 }
+
+function resolveSiteDefault(): ResolvedLibraryRoute {
+  const framework = catalogFrameworks.find((item) => item.id === DEFAULT_FRAMEWORK_ID)
+  if (!framework) {
+    throw new Error('Missing site default Framework')
+  }
+
+  return {
+    framework,
+    candidate: framework.defaultCandidate,
+    redirect: true,
+    reason: 'site-default',
+  }
+}
+
+export const candidateLibraryCatalog = {
+  frameworks: catalogFrameworks,
+  findCandidate(id: string | undefined): CandidateLibrary | undefined {
+    return findCatalogCandidate(id)
+  },
+  resolveRoute(input: LibraryRouteInput): ResolvedLibraryRoute {
+    if (input.kind === 'root') {
+      return resolveSiteDefault()
+    }
+
+    if (input.kind === 'single') {
+      const framework = catalogFrameworks.find((item) => item.id === input.segment)
+      if (framework) {
+        return {
+          framework,
+          candidate: framework.defaultCandidate,
+          redirect: true,
+          reason: 'framework-default',
+        }
+      }
+
+      const candidate = findCatalogCandidate(input.segment)
+      if (candidate) {
+        const candidateFramework = catalogFrameworks.find(
+          (item) => item.id === candidate.framework,
+        )
+        if (!candidateFramework) {
+          throw new Error(`Missing Framework for Candidate Library ${candidate.id}`)
+        }
+
+        return {
+          framework: candidateFramework,
+          candidate,
+          redirect: true,
+          reason: 'legacy-candidate',
+        }
+      }
+
+      return resolveSiteDefault()
+    }
+
+    const framework = catalogFrameworks.find((item) => item.id === input.framework)
+    const candidate = findCatalogCandidate(input.candidate)
+
+    if (!framework) {
+      return resolveSiteDefault()
+    }
+
+    if (!candidate || candidate.framework !== framework.id) {
+      return {
+        framework,
+        candidate: framework.defaultCandidate,
+        redirect: true,
+        reason: 'framework-default',
+      }
+    }
+
+    return {
+      framework,
+      candidate,
+      redirect: false,
+      reason: 'exact',
+    }
+  },
+} as const

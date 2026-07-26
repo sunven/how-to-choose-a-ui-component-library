@@ -1,14 +1,9 @@
 import { lazy, Suspense, type ComponentType, useEffect } from 'react'
-import { Navigate, useParams } from 'react-router-dom'
+import { Navigate, useOutletContext } from 'react-router-dom'
 import {
-  defaultPath,
-  getLibrary,
-  isFrameworkId,
-  isLibraryId,
-  libraryPath,
-  resolveRouteLibrary,
-  type LibraryId,
+  type CandidateLibrary,
   type ReactLibraryId,
+  type ResolvedLibraryRoute,
   type VanillaLibraryId,
   type VueLibraryId,
 } from '@/domain/libraries'
@@ -129,32 +124,28 @@ const VANILLA_SHOWCASES: Record<VanillaLibraryId, ComponentType<ShowcaseProps>> 
 }
 
 export function LibraryPage() {
-  const { framework, libraryId } = useParams()
+  const route = useOutletContext<ResolvedLibraryRoute>()
 
-  if (!isFrameworkId(framework) || !isLibraryId(libraryId)) {
-    return <Navigate to={defaultPath()} replace />
+  if (route.redirect) {
+    return <Navigate to={route.candidate.path} replace />
   }
 
-  const library = resolveRouteLibrary(framework, libraryId)
-  if (library.framework !== framework || library.id !== libraryId) {
-    return <Navigate to={libraryPath(library.framework, library.id)} replace />
-  }
-
-  return <LibraryPageBody libraryId={library.id} />
+  return <LibraryPageBody candidate={route.candidate} />
 }
 
-function LibraryPageBody({ libraryId }: { libraryId: LibraryId }) {
-  const library = getLibrary(libraryId)
+function LibraryPageBody({ candidate }: { candidate: CandidateLibrary }) {
+  const libraryId = candidate.id
+  const library = candidate.profile
 
   // L1: track / unload global CSS injected while this library is active
   useLibraryStyleIsolation(libraryId)
 
   useEffect(() => {
-    rememberLibrary(library.framework, library.id)
-  }, [library.framework, library.id])
+    rememberLibrary(candidate)
+  }, [candidate])
 
-  const isVue = library.framework === 'vue'
-  const isVanilla = library.framework === 'vanilla'
+  const isVue = candidate.framework === 'vue'
+  const isVanilla = candidate.framework === 'vanilla'
   const VueIsland = isVue ? VUE_ISLANDS[libraryId as VueLibraryId] : null
 
   // Layout uses dedicated class names (not Tailwind gap/grid utilities) so Bootstrap
@@ -174,9 +165,9 @@ function LibraryPageBody({ libraryId }: { libraryId: LibraryId }) {
           {VueIsland ? (
             <VueIsland key={libraryId} />
           ) : isVanilla ? (
-            <VanillaShowcase key={libraryId} libraryId={libraryId} />
+            <VanillaShowcase key={libraryId} candidate={candidate} />
           ) : (
-            <ReactShowcase key={libraryId} libraryId={libraryId} />
+            <ReactShowcase key={libraryId} candidate={candidate} />
           )}
         </Suspense>
       </section>
@@ -185,26 +176,21 @@ function LibraryPageBody({ libraryId }: { libraryId: LibraryId }) {
   )
 }
 
-function ReactShowcase({ libraryId }: { libraryId: LibraryId }) {
+function ReactShowcase({ candidate }: { candidate: CandidateLibrary }) {
   const users = useUsers()
-  if (getLibrary(libraryId).framework !== 'react') return null
-  const Showcase = REACT_SHOWCASES[libraryId as ReactLibraryId]
+  if (candidate.framework !== 'react') return null
+  const Showcase = REACT_SHOWCASES[candidate.id as ReactLibraryId]
   return <Showcase users={users} />
 }
 
-function VanillaShowcase({ libraryId }: { libraryId: LibraryId }) {
+function VanillaShowcase({ candidate }: { candidate: CandidateLibrary }) {
   const users = useUsers()
-  if (getLibrary(libraryId).framework !== 'vanilla') return null
-  const Showcase = VANILLA_SHOWCASES[libraryId as VanillaLibraryId]
+  if (candidate.framework !== 'vanilla') return null
+  const Showcase = VANILLA_SHOWCASES[candidate.id as VanillaLibraryId]
   return <Showcase users={users} />
 }
 
-/** Redirect v1 `/libs/:libraryId` → `/libs/:framework/:libraryId` by registry. */
-export function LegacyLibraryRedirect() {
-  const { libraryId } = useParams()
-  if (isLibraryId(libraryId)) {
-    const lib = getLibrary(libraryId)
-    return <Navigate to={libraryPath(lib.framework, lib.id)} replace />
-  }
-  return <Navigate to={defaultPath()} replace />
+export function LibraryRouteRedirect() {
+  const route = useOutletContext<ResolvedLibraryRoute>()
+  return <Navigate to={route.candidate.path} replace />
 }
