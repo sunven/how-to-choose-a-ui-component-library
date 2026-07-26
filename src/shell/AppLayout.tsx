@@ -45,6 +45,10 @@ export function AppLayout() {
               <h1 className="mt-1 text-xl font-semibold text-slate-900 sm:text-2xl dark:text-slate-50">
                 同一业务形态，切换组件库看表单与表格
               </h1>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-300">
+                用于视觉与交互初筛，不替代可访问性、性能与工程集成验证。建议：选框架 →
+                体验至少 3 个库 → 形成 1–3 个候选。
+              </p>
             </div>
             <ThemeToggle />
           </div>

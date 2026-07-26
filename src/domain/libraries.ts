@@ -74,6 +74,7 @@ export const FRAMEWORKS: FrameworkMeta[] = [
 
 export const DEFAULT_FRAMEWORK_ID: FrameworkId = 'react'
 export const DEFAULT_LIBRARY_ID: LibraryId = 'ant-design'
+export const LIBRARY_PROFILE_SNAPSHOT_DATE = '2026-07-25'
 
 export const LIBRARIES: LibraryProfile[] = [
   {

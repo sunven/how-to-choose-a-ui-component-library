@@ -2,7 +2,9 @@
 
 通过**同一业务形态**（用户管理：表格 + Modal 表单）切换不同 UI 组件库，对比默认观感与交互，并查看 Library Profile（框架、GitHub stars、License 等）。
 
-先选 **Framework**（React / Vue），再在该框架下切换 **Candidate Library**。
+定位：用于视觉与交互初筛，不替代可访问性、性能与工程集成验证。建议流程：选框架 → 体验至少 3 个库 → 形成 1–3 个候选。
+
+先选 **Framework**（React / Vue / Vanilla），再在该框架下切换 **Candidate Library**。
 
 ## 候选库
 
@@ -39,6 +41,11 @@
 路由形态：`/libs/:framework/:libraryId`（例：`/libs/react/mui`、`/libs/vue/naive-ui`、`/libs/vue/quasar`）。旧路径 `/libs/mui` 会重定向到带框架前缀的路径。
 
 Ant Design（React）与 Ant Design Vue、PrimeVue 与 Volt UI、React `shadcn` 与 Vue `shadcn-vue` 均为独立候选，不合并。
+
+## 数据口径
+
+- GitHub stars 运行时从 GitHub 获取；请求失败时显示 `2026-07-25` 静态快照。
+- 其余档案字段为同日静态摘要，体积与生态描述不是本站实测或评级；选型前请通过对应的官方文档与 GitHub 核对最新信息。
 
 ## 本地运行
 

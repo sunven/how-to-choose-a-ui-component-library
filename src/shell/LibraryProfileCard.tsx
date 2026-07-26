@@ -1,4 +1,4 @@
-import type { LibraryProfile } from '@/domain/libraries'
+import { LIBRARY_PROFILE_SNAPSHOT_DATE, type LibraryProfile } from '@/domain/libraries'
 import { formatStars, useGitHubStars } from '@/features/profile/useGitHubStars'
 
 export function LibraryProfileCard({ library }: { library: LibraryProfile }) {
@@ -46,10 +46,17 @@ export function LibraryProfileCard({ library }: { library: LibraryProfile }) {
           <dd className="min-w-0 flex-1 text-slate-900 dark:text-slate-100">
             <span className="font-medium">{formatStars(state.stars)}</span>
             {state.status === 'loading' && (
-              <span className="ml-2 text-xs text-slate-400">更新中…</span>
+              <span className="ml-2 text-xs text-slate-400">快照 · 更新中…</span>
             )}
-            {state.fromSnapshot && state.status !== 'loading' && (
-              <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">快照</span>
+            {!state.fromSnapshot && (
+              <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
+                GitHub 实时
+              </span>
+            )}
+            {state.fromSnapshot && state.status === 'error' && (
+              <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
+                快照 · {LIBRARY_PROFILE_SNAPSHOT_DATE}
+              </span>
             )}
             {state.status === 'error' && (
               <button
@@ -65,9 +72,15 @@ export function LibraryProfileCard({ library }: { library: LibraryProfile }) {
         <Row label="License" value={library.license} />
         <Row label="TypeScript" value={library.typescript} />
         <Row label="样式方案" value={library.styling} />
-        <Row label="包体积" value={library.bundleSize} />
-        <Row label="活跃度" value={library.activity} />
+        <Row label="体积摘要" value={library.bundleSize} />
+        <Row label="生态摘要" value={library.activity} />
       </dl>
+
+      <p className="mt-4 border-t border-slate-200 pt-3 text-xs leading-5 text-slate-500 dark:border-slate-700 dark:text-slate-400">
+        数据口径：GitHub stars 运行时获取，失败时使用 {LIBRARY_PROFILE_SNAPSHOT_DATE}
+        快照；其余字段为同日静态摘要。体积与生态描述非本站实测或评级，请通过上方官方文档与
+        GitHub 核对最新信息。
+      </p>
     </aside>
   )
 }
