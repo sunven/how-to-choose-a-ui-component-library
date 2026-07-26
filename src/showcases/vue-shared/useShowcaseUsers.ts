@@ -1,81 +1,83 @@
-import { computed, onUnmounted, ref, shallowRef } from 'vue'
-import type { User, UserRole, UserStatus } from '@/domain/user'
+import { computed, onUnmounted, shallowRef } from 'vue'
+import type { User } from '@/domain/user'
+import {
+  createShowcaseScenario,
+  type HireDateSort,
+  type ShowcaseUserStore,
+} from '@/domain/showcaseScenario'
 import { userStore } from '@/domain/userStore'
 
-/** Shared list/filter/pagination state for Vue island Showcases. */
-export function useShowcaseUsers() {
-  const allUsers = shallowRef(userStore.getSnapshot())
-  const unsubscribe = userStore.subscribe(() => {
-    allUsers.value = userStore.getSnapshot()
-  })
-  onUnmounted(unsubscribe)
-
-  const keyword = ref('')
-  const roleFilter = ref<UserRole | 'all'>('all')
-  const statusFilter = ref<UserStatus | 'all'>('all')
-  const hireDateSort = ref<'none' | 'asc' | 'desc'>('none')
-  const page = ref(1)
-  const pageSize = 10
-  const selectedIds = ref<string[]>([])
-
-  const filtered = computed(() => {
-    const kw = keyword.value.trim().toLowerCase()
-    let list = allUsers.value.filter((u) => {
-      if (kw && !u.name.toLowerCase().includes(kw) && !u.email.toLowerCase().includes(kw)) {
-        return false
-      }
-      if (roleFilter.value !== 'all' && u.role !== roleFilter.value) return false
-      if (statusFilter.value !== 'all' && u.status !== statusFilter.value) return false
-      return true
-    })
-    if (hireDateSort.value !== 'none') {
-      list = [...list].sort((a, b) => {
-        const cmp = a.hireDate.localeCompare(b.hireDate)
-        return hireDateSort.value === 'asc' ? cmp : -cmp
-      })
-    }
-    return list
+/** Vue adapter for one Showcase Scenario mount. */
+export function useShowcaseUsers(store: ShowcaseUserStore = userStore) {
+  const scenario = createShowcaseScenario(store)
+  const snapshot = shallowRef(scenario.getSnapshot())
+  const unsubscribe = scenario.subscribe(() => {
+    snapshot.value = scenario.getSnapshot()
   })
 
-  const total = computed(() => filtered.value.length)
-
-  const pageUsers = computed(() => {
-    const start = (page.value - 1) * pageSize
-    return filtered.value.slice(start, start + pageSize)
+  onUnmounted(() => {
+    unsubscribe()
+    scenario.dispose()
   })
 
-  function resetFiltersPage() {
-    page.value = 1
-  }
-
-  function onSelectionChange(rows: User[]) {
-    selectedIds.value = rows.map((r) => r.id)
-  }
+  const keyword = computed({
+    get: () => snapshot.value.filters.keyword,
+    set: scenario.setKeyword,
+  })
+  const roleFilter = computed({
+    get: () => snapshot.value.filters.role,
+    set: scenario.setRoleFilter,
+  })
+  const statusFilter = computed({
+    get: () => snapshot.value.filters.status,
+    set: scenario.setStatusFilter,
+  })
+  const hireDateSort = computed(() => snapshot.value.hireDateSort)
+  const page = computed({
+    get: () => snapshot.value.page,
+    set: scenario.setPage,
+  })
+  const selectedIds = computed({
+    get: () => snapshot.value.selectedIds,
+    set: scenario.replacePageSelection,
+  })
+  const filtered = computed(() => snapshot.value.allFiltered)
+  const total = computed(() => snapshot.value.total)
+  const pageCount = computed(() => snapshot.value.pageCount)
+  const pageUsers = computed(() => snapshot.value.users)
 
   function setHireDateSortFromOrder(order: string | boolean | null | undefined) {
+    let normalized: HireDateSort = 'none'
     if (order === 'ascend' || order === 'ascending' || order === true || order === 'asc') {
-      hireDateSort.value = 'asc'
+      normalized = 'asc'
     } else if (order === 'descend' || order === 'descending' || order === 'desc') {
-      hireDateSort.value = 'desc'
-    } else {
-      hireDateSort.value = 'none'
+      normalized = 'desc'
     }
+    scenario.setHireDateSort(normalized)
   }
 
   return {
-    userStore,
     keyword,
     roleFilter,
     statusFilter,
     hireDateSort,
     page,
-    pageSize,
+    pageSize: snapshot.value.pageSize,
+    pageCount,
     selectedIds,
     filtered,
     total,
     pageUsers,
-    resetFiltersPage,
-    onSelectionChange,
+    resetFiltersPage: () => scenario.setPage(1),
+    onSelectionChange: (rows: User[]) =>
+      scenario.replacePageSelection(rows.map((row) => row.id)),
     setHireDateSortFromOrder,
+    setHireDateSort: scenario.setHireDateSort,
+    cycleHireDateSort: scenario.cycleHireDateSort,
+    toggleSelect: scenario.toggleSelect,
+    toggleSelectAllPage: scenario.toggleSelectAllPage,
+    createUser: scenario.createUser,
+    updateUser: scenario.updateUser,
+    deleteUser: scenario.deleteUser,
   }
 }

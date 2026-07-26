@@ -20,7 +20,6 @@ import {
   ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
-  validateUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
@@ -33,7 +32,6 @@ const toast = useToast()
 const confirm = useConfirm()
 
 const {
-  userStore,
   keyword,
   roleFilter,
   statusFilter,
@@ -45,6 +43,9 @@ const {
   pageUsers,
   resetFiltersPage,
   setHireDateSortFromOrder,
+  createUser,
+  updateUser,
+  deleteUser,
 } = useShowcaseUsers()
 
 const dialogOpen = ref(false)
@@ -115,14 +116,6 @@ function openEdit(user: User) {
 }
 
 function submit() {
-  const next = validateUserInput(form)
-  Object.assign(errors, next)
-  Object.keys(errors).forEach((k) => {
-    const key = k as keyof UserFormErrors
-    if (!(key in next)) delete errors[key]
-  })
-  if (Object.keys(next).length) return
-
   const input: UserInput = {
     name: form.name.trim(),
     email: form.email.trim(),
@@ -131,12 +124,18 @@ function submit() {
     hireDate: form.hireDate ? String(form.hireDate).slice(0, 10) : '',
     remark: (form.remark ?? '').trim(),
   }
+  const result = editing.value
+    ? updateUser(editing.value.id, input)
+    : createUser(input)
+  Object.keys(errors).forEach((k) => delete errors[k as keyof UserFormErrors])
+  if (!result.ok) {
+    Object.assign(errors, result.errors)
+    return
+  }
+
   if (editing.value) {
-    userStore.update(editing.value.id, input)
     toast.add({ severity: 'success', summary: '已更新用户', life: 2500 })
   } else {
-    userStore.create(input)
-    page.value = 1
     toast.add({ severity: 'success', summary: '已创建用户', life: 2500 })
   }
   dialogOpen.value = false
@@ -151,8 +150,7 @@ function confirmDelete(user: User) {
     acceptLabel: '删除',
     acceptClass: 'p-button-danger',
     accept: () => {
-      userStore.remove(user.id)
-      selectedIds.value = selectedIds.value.filter((id) => id !== user.id)
+      deleteUser(user.id)
       toast.add({ severity: 'success', summary: '已删除', life: 2500 })
     },
   })

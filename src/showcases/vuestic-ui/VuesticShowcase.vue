@@ -5,7 +5,6 @@ import {
   ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
-  validateUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
@@ -15,7 +14,6 @@ import {
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const {
-  userStore,
   keyword,
   roleFilter,
   statusFilter,
@@ -27,6 +25,9 @@ const {
   pageUsers,
   resetFiltersPage,
   setHireDateSortFromOrder,
+  createUser,
+  updateUser,
+  deleteUser,
 } = useShowcaseUsers()
 
 const dialogOpen = ref(false)
@@ -98,11 +99,6 @@ function openEdit(user: User) {
 }
 
 function submit() {
-  const next = validateUserInput(form)
-  Object.keys(errors).forEach((k) => delete errors[k as keyof UserFormErrors])
-  Object.assign(errors, next)
-  if (Object.keys(next).length) return
-
   const input: UserInput = {
     name: form.name.trim(),
     email: form.email.trim(),
@@ -111,18 +107,20 @@ function submit() {
     hireDate: form.hireDate ? String(form.hireDate).slice(0, 10) : '',
     remark: (form.remark ?? '').trim(),
   }
-  if (editing.value) userStore.update(editing.value.id, input)
-  else {
-    userStore.create(input)
-    page.value = 1
+  const result = editing.value
+    ? updateUser(editing.value.id, input)
+    : createUser(input)
+  Object.keys(errors).forEach((k) => delete errors[k as keyof UserFormErrors])
+  if (!result.ok) {
+    Object.assign(errors, result.errors)
+    return
   }
   dialogOpen.value = false
 }
 
 function confirmDelete(user: User) {
   if (!window.confirm('确认删除该用户？')) return
-  userStore.remove(user.id)
-  selectedIds.value = selectedIds.value.filter((id) => id !== user.id)
+  deleteUser(user.id)
 }
 
 function onSorted(payload: { sortBy?: string; sortingOrder?: 'asc' | 'desc' | null }) {

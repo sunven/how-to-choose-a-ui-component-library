@@ -5,7 +5,6 @@ import {
   ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
-  validateUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
@@ -23,7 +22,6 @@ import Switch from './ui/Switch.vue'
 import Textarea from './ui/Textarea.vue'
 
 const {
-  userStore,
   keyword,
   roleFilter,
   statusFilter,
@@ -34,7 +32,12 @@ const {
   total,
   pageUsers,
   resetFiltersPage,
-  setHireDateSortFromOrder,
+  cycleHireDateSort,
+  toggleSelect,
+  toggleSelectAllPage,
+  createUser,
+  updateUser,
+  deleteUser,
 } = useShowcaseUsers()
 
 const dialogOpen = ref(false)
@@ -80,11 +83,6 @@ function openEdit(user: User) {
 }
 
 function submit() {
-  const next = validateUserInput(form)
-  Object.keys(errors).forEach((k) => delete errors[k as keyof UserFormErrors])
-  Object.assign(errors, next)
-  if (Object.keys(next).length) return
-
   const input: UserInput = {
     name: form.name.trim(),
     email: form.email.trim(),
@@ -93,41 +91,20 @@ function submit() {
     hireDate: form.hireDate ? String(form.hireDate).slice(0, 10) : '',
     remark: (form.remark ?? '').trim(),
   }
-  if (editing.value) userStore.update(editing.value.id, input)
-  else {
-    userStore.create(input)
-    page.value = 1
+  const result = editing.value
+    ? updateUser(editing.value.id, input)
+    : createUser(input)
+  Object.keys(errors).forEach((k) => delete errors[k as keyof UserFormErrors])
+  if (!result.ok) {
+    Object.assign(errors, result.errors)
+    return
   }
   dialogOpen.value = false
 }
 
 function confirmDelete(user: User) {
   if (!window.confirm('确认删除该用户？')) return
-  userStore.remove(user.id)
-  selectedIds.value = selectedIds.value.filter((id) => id !== user.id)
-}
-
-function toggleSelect(id: string, checked: boolean) {
-  if (checked) {
-    if (!selectedIds.value.includes(id)) selectedIds.value = [...selectedIds.value, id]
-  } else {
-    selectedIds.value = selectedIds.value.filter((x) => x !== id)
-  }
-}
-
-function toggleSelectAllPage(checked: boolean) {
-  const ids = pageUsers.value.map((u) => u.id)
-  if (checked) {
-    selectedIds.value = Array.from(new Set([...selectedIds.value, ...ids]))
-  } else {
-    selectedIds.value = selectedIds.value.filter((id) => !ids.includes(id))
-  }
-}
-
-function cycleHireDateSort() {
-  if (hireDateSort.value === 'none') setHireDateSortFromOrder('asc')
-  else if (hireDateSort.value === 'asc') setHireDateSortFromOrder('desc')
-  else setHireDateSortFromOrder(null)
+  deleteUser(user.id)
 }
 
 function onRoleFilter(v: string) {

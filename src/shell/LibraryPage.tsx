@@ -130,7 +130,6 @@ const VANILLA_SHOWCASES: Record<VanillaLibraryId, ComponentType<ShowcaseProps>> 
 
 export function LibraryPage() {
   const { framework, libraryId } = useParams()
-  const users = useUsers()
 
   if (!isFrameworkId(framework) || !isLibraryId(libraryId)) {
     return <Navigate to={defaultPath()} replace />
@@ -141,16 +140,10 @@ export function LibraryPage() {
     return <Navigate to={libraryPath(library.framework, library.id)} replace />
   }
 
-  return <LibraryPageBody libraryId={library.id} users={users} />
+  return <LibraryPageBody libraryId={library.id} />
 }
 
-function LibraryPageBody({
-  libraryId,
-  users,
-}: {
-  libraryId: LibraryId
-  users: ReturnType<typeof useUsers>
-}) {
+function LibraryPageBody({ libraryId }: { libraryId: LibraryId }) {
   const library = getLibrary(libraryId)
 
   // L1: track / unload global CSS injected while this library is active
@@ -179,11 +172,11 @@ function LibraryPageBody({
           }
         >
           {VueIsland ? (
-            <VueIsland />
+            <VueIsland key={libraryId} />
           ) : isVanilla ? (
-            <VanillaShowcase libraryId={libraryId} users={users} />
+            <VanillaShowcase key={libraryId} libraryId={libraryId} />
           ) : (
-            <ReactShowcase libraryId={libraryId} users={users} />
+            <ReactShowcase key={libraryId} libraryId={libraryId} />
           )}
         </Suspense>
       </section>
@@ -192,25 +185,15 @@ function LibraryPageBody({
   )
 }
 
-function ReactShowcase({
-  libraryId,
-  users,
-}: {
-  libraryId: LibraryId
-  users: ReturnType<typeof useUsers>
-}) {
+function ReactShowcase({ libraryId }: { libraryId: LibraryId }) {
+  const users = useUsers()
   if (getLibrary(libraryId).framework !== 'react') return null
   const Showcase = REACT_SHOWCASES[libraryId as ReactLibraryId]
   return <Showcase users={users} />
 }
 
-function VanillaShowcase({
-  libraryId,
-  users,
-}: {
-  libraryId: LibraryId
-  users: ReturnType<typeof useUsers>
-}) {
+function VanillaShowcase({ libraryId }: { libraryId: LibraryId }) {
+  const users = useUsers()
   if (getLibrary(libraryId).framework !== 'vanilla') return null
   const Showcase = VANILLA_SHOWCASES[libraryId as VanillaLibraryId]
   return <Showcase users={users} />

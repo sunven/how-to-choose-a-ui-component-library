@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onUnmounted, reactive, ref, shallowRef } from 'vue'
+import { onUnmounted, reactive, ref } from 'vue'
 import {
   ElButton,
   ElDialog,
@@ -25,59 +25,37 @@ import {
   STATUS_LABELS,
   emptyUserInput,
   type User,
+  type UserFormErrors,
   type UserInput,
   type UserRole,
   type UserStatus,
 } from '@/domain/user'
-import { userStore } from '@/domain/userStore'
+import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
-const allUsers = shallowRef(userStore.getSnapshot())
-const unsubscribe = userStore.subscribe(() => {
-  allUsers.value = userStore.getSnapshot()
-})
-onUnmounted(() => {
-  unsubscribe()
-  ElMessage.closeAll()
-})
+const {
+  keyword,
+  roleFilter,
+  statusFilter,
+  hireDateSort,
+  page,
+  pageSize,
+  total,
+  pageUsers,
+  resetFiltersPage,
+  onSelectionChange,
+  setHireDateSort,
+  createUser,
+  updateUser,
+  deleteUser,
+} = useShowcaseUsers()
 
-const keyword = ref('')
-const roleFilter = ref<UserRole | 'all'>('all')
-const statusFilter = ref<UserStatus | 'all'>('all')
-const hireDateSort = ref<'none' | 'asc' | 'desc'>('none')
-const page = ref(1)
-const pageSize = 10
-const selectedIds = ref<string[]>([])
-
-const filtered = computed(() => {
-  const kw = keyword.value.trim().toLowerCase()
-  let list = allUsers.value.filter((u) => {
-    if (kw && !u.name.toLowerCase().includes(kw) && !u.email.toLowerCase().includes(kw)) {
-      return false
-    }
-    if (roleFilter.value !== 'all' && u.role !== roleFilter.value) return false
-    if (statusFilter.value !== 'all' && u.status !== statusFilter.value) return false
-    return true
-  })
-  if (hireDateSort.value !== 'none') {
-    list = [...list].sort((a, b) => {
-      const cmp = a.hireDate.localeCompare(b.hireDate)
-      return hireDateSort.value === 'asc' ? cmp : -cmp
-    })
-  }
-  return list
-})
-
-const total = computed(() => filtered.value.length)
-
-const pageUsers = computed(() => {
-  const start = (page.value - 1) * pageSize
-  return filtered.value.slice(start, start + pageSize)
-})
+onUnmounted(() => ElMessage.closeAll())
 
 const dialogOpen = ref(false)
 const editing = ref<User | null>(null)
 const formRef = ref<FormInstance>()
 const form = reactive<UserInput>(emptyUserInput())
+const canonicalErrors = reactive<UserFormErrors>({})
 
 const rules: FormRules<UserInput> = {
   name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
@@ -89,8 +67,11 @@ const rules: FormRules<UserInput> = {
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
 }
 
-function resetFiltersPage() {
-  page.value = 1
+function setCanonicalErrors(errors: UserFormErrors) {
+  for (const key of Object.keys(canonicalErrors)) {
+    delete canonicalErrors[key as keyof UserFormErrors]
+  }
+  Object.assign(canonicalErrors, errors)
 }
 
 function openCreate() {
@@ -123,12 +104,18 @@ async function submit() {
     hireDate: form.hireDate ? String(form.hireDate).slice(0, 10) : '',
     remark: (form.remark ?? '').trim(),
   }
+  const result = editing.value
+    ? updateUser(editing.value.id, input)
+    : createUser(input)
+  if (!result.ok) {
+    setCanonicalErrors(result.errors)
+    return
+  }
+
+  setCanonicalErrors({})
   if (editing.value) {
-    userStore.update(editing.value.id, input)
     ElMessage.success('已更新用户')
   } else {
-    userStore.create(input)
-    page.value = 1
     ElMessage.success('已创建用户')
   }
   dialogOpen.value = false
@@ -141,23 +128,18 @@ async function confirmDelete(user: User) {
       cancelButtonText: '取消',
       type: 'warning',
     })
-    userStore.remove(user.id)
-    selectedIds.value = selectedIds.value.filter((id) => id !== user.id)
+    deleteUser(user.id)
     ElMessage.success('已删除')
   } catch {
     /* cancelled */
   }
 }
 
-function onSelectionChange(rows: User[]) {
-  selectedIds.value = rows.map((r) => r.id)
-}
-
 function onSortChange(payload: { prop: string; order: string | null }) {
   if (payload.prop !== 'hireDate') return
-  if (payload.order === 'ascending') hireDateSort.value = 'asc'
-  else if (payload.order === 'descending') hireDateSort.value = 'desc'
-  else hireDateSort.value = 'none'
+  if (payload.order === 'ascending') setHireDateSort('asc')
+  else if (payload.order === 'descending') setHireDateSort('desc')
+  else setHireDateSort('none')
 }
 
 const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | null> = {
@@ -211,7 +193,7 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
       @selection-change="onSelectionChange"
       @sort-change="onSortChange"
     >
-      <ElTableColumn type="selection" width="48" />
+      <ElTableColumn type="selection" width="48" reserve-selection />
       <ElTableColumn prop="name" label="姓名" min-width="100" />
       <ElTableColumn prop="email" label="邮箱" min-width="180" />
       <ElTableColumn prop="role" label="角色" width="100">
@@ -259,13 +241,13 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
       destroy-on-close
     >
       <ElForm ref="formRef" :model="form" :rules="rules" label-position="top">
-        <ElFormItem label="姓名" prop="name">
+        <ElFormItem label="姓名" prop="name" :error="canonicalErrors.name">
           <ElInput v-model="form.name" placeholder="请输入姓名" />
         </ElFormItem>
-        <ElFormItem label="邮箱" prop="email">
+        <ElFormItem label="邮箱" prop="email" :error="canonicalErrors.email">
           <ElInput v-model="form.email" placeholder="name@example.com" />
         </ElFormItem>
-        <ElFormItem label="角色" prop="role">
+        <ElFormItem label="角色" prop="role" :error="canonicalErrors.role">
           <ElSelect v-model="form.role" class="w-full">
             <ElOption
               v-for="o in ROLE_OPTIONS"
@@ -275,7 +257,7 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
             />
           </ElSelect>
         </ElFormItem>
-        <ElFormItem label="状态" prop="status">
+        <ElFormItem label="状态" prop="status" :error="canonicalErrors.status">
           <ElSwitch
             :model-value="form.status === 'active'"
             active-text="启用"

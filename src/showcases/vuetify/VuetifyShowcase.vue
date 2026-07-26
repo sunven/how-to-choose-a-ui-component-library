@@ -13,7 +13,6 @@ import {
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const {
-  userStore,
   keyword,
   roleFilter,
   statusFilter,
@@ -25,6 +24,9 @@ const {
   pageUsers,
   resetFiltersPage,
   setHireDateSortFromOrder,
+  createUser,
+  updateUser,
+  deleteUser,
 } = useShowcaseUsers()
 
 const dialogOpen = ref(false)
@@ -93,8 +95,8 @@ function openEdit(user: User) {
 }
 
 async function submit() {
-  const result = await formRef.value?.validate()
-  if (!result?.valid) return
+  const formResult = await formRef.value?.validate()
+  if (!formResult?.valid) return
   const input: UserInput = {
     name: form.name.trim(),
     email: form.email.trim(),
@@ -103,12 +105,17 @@ async function submit() {
     hireDate: form.hireDate ? String(form.hireDate).slice(0, 10) : '',
     remark: (form.remark ?? '').trim(),
   }
+  const saveResult = editing.value
+    ? updateUser(editing.value.id, input)
+    : createUser(input)
+  if (!saveResult.ok) {
+    showMessage(Object.values(saveResult.errors).find(Boolean) ?? '请检查表单')
+    return
+  }
+
   if (editing.value) {
-    userStore.update(editing.value.id, input)
     showMessage('已更新用户')
   } else {
-    userStore.create(input)
-    page.value = 1
     showMessage('已创建用户')
   }
   dialogOpen.value = false
@@ -121,8 +128,7 @@ function askDelete(user: User) {
 function confirmDelete() {
   const user = deleteTarget.value
   if (!user) return
-  userStore.remove(user.id)
-  selectedIds.value = selectedIds.value.filter((id) => id !== user.id)
+  deleteUser(user.id)
   deleteTarget.value = null
   showMessage('已删除')
 }

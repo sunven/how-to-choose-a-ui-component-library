@@ -25,7 +25,6 @@ import {
   ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
-  validateUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
@@ -64,17 +63,20 @@ export function MantineShowcase({ users }: ShowcaseProps) {
   }
 
   const submit = () => {
-    const next = validateUserInput(form)
-    setErrors(next)
-    if (Object.keys(next).length) return
     const input: UserInput = {
       ...form,
       name: form.name.trim(),
       email: form.email.trim(),
       remark: form.remark.trim(),
     }
-    if (editing) users.updateUser(editing.id, input)
-    else users.createUser(input)
+    const result = editing
+      ? users.updateUser(editing.id, input)
+      : users.createUser(input)
+    if (!result.ok) {
+      setErrors(result.errors)
+      return
+    }
+    setErrors({})
     setOpen(false)
   }
 

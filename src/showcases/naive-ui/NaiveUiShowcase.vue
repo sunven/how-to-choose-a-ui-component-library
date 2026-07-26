@@ -32,7 +32,6 @@ import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const message = useMessage()
 const {
-  userStore,
   keyword,
   roleFilter,
   statusFilter,
@@ -44,6 +43,9 @@ const {
   pageUsers,
   resetFiltersPage,
   setHireDateSortFromOrder,
+  createUser,
+  updateUser,
+  deleteUser,
 } = useShowcaseUsers()
 
 const dialogOpen = ref(false)
@@ -156,12 +158,17 @@ async function submit() {
     hireDate: form.hireDate ? String(form.hireDate).slice(0, 10) : '',
     remark: (form.remark ?? '').trim(),
   }
+  const result = editing.value
+    ? updateUser(editing.value.id, input)
+    : createUser(input)
+  if (!result.ok) {
+    message.error(Object.values(result.errors).find(Boolean) ?? '请检查表单')
+    return
+  }
+
   if (editing.value) {
-    userStore.update(editing.value.id, input)
     message.success('已更新用户')
   } else {
-    userStore.create(input)
-    page.value = 1
     message.success('已创建用户')
   }
   dialogOpen.value = false
@@ -169,8 +176,7 @@ async function submit() {
 
 function confirmDelete(user: User) {
   if (!window.confirm('确认删除该用户？')) return
-  userStore.remove(user.id)
-  selectedIds.value = selectedIds.value.filter((id) => id !== user.id)
+  deleteUser(user.id)
   message.success('已删除')
 }
 </script>

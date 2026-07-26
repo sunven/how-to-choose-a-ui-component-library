@@ -73,11 +73,17 @@ export function ArcoDesignShowcase({ users }: ShowcaseProps) {
         hireDate: values.hireDate ? String(values.hireDate).slice(0, 10) : '',
         remark: String(values.remark ?? '').trim(),
       }
+      const result = editing
+        ? users.updateUser(editing.id, input)
+        : users.createUser(input)
+      if (!result.ok) {
+        Message.error(Object.values(result.errors).find(Boolean) ?? '请检查表单')
+        return
+      }
+
       if (editing) {
-        users.updateUser(editing.id, input)
         Message.success('已更新用户')
       } else {
-        users.createUser(input)
         Message.success('已创建用户')
       }
       setOpen(false)

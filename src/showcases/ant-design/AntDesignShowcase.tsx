@@ -69,11 +69,17 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
       hireDate: values.hireDate ? String(values.hireDate).slice(0, 10) : '',
       remark: (values.remark ?? '').trim(),
     }
+    const result = editing
+      ? users.updateUser(editing.id, input)
+      : users.createUser(input)
+    if (!result.ok) {
+      message.error(Object.values(result.errors).find(Boolean) ?? '请检查表单')
+      return
+    }
+
     if (editing) {
-      users.updateUser(editing.id, input)
       message.success('已更新用户')
     } else {
-      users.createUser(input)
       message.success('已创建用户')
     }
     setOpen(false)
