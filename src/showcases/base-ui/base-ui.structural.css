@@ -1,0 +1,182 @@
+.base-ui-showcase {
+  display: grid;
+  gap: 1rem;
+}
+
+.base-ui-toolbar,
+.base-ui-toolbar-filters,
+.base-ui-pagination,
+.base-ui-pagination-actions,
+.base-ui-row-actions,
+.base-ui-dialog-actions,
+.base-ui-switch-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.base-ui-toolbar,
+.base-ui-pagination {
+  justify-content: space-between;
+}
+
+.base-ui-toolbar,
+.base-ui-toolbar-filters,
+.base-ui-pagination,
+.base-ui-pagination-actions,
+.base-ui-row-actions {
+  flex-wrap: wrap;
+}
+
+.base-ui-toolbar,
+.base-ui-toolbar-filters {
+  align-items: end;
+}
+
+.base-ui-field {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.base-ui-field > input,
+.base-ui-field > textarea {
+  width: 100%;
+  min-width: 0;
+}
+
+.base-ui-search-field {
+  width: 14rem;
+  max-width: 100%;
+}
+
+.base-ui-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 8rem;
+}
+
+.base-ui-select-positioner {
+  z-index: 60;
+}
+
+.base-ui-select-popup {
+  min-width: var(--anchor-width, 8rem);
+  max-height: var(--available-height, calc(100vh - 2rem));
+  overflow-y: auto;
+  padding: 0.25rem;
+}
+
+.base-ui-select-list {
+  display: grid;
+}
+
+.base-ui-select-item {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2rem;
+  padding: 0.25rem;
+  cursor: pointer;
+}
+
+.base-ui-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.base-ui-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.base-ui-table th,
+.base-ui-table td {
+  padding: 0.5rem 0.375rem;
+  vertical-align: middle;
+}
+
+.base-ui-row-actions {
+  white-space: nowrap;
+}
+
+.base-ui-checkbox {
+  display: inline-grid;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  cursor: pointer;
+}
+
+.base-ui-switch {
+  display: inline-flex;
+  width: 2.5rem;
+  height: 1.5rem;
+  align-items: center;
+  cursor: pointer;
+}
+
+.base-ui-switch-thumb {
+  display: block;
+  width: 1rem;
+  height: 1rem;
+}
+
+.base-ui-dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.base-ui-dialog-viewport {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.base-ui-dialog-popup {
+  display: grid;
+  width: min(32rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  gap: 1rem;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.base-ui-dialog-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.base-ui-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.base-ui-form-wide {
+  grid-column: 1 / -1;
+}
+
+.base-ui-dialog-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 639px) {
+  .base-ui-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .base-ui-form-wide {
+    grid-column: auto;
+  }
+}

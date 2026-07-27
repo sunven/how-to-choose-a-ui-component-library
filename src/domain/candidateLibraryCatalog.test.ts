@@ -11,7 +11,15 @@ describe('Candidate Library Catalog', () => {
     ).toEqual([
       {
         framework: 'react',
-        candidates: ['ant-design', 'mui', 'shadcn', 'arco-design', 'semi-design', 'mantine'],
+        candidates: [
+          'ant-design',
+          'mui',
+          'shadcn',
+          'arco-design',
+          'semi-design',
+          'mantine',
+          'base-ui',
+        ],
       },
       {
         framework: 'vue',
@@ -42,6 +50,11 @@ describe('Candidate Library Catalog', () => {
       id: 'mui',
       framework: 'react',
       path: '/libs/react/mui',
+    })
+    expect(candidateLibraryCatalog.findCandidate('base-ui')).toMatchObject({
+      id: 'base-ui',
+      framework: 'react',
+      path: '/libs/react/base-ui',
     })
     expect(candidateLibraryCatalog.findCandidate('not-a-library')).toBeUndefined()
   })

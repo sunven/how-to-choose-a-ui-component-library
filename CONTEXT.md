@@ -52,7 +52,7 @@ _Avoid_: 把整个站点改成 Vue; 用 iframe 充当默认 Island; 微前端编
 _Avoid_: 全站英文; 完整 i18n; Vue 侧默认英文 locale 导致观感对比失真; 为凑「全中文」把本批做成翻译工程; 业务层中英混用双标准
 
 **Theme Mode** (主题模式):
-全站唯一的亮/暗观看模式，取值仅 `light` | `dark`（无 `system`）。**产品目的是选型对比**：在同一 Form/Table Showcase 上对比各库**官方默认** light 与 dark 观感，不是给本站做阅读主题或设计 token 工厂。默认 `light`。外壳与当前 Showcase **同步跟随**同一 Mode；换 Framework / Candidate Library 时**继承**当前 Mode，不重置。持久化：`localStorage`；**不进 URL**（路由真源仍是库身份）。DOM：`dark` 时在 `document.documentElement` 上挂 `class="dark"`，`light` 时移除；`index.html` 内同步脚本在首屏前读 LS 写 class，减少 FOUC。各库必须用**该库官方文档推荐的** light/dark 方式映射同一 Mode（ConfigProvider / palette / `data-theme` / `data-bs-theme` / `darkModeSelector` 等）；禁止手写伪 dark 凑数。**全量 Candidate 官方映射就绪后才上线**开关；不做半支持、不做「当前库无 dark 则禁用开关」。
+全站唯一的亮/暗观看模式，取值仅 `light` | `dark`（无 `system`）。**产品目的是选型对比**：在同一 Form/Table Showcase 上对比各库**官方默认** light 与 dark 观感，不是给本站做阅读主题或设计 token 工厂。默认 `light`。外壳与当前 Showcase **同步跟随**同一 Mode；换 Framework / Candidate Library 时**继承**当前 Mode，不重置。持久化：`localStorage`；**不进 URL**（路由真源仍是库身份）。DOM：`dark` 时在 `document.documentElement` 上挂 `class="dark"`，`light` 时移除；`index.html` 内同步脚本在首屏前读 LS 写 class，减少 FOUC。各库必须用**该库官方文档推荐的** light/dark 方式映射同一 Mode（ConfigProvider / palette / `data-theme` / `data-bs-theme` / `darkModeSelector` 等）；禁止手写伪 dark 凑数。Base UI 是明确的 unstyled 例外：不写 Candidate 专属 dark 样式，仅接受全站 `color-scheme` 对浏览器原生控件的影响与外壳颜色继承，且不得表述为 Base UI 官方 dark 主题。**全量 Candidate 官方映射或明确的 unstyled 例外就绪后才上线**开关；不做半支持、不做「当前库无 dark 则禁用开关」。
 _Avoid_: 跟随系统; 每库或每框架一份 Mode; 仅壳或仅 Showcase 单侧切换; URL query/path 携带 theme; 手写覆盖色冒充官方 dark; 渐进半支持导致壳 dark、Showcase light 撕裂
 
 **Theme Toggle** (主题切换控件):
@@ -112,7 +112,7 @@ _Avoid_: 并排对比, side-by-side, 双栏模式；跨框架扁平混排；单�
 
 
 **Candidate Library** (候选组件库):
-某一 Framework 下用于 Showcase 的组件库集合。React：`ant-design`、`mui`、`shadcn`、`arco-design`、`semi-design`、`mantine`。Vue（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`element-plus`、`naive-ui`、`ant-design-vue`、`arco-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`、`quasar`、`volt-ui`、`reka-ui`。Vanilla（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`daisyui`、`bootstrap`、`bulma`。Ant Design（React）与 Ant Design Vue 为两个 Candidate Library；React `shadcn` 与 Vue `shadcn-vue` 亦为两个；`primevue` 与 `volt-ui` 亦为两个，不合并。架构上按可扩展注册；每框架清单单独决议，不按「知名度」或外部目录无限扩容。
+某一 Framework 下用于 Showcase 的组件库集合。React：`ant-design`、`mui`、`shadcn`、`arco-design`、`semi-design`、`mantine`、`base-ui`。Vue（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`element-plus`、`naive-ui`、`ant-design-vue`、`arco-design-vue`、`vuetify`、`primevue`、`shadcn-vue`、`vuestic-ui`、`flowbite-vue`、`quasar`、`volt-ui`、`reka-ui`。Vanilla（决议全集，串行注册到位前 Switcher 可能尚未全部出现）：`daisyui`、`bootstrap`、`bulma`。MUI 与 Base UI 是两个独立的 React Candidate Library；Ant Design（React）与 Ant Design Vue 为两个；React `shadcn` 与 Vue `shadcn-vue` 亦为两个；`primevue` 与 `volt-ui` 亦为两个，不合并。架构上按可扩展注册；每框架清单单独决议，不按「知名度」或外部目录无限扩容。
 _Avoid_: 全量组件库目录；把不同 Framework 的库当成同一候选集；把 Ant Design 与 Ant Design Vue、shadcn 与 shadcn-vue、primevue 与 volt-ui 当成同一 Candidate Library；把 CSS-only 库挂进 react/vue；本批塞入未决议库
 
 **Candidate Library Catalog** (候选库目录):
@@ -122,6 +122,10 @@ _Avoid_: Showcase loader；npm 包清单；跨 Framework 扁平列表
 **React Candidate Expansion** (React 候选扩展):
 在已有 React 三库之上，新增 Arco Design、Semi Design、Mantine 三个 React Candidate Library 的真机 Showcase 与 Library Profile。场景全对齐；React Switcher 顺序：Ant Design → MUI → shadcn/ui → Arco Design → Semi Design → Mantine；默认库仍为 Ant Design。
 _Avoid_: 借扩展之名加新框架；用档案页代替真机 Showcase；把默认库换成新库以「推广」某候选
+
+**Base UI Candidate Expansion** (Base UI 候选扩展):
+在现有 React 候选之后新增 Base UI（`base-ui`）完整真机 Candidate Library；Form/Table/Modal Showcase、Library Profile 与全站 Theme Mode 全部达到现有交付门槛后，才注册进 Switcher 与路由。Showcase 采用 **Unstyled Showcase**，不使用 Documented Example Skin；仅在 Library Profile 的样式方案与一句话定位中披露 `Unstyled`，Showcase 内不增加解释横幅。React Switcher 中排在 Mantine 之后；React 默认库仍为 Ant Design。
+_Avoid_: 与 MUI 合并为同一 Candidate；仅添加档案或外链；场景未对齐就提前注册；为 Base UI 添加文档示例皮或自研视觉皮；在 Showcase 内增加样式说明横幅
 
 **Vue Candidate Expansion** (Vue 候选扩展):
 在 Element Plus 之上，首批 Vue 扩展新增 Naive UI（`naive-ui`）、Ant Design Vue（`ant-design-vue`）、Arco Design Vue（`arco-design-vue`）。均以 Vue Island 挂载；Showcase Scenario / Form / Table / Form Chrome / Showcase Data / User **全对齐**；Vue 默认库仍为 Element Plus。后续批次见 **Vue ui-libs Candidate Expansion**。
@@ -138,6 +142,10 @@ _Avoid_: 差额五库含 Daisy 双挂 Vue；Reka 自研皮或裸奔却声称默�
 **Documented Example Skin** (文档示例皮):
 headless / unstyled 库在本站 Showcase 上采用的、复刻**该库官网文档示例**的样式层（非 npm 包自带的默认主题）。仅在决议明确允许时使用（本批：`reka-ui`）；必须在 Library Profile 与 Showcase 短提示中披露，避免被当成「官方默认观感」。
 _Avoid_: 本站自研中立皮冒充库默认；文档皮却不披露；把 Documented Example Skin 推广为所有库的默认策略
+
+**Unstyled Showcase** (无视觉皮展示):
+Base UI Showcase 保持原语的 unstyled 事实，不添加颜色、边框、圆角、阴影、字体或亮暗主题色；仅允许维持完整场景可操作所必需的结构 CSS，例如 Dialog 定位、表单布局和表格横向滚动。有对应原语时必须使用 Base UI；Base UI 未提供的 Table/DataGrid、DatePicker、Pagination 等才使用原生 HTML 与本地状态补齐，不借用其他 Candidate Library。Theme Mode 下不写 Base UI 专属 light/dark 样式；浏览器原生控件可跟随全站 `color-scheme`，其余内容可自然继承外壳颜色。
+_Avoid_: 把结构 CSS 扩张成视觉主题；绝对零 CSS 导致 Dialog / Form / Table 场景失效；把浏览器默认观感或外壳继承色描述成 Base UI 官方主题；用 MUI、Radix 或其他候选库填补 Base UI 组件缺口
 
 **Vanilla Candidate Expansion** (Vanilla 候选扩展):
 选型原则 **D**：热度初筛 + 范式差异 + 中后台 Form/Table/Modal 能落地；非热度百科。范式槽位：T0 Tailwind 语义 class（已有 `daisyui`）+ 本批 **T1 经典全家桶** + **T2 纯 CSS**；本批不做 T3 Web Components、T4 classless、T5 第二套 Tailwind 组件层。

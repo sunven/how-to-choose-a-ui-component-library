@@ -37,6 +37,9 @@ const SemiDesignShowcase = lazy(() =>
 const MantineShowcase = lazy(() =>
   import('@/showcases/mantine/MantineShowcase').then((m) => ({ default: m.MantineShowcase })),
 )
+const BaseUiShowcase = lazy(() =>
+  import('@/showcases/base-ui/BaseUiShowcase').then((m) => ({ default: m.BaseUiShowcase })),
+)
 const ElementPlusIsland = lazy(() =>
   import('@/showcases/element-plus/ElementPlusIsland').then((m) => ({
     default: m.ElementPlusIsland,
@@ -100,6 +103,7 @@ const REACT_SHOWCASES: Record<ReactLibraryId, ComponentType<ShowcaseProps>> = {
   'arco-design': ArcoDesignShowcase,
   'semi-design': SemiDesignShowcase,
   mantine: MantineShowcase,
+  'base-ui': BaseUiShowcase,
 }
 
 const VUE_ISLANDS: Record<VueLibraryId, ComponentType> = {
