@@ -1,6 +1,8 @@
 import { lazy, type ComponentType, type LazyExoticComponent } from 'react'
-import type { LibraryId } from '@/domain/libraries'
+import type { LibraryId, VueLibraryId } from '@/domain/libraries'
 import { useUsers } from '@/domain/useUsers'
+import { createVueShowcaseIsland } from './vue-island/createVueShowcaseIsland'
+import type { VueShowcaseLoader } from './vue-island/VueIslandHost'
 import type { ShowcaseProps } from './types'
 
 /** LibraryId → normalized Showcase. Catalog owns identity; this module owns rendering. */
@@ -15,6 +17,16 @@ function withUsers(Showcase: ComponentType<ShowcaseProps>): ComponentType {
     const users = useUsers()
     return <Showcase users={users} />
   }
+}
+
+function lazyVueIsland(
+  libraryId: VueLibraryId,
+  rootClassName: string,
+  load: VueShowcaseLoader,
+): ShowcaseRenderer {
+  return lazy(async () => ({
+    default: createVueShowcaseIsland({ libraryId, rootClassName, load }),
+  }))
 }
 
 const AntDesignShowcase = lazy(() =>
@@ -52,65 +64,56 @@ const BaseUiShowcase = lazy(() =>
     default: withUsers(module.BaseUiShowcase),
   })),
 )
-const ElementPlusIsland = lazy(() =>
-  import('./element-plus/ElementPlusIsland').then((module) => ({
-    default: module.ElementPlusIsland,
-  })),
+const ElementPlusIsland = lazyVueIsland('element-plus', 'element-plus-island', () =>
+  import('./element-plus/mount').then((module) => module.mountElementPlusShowcase),
 )
-const NaiveUiIsland = lazy(() =>
-  import('./naive-ui/NaiveUiIsland').then((module) => ({
-    default: module.NaiveUiIsland,
-  })),
+const NaiveUiIsland = lazyVueIsland('naive-ui', 'naive-ui-island', () =>
+  import('./naive-ui/mount').then((module) => module.mountNaiveUiShowcase),
 )
-const AntDesignVueIsland = lazy(() =>
-  import('./ant-design-vue/AntDesignVueIsland').then((module) => ({
-    default: module.AntDesignVueIsland,
-  })),
+const AntDesignVueIsland = lazyVueIsland(
+  'ant-design-vue',
+  'ant-design-vue-island',
+  () =>
+    import('./ant-design-vue/mount').then(
+      (module) => module.mountAntDesignVueShowcase,
+    ),
 )
-const ArcoDesignVueIsland = lazy(() =>
-  import('./arco-design-vue/ArcoDesignVueIsland').then((module) => ({
-    default: module.ArcoDesignVueIsland,
-  })),
+const ArcoDesignVueIsland = lazyVueIsland(
+  'arco-design-vue',
+  'arco-design-vue-island',
+  () =>
+    import('./arco-design-vue/mount').then(
+      (module) => module.mountArcoDesignVueShowcase,
+    ),
 )
-const VuetifyIsland = lazy(() =>
-  import('./vuetify/VuetifyIsland').then((module) => ({
-    default: module.VuetifyIsland,
-  })),
+const VuetifyIsland = lazyVueIsland('vuetify', 'vuetify-island', () =>
+  import('./vuetify/mount').then((module) => module.mountVuetifyShowcase),
 )
-const PrimeVueIsland = lazy(() =>
-  import('./primevue/PrimeVueIsland').then((module) => ({
-    default: module.PrimeVueIsland,
-  })),
+const PrimeVueIsland = lazyVueIsland('primevue', 'primevue-island', () =>
+  import('./primevue/mount').then((module) => module.mountPrimeVueShowcase),
 )
-const ShadcnVueIsland = lazy(() =>
-  import('./shadcn-vue/ShadcnVueIsland').then((module) => ({
-    default: module.ShadcnVueIsland,
-  })),
+const ShadcnVueIsland = lazyVueIsland('shadcn-vue', 'shadcn-vue-island', () =>
+  import('./shadcn-vue/mount').then((module) => module.mountShadcnVueShowcase),
 )
-const VuesticIsland = lazy(() =>
-  import('./vuestic-ui/VuesticIsland').then((module) => ({
-    default: module.VuesticIsland,
-  })),
+const VuesticIsland = lazyVueIsland('vuestic-ui', 'vuestic-island', () =>
+  import('./vuestic-ui/mount').then((module) => module.mountVuesticShowcase),
 )
-const FlowbiteVueIsland = lazy(() =>
-  import('./flowbite-vue/FlowbiteVueIsland').then((module) => ({
-    default: module.FlowbiteVueIsland,
-  })),
+const FlowbiteVueIsland = lazyVueIsland(
+  'flowbite-vue',
+  'flowbite-vue-island',
+  () =>
+    import('./flowbite-vue/mount').then(
+      (module) => module.mountFlowbiteVueShowcase,
+    ),
 )
-const QuasarIsland = lazy(() =>
-  import('./quasar/QuasarIsland').then((module) => ({
-    default: module.QuasarIsland,
-  })),
+const QuasarIsland = lazyVueIsland('quasar', 'quasar-island', () =>
+  import('./quasar/mount').then((module) => module.mountQuasarShowcase),
 )
-const VoltUiIsland = lazy(() =>
-  import('./volt-ui/VoltUiIsland').then((module) => ({
-    default: module.VoltUiIsland,
-  })),
+const VoltUiIsland = lazyVueIsland('volt-ui', 'volt-island', () =>
+  import('./volt-ui/mount').then((module) => module.mountVoltUiShowcase),
 )
-const RekaUiIsland = lazy(() =>
-  import('./reka-ui/RekaUiIsland').then((module) => ({
-    default: module.RekaUiIsland,
-  })),
+const RekaUiIsland = lazyVueIsland('reka-ui', 'reka-island', () =>
+  import('./reka-ui/mount').then((module) => module.mountRekaUiShowcase),
 )
 const DaisyUiShowcase = lazy(() =>
   import('./daisyui/DaisyUiShowcase').then((module) => ({

@@ -185,10 +185,10 @@ test('keeps one mounted Vue Showcase under React StrictMode', async () => {
 test('disposes and remounts the Vue Showcase when Theme Mode changes', async () => {
   const events: string[] = []
   let mountNumber = 0
-  const load: VueShowcaseLoader = async () => (element) => {
+  const load: VueShowcaseLoader = async () => (element, mode) => {
     mountNumber += 1
     const currentMount = mountNumber
-    events.push(`mount ${currentMount}`)
+    events.push(`mount ${currentMount} ${mode}`)
     element.textContent = `mounted Showcase ${currentMount}`
     return () => events.push(`dispose ${currentMount}`)
   }
@@ -214,6 +214,44 @@ test('disposes and remounts the Vue Showcase when Theme Mode changes', async () 
     await Promise.resolve()
   })
 
-  expect(events).toEqual(['mount 1', 'dispose 1', 'mount 2'])
+  expect(events).toEqual(['mount 1 light', 'dispose 1', 'mount 2 dark'])
   expect(container.textContent).toBe('mounted Showcase 2')
+})
+
+test('retries after a load failure when Theme Mode changes', async () => {
+  let attempts = 0
+  const load: VueShowcaseLoader = async () => {
+    attempts += 1
+    if (attempts === 1) throw new Error('chunk unavailable')
+    return (element, mode) => {
+      element.textContent = `mounted ${mode}`
+      return () => undefined
+    }
+  }
+
+  themeModeStore.set('light')
+  container = document.createElement('div')
+  document.body.appendChild(container)
+  root = createRoot(container)
+
+  await act(async () => {
+    root?.render(
+      <VueIslandHost
+        libraryName="Test Library"
+        rootClassName="test-library-island"
+        load={load}
+      />,
+    )
+    await Promise.resolve()
+  })
+
+  expect(container.textContent).toContain('chunk unavailable')
+
+  await act(async () => {
+    themeModeStore.set('dark')
+    await Promise.resolve()
+    await Promise.resolve()
+  })
+
+  expect(container.textContent).toBe('mounted dark')
 })

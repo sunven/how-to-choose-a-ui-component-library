@@ -47,7 +47,7 @@ test('disposer unmounts Quasar and removes its body theme classes', () => {
   const element = document.createElement('div')
   document.body.appendChild(element)
 
-  const dispose = mountQuasarShowcase(element)
+  const dispose = mountQuasarShowcase(element, 'dark')
   document.body.classList.add('body--dark', 'body--light')
 
   expect(dispose).toBeTypeOf('function')

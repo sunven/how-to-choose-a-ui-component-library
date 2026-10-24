@@ -1,8 +1,8 @@
-import { createApp, defineComponent, h } from 'vue'
 import ArcoVue, { ConfigProvider } from '@arco-design/web-vue'
 import zhCN from '@arco-design/web-vue/es/locale/lang/zh-cn'
 import '@arco-design/web-vue/dist/arco.css'
-import type { DisposeVueShowcase } from '@/showcases/vue-island/VueIslandHost'
+import { defineComponent, h } from 'vue'
+import { createVueShowcase } from '@/showcases/vue-island/createVueShowcase'
 import ArcoDesignVueShowcase from './ArcoDesignVueShowcase.vue'
 
 // Dark: body[arco-theme=dark] set by themeModeStore (Arco official)
@@ -11,13 +11,15 @@ const Root = defineComponent({
   name: 'ArcoDesignVueShowcaseRoot',
   setup() {
     return () =>
-      h(ConfigProvider, { locale: zhCN }, { default: () => h(ArcoDesignVueShowcase) })
+      h(ConfigProvider, { locale: zhCN }, {
+        default: () => h(ArcoDesignVueShowcase),
+      })
   },
 })
 
-export function mountArcoDesignVueShowcase(el: HTMLElement): DisposeVueShowcase {
-  const app = createApp(Root)
-  app.use(ArcoVue)
-  app.mount(el)
-  return () => app.unmount()
-}
+export const mountArcoDesignVueShowcase = createVueShowcase({
+  createRoot: () => Root,
+  configureApp: (app) => {
+    app.use(ArcoVue)
+  },
+})

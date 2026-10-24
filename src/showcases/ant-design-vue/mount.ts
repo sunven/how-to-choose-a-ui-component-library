@@ -1,38 +1,37 @@
-import { createApp } from 'vue'
-import Antd, { theme } from 'ant-design-vue'
+import Antd, { ConfigProvider, theme } from 'ant-design-vue'
 import zhCN from 'ant-design-vue/es/locale/zh_CN'
-import { ConfigProvider } from 'ant-design-vue'
 import { defineComponent, h } from 'vue'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import 'ant-design-vue/dist/reset.css'
-import { themeModeStore } from '@/domain/themeMode'
-import type { DisposeVueShowcase } from '@/showcases/vue-island/VueIslandHost'
+import type { ThemeMode } from '@/domain/themeMode'
+import { createVueShowcase } from '@/showcases/vue-island/createVueShowcase'
 import AntDesignVueShowcase from './AntDesignVueShowcase.vue'
 
 dayjs.locale('zh-cn')
 
-const Root = defineComponent({
-  name: 'AntDesignVueShowcaseRoot',
-  setup() {
-    const mode = themeModeStore.getSnapshot()
-    return () =>
-      h(
-        ConfigProvider,
-        {
-          locale: zhCN,
-          theme: {
-            algorithm: mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+const createAntDesignVueRoot = (mode: ThemeMode) =>
+  defineComponent({
+    name: 'AntDesignVueShowcaseRoot',
+    setup() {
+      return () =>
+        h(
+          ConfigProvider,
+          {
+            locale: zhCN,
+            theme: {
+              algorithm:
+                mode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+            },
           },
-        },
-        { default: () => h(AntDesignVueShowcase) },
-      )
+          { default: () => h(AntDesignVueShowcase) },
+        )
+    },
+  })
+
+export const mountAntDesignVueShowcase = createVueShowcase({
+  createRoot: createAntDesignVueRoot,
+  configureApp: (app) => {
+    app.use(Antd)
   },
 })
-
-export function mountAntDesignVueShowcase(el: HTMLElement): DisposeVueShowcase {
-  const app = createApp(Root)
-  app.use(Antd)
-  app.mount(el)
-  return () => app.unmount()
-}

@@ -1,8 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
+import type { ThemeMode } from '@/domain/themeMode'
 import { useThemeMode } from '@/domain/useThemeMode'
 
 export type DisposeVueShowcase = () => void
-export type MountVueShowcase = (element: HTMLElement) => DisposeVueShowcase
+export type MountVueShowcase = (
+  element: HTMLElement,
+  mode: ThemeMode,
+) => DisposeVueShowcase
 export type VueShowcaseLoader = () => Promise<MountVueShowcase>
 
 interface VueIslandHostProps {
@@ -23,20 +27,22 @@ export function VueIslandHost({
 
   useEffect(() => {
     const element = hostRef.current
+    setError(null)
+    setLoading(true)
     if (!element) return
 
     let disposed = false
     let disposeShowcase: DisposeVueShowcase | undefined
-    setLoading(true)
 
     void load()
       .then((mount) => {
         if (disposed) return
-        disposeShowcase = mount(element)
+        disposeShowcase = mount(element, mode)
         setLoading(false)
       })
       .catch((reason: unknown) => {
         if (!disposed) {
+          setLoading(false)
           setError(reason instanceof Error ? reason.message : '加载失败')
         }
       })
@@ -48,24 +54,20 @@ export function VueIslandHost({
     }
   }, [load, mode])
 
-  if (error) {
-    return (
-      <div className="flex h-48 items-center justify-center text-sm text-red-600 dark:text-red-400">
-        {libraryName} Showcase 加载失败：{error}
-      </div>
-    )
-  }
-
   return (
     <>
-      {loading ? (
+      {error ? (
+        <div className="flex h-48 items-center justify-center text-sm text-red-600 dark:text-red-400">
+          {libraryName} Showcase 加载失败：{error}
+        </div>
+      ) : loading ? (
         <div className="flex h-48 items-center justify-center text-sm text-slate-500 dark:text-slate-400">
           加载 {libraryName} Showcase…
         </div>
       ) : null}
       <div
         ref={hostRef}
-        className={`${rootClassName} min-h-[12rem]${loading ? ' hidden' : ''}`}
+        className={`${rootClassName} min-h-[12rem]${loading || error ? ' hidden' : ''}`}
       />
     </>
   )
