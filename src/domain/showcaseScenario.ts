@@ -21,7 +21,6 @@ export type UserSaveResult =
 
 export interface ShowcaseScenarioSnapshot {
   readonly users: User[]
-  readonly allFiltered: User[]
   readonly total: number
   readonly page: number
   readonly pageSize: number
@@ -115,7 +114,6 @@ export function createShowcaseScenario(store: ShowcaseUserStore): ShowcaseScenar
 
     return {
       users: allFiltered.slice(start, start + PAGE_SIZE),
-      allFiltered,
       total,
       page,
       pageSize: PAGE_SIZE,

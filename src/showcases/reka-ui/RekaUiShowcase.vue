@@ -12,6 +12,7 @@ import {
   SwitchThumb,
 } from 'reka-ui'
 import {
+  HIRE_DATE_SORT_LABELS,
   SHOWCASE_FILTERS,
   SHOWCASE_FILTER_OPTIONS,
   USER_FORM_FIELDS,
@@ -148,8 +149,7 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
           </option>
         </select>
         <button type="button" class="reka-btn reka-btn--outline" @click="cycleHireDateSort">
-          入职排序：
-          {{ hireDateSort === 'none' ? '默认' : hireDateSort === 'asc' ? '升序' : '降序' }}
+          入职排序：{{ HIRE_DATE_SORT_LABELS[hireDateSort] }}
         </button>
       </div>
       <button type="button" class="reka-btn" @click="openCreate">新建用户</button>

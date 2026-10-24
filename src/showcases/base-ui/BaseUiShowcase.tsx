@@ -9,6 +9,7 @@ import { Input } from '@base-ui/react/input'
 import { Select } from '@base-ui/react/select'
 import { Switch } from '@base-ui/react/switch'
 import {
+  HIRE_DATE_SORT_LABELS,
   SHOWCASE_FILTERS,
   SHOWCASE_FILTER_OPTIONS,
   USER_FIELD_BY_KEY,
@@ -94,11 +95,7 @@ export function BaseUiShowcase({ users }: ShowcaseProps) {
     users.users.length > 0 && users.users.every((user) => users.selectedIds.includes(user.id))
   const somePageSelected = users.users.some((user) => users.selectedIds.includes(user.id))
 
-  const sortLabel = useMemo(() => {
-    if (users.hireDateSort === 'asc') return '升序'
-    if (users.hireDateSort === 'desc') return '降序'
-    return '默认'
-  }, [users.hireDateSort])
+  const sortLabel = HIRE_DATE_SORT_LABELS[users.hireDateSort]
   const baseUiFormErrors = useMemo(() => toBaseUiFormErrors(errors), [errors])
 
   return (

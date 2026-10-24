@@ -24,6 +24,7 @@ import {
   SHOWCASE_FILTER_OPTIONS,
   USER_FORM_FIELDS,
   USER_TABLE_COLUMNS,
+  fieldFormRules,
   type UserFieldSpec,
 } from '@/domain/showcaseSpec'
 import {
@@ -40,19 +41,8 @@ import type { ShowcaseProps } from '../types'
 
 dayjs.locale('zh-cn')
 
-function fieldRules(field: UserFieldSpec) {
-  const rules: { required?: boolean; type?: 'email'; message: string }[] = []
-  if (field.rules.required) {
-    rules.push({ required: true, message: field.rules.required })
-  }
-  if (field.rules.email) {
-    rules.push({ type: 'email', message: field.rules.email })
-  }
-  return rules
-}
-
 function FormField({ field }: { field: UserFieldSpec }) {
-  const rules = fieldRules(field)
+  const rules = fieldFormRules(field)
 
   if (field.key === 'status') {
     return (

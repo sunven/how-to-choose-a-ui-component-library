@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
 
 export type StarsState =
-  | { status: 'loading'; stars: number; fromSnapshot: true }
-  | { status: 'ready'; stars: number; fromSnapshot: boolean }
-  | { status: 'error'; stars: number; fromSnapshot: true; message: string }
+  | { status: 'loading'; stars: number }
+  | { status: 'ready'; stars: number }
+  | { status: 'error'; stars: number }
 
-async function fetchRepoStars(repo: string): Promise<number> {
+/** One request per repo per session; retries clear failed entries. */
+const starRequests = new Map<string, Promise<number>>()
+
+async function requestRepoStars(repo: string): Promise<number> {
   const res = await fetch(`https://api.github.com/repos/${repo}`, {
     headers: {
       Accept: 'application/vnd.github+json',
@@ -21,11 +24,22 @@ async function fetchRepoStars(repo: string): Promise<number> {
   return data.stargazers_count
 }
 
+function fetchRepoStars(repo: string): Promise<number> {
+  const cached = starRequests.get(repo)
+  if (cached) return cached
+
+  const request = requestRepoStars(repo).catch((reason: unknown) => {
+    starRequests.delete(repo)
+    throw reason
+  })
+  starRequests.set(repo, request)
+  return request
+}
+
 export function useGitHubStars(repo: string, snapshot: number) {
   const [state, setState] = useState<StarsState>({
     status: 'loading',
     stars: snapshot,
-    fromSnapshot: true,
   })
   const [nonce, setNonce] = useState(0)
 
@@ -33,22 +47,17 @@ export function useGitHubStars(repo: string, snapshot: number) {
 
   useEffect(() => {
     let cancelled = false
-    setState({ status: 'loading', stars: snapshot, fromSnapshot: true })
+    setState({ status: 'loading', stars: snapshot })
 
     fetchRepoStars(repo)
       .then((stars) => {
         if (!cancelled) {
-          setState({ status: 'ready', stars, fromSnapshot: false })
+          setState({ status: 'ready', stars })
         }
       })
-      .catch((err: unknown) => {
+      .catch(() => {
         if (!cancelled) {
-          setState({
-            status: 'error',
-            stars: snapshot,
-            fromSnapshot: true,
-            message: err instanceof Error ? err.message : '获取失败',
-          })
+          setState({ status: 'error', stars: snapshot })
         }
       })
 

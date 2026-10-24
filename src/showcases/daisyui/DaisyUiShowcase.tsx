@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  HIRE_DATE_SORT_LABELS,
   SHOWCASE_FILTERS,
   SHOWCASE_FILTER_OPTIONS,
   USER_FORM_FIELDS,
@@ -142,12 +143,7 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
             ))}
           </select>
           <button type="button" className="dy-btn dy-btn-outline dy-btn-sm" onClick={users.cycleHireDateSort}>
-            入职排序：
-            {users.hireDateSort === 'none'
-              ? '默认'
-              : users.hireDateSort === 'asc'
-                ? '升序'
-                : '降序'}
+            入职排序：{HIRE_DATE_SORT_LABELS[users.hireDateSort]}
           </button>
         </div>
         <button type="button" className="dy-btn dy-btn-primary dy-btn-sm" onClick={openCreate}>

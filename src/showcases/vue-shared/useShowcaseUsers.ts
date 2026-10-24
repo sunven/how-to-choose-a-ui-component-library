@@ -4,6 +4,7 @@ import {
   pickScenarioActions,
   type ShowcaseUserStore,
 } from '@/domain/showcaseScenario'
+import type { User } from '@/domain/user'
 import { userStore } from '@/domain/userStore'
 
 /** Vue adapter for one Showcase Scenario mount. */
@@ -43,6 +44,11 @@ export function useShowcaseUsers(store: ShowcaseUserStore = userStore) {
   const total = computed(() => snapshot.value.total)
   const pageCount = computed(() => snapshot.value.pageCount)
   const users = computed(() => snapshot.value.users)
+  /** Table APIs that model selection as rows instead of ids. */
+  const selectedRows = computed({
+    get: () => users.value.filter((user) => selectedIds.value.includes(user.id)),
+    set: (rows: User[]) => scenario.replacePageSelection(rows.map((row) => row.id)),
+  })
 
   return {
     users,
@@ -54,6 +60,7 @@ export function useShowcaseUsers(store: ShowcaseUserStore = userStore) {
     pageSize: snapshot.value.pageSize,
     pageCount,
     selectedIds,
+    selectedRows,
     total,
     ...pickScenarioActions(scenario),
   }

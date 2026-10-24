@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import {
+  HIRE_DATE_SORT_LABELS,
   SHOWCASE_FILTERS,
   SHOWCASE_FILTER_OPTIONS,
   USER_FIELD_BY_KEY,
@@ -26,7 +27,7 @@ const {
   hireDateSort,
   page,
   pageCount,
-  selectedIds,
+  selectedRows,
   total,
   users,
   setHireDateSort,
@@ -65,19 +66,7 @@ const sortingOrder = computed(() => {
   if (hireDateSort.value === 'desc') return 'desc' as const
   return null
 })
-const sortLabel = computed(() => {
-  if (hireDateSort.value === 'asc') return '升序'
-  if (hireDateSort.value === 'desc') return '降序'
-  return '默认'
-})
-
-/** VaDataTable v-model is selected *rows*, not id list */
-const selectedRows = computed({
-  get: () => users.value.filter((u) => selectedIds.value.includes(u.id)),
-  set: (rows: User[]) => {
-    selectedIds.value = rows.map((r) => r.id)
-  },
-})
+const sortLabel = computed(() => HIRE_DATE_SORT_LABELS[hireDateSort.value])
 
 function openCreate() {
   editing.value = null

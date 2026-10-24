@@ -54,7 +54,6 @@ export const themeModeStore = {
   },
 
   set(next: ThemeMode): void {
-    if (next !== 'light' && next !== 'dark') return
     if (next === mode) {
       applyThemeModeToDocument(next)
       return

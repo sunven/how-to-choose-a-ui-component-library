@@ -23,6 +23,7 @@ import {
   SHOWCASE_FILTER_OPTIONS,
   USER_FORM_FIELDS,
   USER_TABLE_COLUMNS,
+  fieldFormRules,
 } from '@/domain/showcaseSpec'
 import {
   ROLE_LABELS,
@@ -58,27 +59,14 @@ const form = reactive<UserInput>(emptyUserInput())
 
 const rules: FormRules = Object.fromEntries(
   USER_FORM_FIELDS.flatMap((field) => {
-    const fieldRules: {
-      required?: boolean
-      type?: 'email'
-      message: string
-      trigger: ('blur' | 'input' | 'change')[]
-    }[] = []
-    if (field.rules.required) {
-      fieldRules.push({
-        required: true,
-        message: field.rules.required,
-        trigger:
-          field.control === 'select' ? ['change', 'blur'] : ['blur', 'input'],
-      })
-    }
-    if (field.rules.email) {
-      fieldRules.push({
-        type: 'email',
-        message: field.rules.email,
-        trigger: ['blur', 'input'],
-      })
-    }
+    const fieldRules = fieldFormRules(field).map((rule) => ({
+      ...rule,
+      trigger: (rule.type === 'email'
+        ? ['blur', 'input']
+        : field.control === 'select'
+          ? ['change', 'blur']
+          : ['blur', 'input']) as ('blur' | 'input' | 'change')[],
+    }))
     return fieldRules.length ? [[field.key, fieldRules] as const] : []
   }),
 ) as FormRules

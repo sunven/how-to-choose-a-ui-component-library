@@ -22,7 +22,7 @@ import {
   SHOWCASE_FILTER_OPTIONS,
   USER_FORM_FIELDS,
   USER_TABLE_COLUMNS,
-  type UserFieldSpec,
+  fieldFormRules,
 } from '@/domain/showcaseSpec'
 import {
   ROLE_LABELS,
@@ -37,17 +37,6 @@ import { toHireDateSort } from '../vue-shared/hireDateSort'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const FormItem = Form.Item
-
-function fieldRules(field: UserFieldSpec) {
-  const rules: { required?: boolean; type?: 'email'; message: string }[] = []
-  if (field.rules.required) {
-    rules.push({ required: true, message: field.rules.required })
-  }
-  if (field.rules.email) {
-    rules.push({ type: 'email', message: field.rules.email })
-  }
-  return rules
-}
 
 const {
   keyword,
@@ -255,7 +244,7 @@ const hireDateModel = computed({
           :key="field.key"
           :field="field.key"
           :label="field.label"
-          :rules="fieldRules(field)"
+          :rules="fieldFormRules(field)"
         >
           <Switch
             v-if="field.key === 'status'"

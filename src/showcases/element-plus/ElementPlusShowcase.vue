@@ -24,6 +24,7 @@ import {
   SHOWCASE_FILTER_OPTIONS,
   USER_FORM_FIELDS,
   USER_TABLE_COLUMNS,
+  fieldFormRules,
 } from '@/domain/showcaseSpec'
 import {
   ROLE_LABELS,
@@ -61,26 +62,14 @@ const canonicalErrors = reactive<UserFormErrors>({})
 
 const rules: FormRules<UserInput> = Object.fromEntries(
   USER_FORM_FIELDS.flatMap((field) => {
-    const fieldRules: {
-      required?: boolean
-      type?: 'email'
-      message: string
-      trigger: 'blur' | 'change'
-    }[] = []
-    if (field.rules.required) {
-      fieldRules.push({
-        required: true,
-        message: field.rules.required,
-        trigger: field.control === 'select' ? 'change' : 'blur',
-      })
-    }
-    if (field.rules.email) {
-      fieldRules.push({
-        type: 'email',
-        message: field.rules.email,
-        trigger: 'blur',
-      })
-    }
+    const fieldRules = fieldFormRules(field).map((rule) => ({
+      ...rule,
+      trigger: (rule.type === 'email'
+        ? 'blur'
+        : field.control === 'select'
+          ? 'change'
+          : 'blur') as 'blur' | 'change',
+    }))
     return fieldRules.length ? [[field.key, fieldRules] as const] : []
   }),
 ) as FormRules<UserInput>

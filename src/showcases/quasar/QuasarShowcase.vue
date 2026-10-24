@@ -28,7 +28,7 @@ const {
   hireDateSort,
   page,
   pageSize,
-  selectedIds,
+  selectedRows,
   total,
   users,
   setHireDateSort,
@@ -60,13 +60,6 @@ const columns: QTableColumn<User>[] = [
   }),
   { name: 'actions', label: '操作', field: 'id', align: 'right' },
 ]
-
-const selectedRows = computed({
-  get: () => users.value.filter((u) => selectedIds.value.includes(u.id)),
-  set: (rows: User[]) => {
-    selectedIds.value = rows.map((r) => r.id)
-  },
-})
 
 const pagination = computed(() => ({
   page: page.value,

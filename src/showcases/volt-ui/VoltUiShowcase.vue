@@ -44,7 +44,7 @@ const {
   hireDateSort,
   page,
   pageSize,
-  selectedIds,
+  selectedRows,
   total,
   users,
   setHireDateSort,
@@ -58,13 +58,6 @@ const editing = ref<User | null>(null)
 const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
 const islandEl = ref<HTMLElement | null>(null)
-
-const selectedUsers = computed({
-  get: () => users.value.filter((u) => selectedIds.value.includes(u.id)),
-  set: (rows: User[]) => {
-    selectedIds.value = rows.map((r) => r.id)
-  },
-})
 
 const hireDateModel = computed({
   get: () => (form.hireDate ? new Date(form.hireDate + 'T00:00:00') : null),
@@ -204,7 +197,7 @@ function statusSeverity(status: UserStatus) {
     </div>
 
     <DataTable
-      v-model:selection="selectedUsers"
+      v-model:selection="selectedRows"
       :value="users"
       data-key="id"
       :sort-field="sortField"

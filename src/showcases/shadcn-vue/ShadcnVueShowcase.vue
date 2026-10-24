@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import {
+  HIRE_DATE_SORT_LABELS,
   SHOWCASE_FILTERS,
   SHOWCASE_FILTER_OPTIONS,
   USER_FORM_FIELDS,
@@ -119,8 +120,7 @@ function confirmDelete(user: User) {
           trigger-class="w-[140px]"
         />
         <Button variant="outline" @click="cycleHireDateSort">
-          入职排序：
-          {{ hireDateSort === 'none' ? '默认' : hireDateSort === 'asc' ? '升序' : '降序' }}
+          入职排序：{{ HIRE_DATE_SORT_LABELS[hireDateSort] }}
         </Button>
       </div>
       <Button @click="openCreate">新建用户</Button>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import {
   Badge,
   Button,
@@ -21,6 +21,7 @@ import 'dayjs/locale/zh-cn'
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import {
+  HIRE_DATE_SORT_LABELS,
   SHOWCASE_FILTERS,
   SHOWCASE_FILTER_OPTIONS,
   USER_FIELD_BY_KEY,
@@ -116,11 +117,7 @@ export function MantineShowcase({ users }: ShowcaseProps) {
     users.users.length > 0 && users.users.every((u) => users.selectedIds.includes(u.id))
   const somePageSelected = users.users.some((u) => users.selectedIds.includes(u.id))
 
-  const sortLabel = useMemo(() => {
-    if (users.hireDateSort === 'asc') return '升序'
-    if (users.hireDateSort === 'desc') return '降序'
-    return '默认'
-  }, [users.hireDateSort])
+  const sortLabel = HIRE_DATE_SORT_LABELS[users.hireDateSort]
 
   return (
     <MantineProvider forceColorScheme={mode} defaultColorScheme={mode}>

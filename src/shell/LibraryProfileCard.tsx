@@ -48,12 +48,12 @@ export function LibraryProfileCard({ library }: { library: LibraryProfile }) {
             {state.status === 'loading' && (
               <span className="ml-2 text-xs text-slate-400">快照 · 更新中…</span>
             )}
-            {!state.fromSnapshot && (
+            {state.status === 'ready' && (
               <span className="ml-2 text-xs text-emerald-600 dark:text-emerald-400">
                 GitHub 实时
               </span>
             )}
-            {state.fromSnapshot && state.status === 'error' && (
+            {state.status === 'error' && (
               <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
                 快照 · {LIBRARY_PROFILE_SNAPSHOT_DATE}
               </span>

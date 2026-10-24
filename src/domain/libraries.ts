@@ -395,7 +395,6 @@ const CANDIDATE_DEFINITIONS = [
 type CandidateDefinitionValue = (typeof CANDIDATE_DEFINITIONS)[number]
 
 export type LibraryId = CandidateDefinitionValue['id']
-export type ReactLibraryId = Extract<CandidateDefinitionValue, { framework: 'react' }>['id']
 export type VueLibraryId = Extract<CandidateDefinitionValue, { framework: 'vue' }>['id']
 export type VanillaLibraryId = Extract<
   CandidateDefinitionValue,

@@ -25,5 +25,5 @@ export function useUsers(store: ShowcaseUserStore = userStore): UsersController 
 
   const actions = useMemo(() => pickScenarioActions(scenario), [scenario])
 
-  return { ...snapshot, ...actions }
+  return useMemo(() => ({ ...snapshot, ...actions }), [snapshot, actions])
 }

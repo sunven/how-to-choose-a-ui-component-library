@@ -17,6 +17,7 @@ import {
   FwbToggle,
 } from 'flowbite-vue'
 import {
+  HIRE_DATE_SORT_LABELS,
   SHOWCASE_FILTERS,
   SHOWCASE_FILTER_OPTIONS,
   USER_FORM_FIELDS,
@@ -137,8 +138,7 @@ function confirmDelete(user: User) {
           class="w-[140px]"
         />
         <FwbButton color="alternative" @click="cycleHireDateSort">
-          入职排序：
-          {{ hireDateSort === 'none' ? '默认' : hireDateSort === 'asc' ? '升序' : '降序' }}
+          入职排序：{{ HIRE_DATE_SORT_LABELS[hireDateSort] }}
         </FwbButton>
       </div>
       <!-- color=default → text-white bg-blue-700（依赖 tailwind 扫描 flowbite-vue） -->

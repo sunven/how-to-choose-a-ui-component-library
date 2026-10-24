@@ -19,6 +19,12 @@ function withUsers(Showcase: ComponentType<ShowcaseProps>): ComponentType {
   }
 }
 
+function lazyReactShowcase(
+  load: () => Promise<ComponentType<ShowcaseProps>>,
+): ShowcaseRenderer {
+  return lazy(async () => ({ default: withUsers(await load()) }))
+}
+
 function lazyVueIsland(
   libraryId: VueLibraryId,
   load: VueShowcaseLoader,
@@ -28,40 +34,26 @@ function lazyVueIsland(
   }))
 }
 
-const AntDesignShowcase = lazy(() =>
-  import('./ant-design/AntDesignShowcase').then((module) => ({
-    default: withUsers(module.AntDesignShowcase),
-  })),
+const AntDesignShowcase = lazyReactShowcase(() =>
+  import('./ant-design/AntDesignShowcase').then((module) => module.AntDesignShowcase),
 )
-const MuiShowcase = lazy(() =>
-  import('./mui/MuiShowcase').then((module) => ({
-    default: withUsers(module.MuiShowcase),
-  })),
+const MuiShowcase = lazyReactShowcase(() =>
+  import('./mui/MuiShowcase').then((module) => module.MuiShowcase),
 )
-const ShadcnShowcase = lazy(() =>
-  import('./shadcn/ShadcnShowcase').then((module) => ({
-    default: withUsers(module.ShadcnShowcase),
-  })),
+const ShadcnShowcase = lazyReactShowcase(() =>
+  import('./shadcn/ShadcnShowcase').then((module) => module.ShadcnShowcase),
 )
-const ArcoDesignShowcase = lazy(() =>
-  import('./arco-design/ArcoDesignShowcase').then((module) => ({
-    default: withUsers(module.ArcoDesignShowcase),
-  })),
+const ArcoDesignShowcase = lazyReactShowcase(() =>
+  import('./arco-design/ArcoDesignShowcase').then((module) => module.ArcoDesignShowcase),
 )
-const SemiDesignShowcase = lazy(() =>
-  import('./semi-design/SemiDesignShowcase').then((module) => ({
-    default: withUsers(module.SemiDesignShowcase),
-  })),
+const SemiDesignShowcase = lazyReactShowcase(() =>
+  import('./semi-design/SemiDesignShowcase').then((module) => module.SemiDesignShowcase),
 )
-const MantineShowcase = lazy(() =>
-  import('./mantine/MantineShowcase').then((module) => ({
-    default: withUsers(module.MantineShowcase),
-  })),
+const MantineShowcase = lazyReactShowcase(() =>
+  import('./mantine/MantineShowcase').then((module) => module.MantineShowcase),
 )
-const BaseUiShowcase = lazy(() =>
-  import('./base-ui/BaseUiShowcase').then((module) => ({
-    default: withUsers(module.BaseUiShowcase),
-  })),
+const BaseUiShowcase = lazyReactShowcase(() =>
+  import('./base-ui/BaseUiShowcase').then((module) => module.BaseUiShowcase),
 )
 const ElementPlusIsland = lazyVueIsland('element-plus', () =>
   import('./element-plus/mount').then((module) => module.mountElementPlusShowcase),
@@ -105,20 +97,14 @@ const VoltUiIsland = lazyVueIsland('volt-ui', () =>
 const RekaUiIsland = lazyVueIsland('reka-ui', () =>
   import('./reka-ui/mount').then((module) => module.mountRekaUiShowcase),
 )
-const DaisyUiShowcase = lazy(() =>
-  import('./daisyui/DaisyUiShowcase').then((module) => ({
-    default: withUsers(module.DaisyUiShowcase),
-  })),
+const DaisyUiShowcase = lazyReactShowcase(() =>
+  import('./daisyui/DaisyUiShowcase').then((module) => module.DaisyUiShowcase),
 )
-const BootstrapShowcase = lazy(() =>
-  import('./bootstrap/BootstrapShowcase').then((module) => ({
-    default: withUsers(module.BootstrapShowcase),
-  })),
+const BootstrapShowcase = lazyReactShowcase(() =>
+  import('./bootstrap/BootstrapShowcase').then((module) => module.BootstrapShowcase),
 )
-const BulmaShowcase = lazy(() =>
-  import('./bulma/BulmaShowcase').then((module) => ({
-    default: withUsers(module.BulmaShowcase),
-  })),
+const BulmaShowcase = lazyReactShowcase(() =>
+  import('./bulma/BulmaShowcase').then((module) => module.BulmaShowcase),
 )
 
 export const showcaseRegistry = {

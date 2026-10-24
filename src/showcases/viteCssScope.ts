@@ -3,63 +3,99 @@ import postcss from 'postcss'
 import prefixSelector from 'postcss-prefix-selector'
 import surfaces from './librarySurfaces.json'
 
-const vuesticPrefix = `.${surfaces['vuestic-ui'].rootClassName}`
-const vuetifyPrefix = `.${surfaces.vuetify.rootClassName}`
-const quasarPrefix = `.${surfaces.quasar.rootClassName}`
-
 /**
- * Vuestic ships a full utility sheet (`.px-3`, `.flex>*`, etc.) that collides
- * with Tailwind on the App Shell. Scope *all* non-component selectors under the
- * Vuestic surface root. Leave pure `.va-*` component rules unscoped so
- * teleported modals still look correct.
+ * Scoped-prefix plugin for libraries whose official CSS ships document-level
+ * resets and utilities that collide with the App Shell / Tailwind.
+ *
+ * - Document selectors (`:root`, `html`, `body`) are re-homed to the island root.
+ * - Pure component selectors stay global so teleported overlays still style.
+ * - Everything else (utilities, resets, grid) is scoped under the island root.
  */
-export function scopeVuesticCss(): Plugin {
+interface CssScopeConfig {
+  readonly name: string
+  readonly rootClassName: string
+  readonly documentTags: readonly string[]
+  readonly componentPrefix: string
+  readonly matchId: (cleanId: string) => boolean
+  readonly keepDocumentSelector?: (selector: string) => boolean
+}
+
+function matchesDocumentSelector(selector: string, tag: string): boolean {
+  if (selector === tag) return true
+  if (tag.startsWith(':')) return selector.startsWith(tag)
+  return (
+    selector.startsWith(`${tag}.`) ||
+    selector.startsWith(`${tag} `) ||
+    selector.startsWith(`${tag},`)
+  )
+}
+
+function rewriteDocumentSelector(
+  selector: string,
+  tags: readonly string[],
+  prefix: string,
+): string {
+  let rewritten = selector
+  for (const tag of tags) {
+    const pattern = tag.startsWith(':')
+      ? new RegExp(`${tag}\\b`, 'g')
+      : new RegExp(`\\b${tag}\\b`, 'g')
+    rewritten = rewritten.replace(pattern, prefix)
+  }
+  return rewritten
+}
+
+function stripComponentClasses(selector: string, componentPrefix: string): string {
+  return selector
+    .replace(new RegExp(`\\.${componentPrefix}[\\w-]+`, 'g'), '')
+    .replace(/::?[\w-]+(\([^)]*\))?/g, '')
+    .replace(/\[[^\]]*]/g, '')
+    .replace(/#[\w-]+/g, '')
+    .replace(/[\s>+~.,*='"()]/g, '')
+    .trim()
+}
+
+function createCssScopePlugin(config: CssScopeConfig): Plugin {
+  const prefix = `.${config.rootClassName}`
+  const componentClass = `.${config.componentPrefix}`
+  const componentAttribute = `[class*="${config.componentPrefix}"]`
+  const componentAttributeAlt = `[class*='${config.componentPrefix}']`
+
   return {
-    name: 'scope-vuestic-css',
+    name: config.name,
     enforce: 'pre',
     async transform(code, id) {
-      const cleanId = id.split('?')[0]
-      if (!cleanId.replace(/\\/g, '/').endsWith('/vuestic-ui/dist/vuestic-ui.css')) {
+      const cleanId = id.split('?')[0].replace(/\\/g, '/')
+      if (!config.matchId(cleanId)) {
         return null
       }
 
       const result = await postcss([
         prefixSelector({
-          prefix: vuesticPrefix,
+          prefix,
           transform(_prefix, selector, prefixedSelector) {
-            const s = selector.trim()
+            const trimmed = selector.trim()
 
-            // Theme tokens → island root (vars without styling document body)
             if (
-              s === ':root' ||
-              s.startsWith(':root') ||
-              s === ':host' ||
-              s.startsWith(':host') ||
-              s === 'body' ||
-              s.startsWith('body.') ||
-              s.startsWith('body ') ||
-              s.startsWith('body,')
+              config.documentTags.some((tag) =>
+                matchesDocumentSelector(trimmed, tag),
+              )
             ) {
-              return s
-                .replace(/:root\b/g, vuesticPrefix)
-                .replace(/:host\b/g, vuesticPrefix)
-                .replace(/\bbody\b/g, vuesticPrefix)
+              if (config.keepDocumentSelector?.(trimmed)) return selector
+              return rewriteDocumentSelector(trimmed, config.documentTags, prefix)
             }
 
-            // Pure Vuestic component selectors stay global (teleport/modals)
-            // e.g. `.va-button`, `.va-modal__dialog:focus` — but NOT `.px-3` utilities
-            if (s.includes('.va-') || s.includes('[class*="va-"]') || s.includes("[class*='va-']")) {
-              const nonVaResidue = s
-                .replace(/\.va-[\w-]+/g, '')
-                .replace(/::?[\w-]+(\([^)]*\))?/g, '')
-                .replace(/\[[^\]]*]/g, '')
-                .replace(/#[\w-]+/g, '')
-                .replace(/[\s>+~.,*='"()]/g, '')
-                .trim()
-              if (!nonVaResidue) return selector
+            const hasComponentClass =
+              trimmed.includes(componentClass) ||
+              trimmed.includes(componentAttribute) ||
+              trimmed.includes(componentAttributeAlt)
+            if (
+              hasComponentClass &&
+              !stripComponentClasses(trimmed, config.componentPrefix)
+            ) {
+              return selector
             }
 
-            // Everything else (Tailwind-colliding utilities, resets, grid) → scoped
             return prefixedSelector
           },
         }),
@@ -71,77 +107,37 @@ export function scopeVuesticCss(): Plugin {
 }
 
 /**
+ * Vuestic ships a full utility sheet (`.px-3`, `.flex>*`, etc.) that collides
+ * with Tailwind on the App Shell. Scope *all* non-component selectors under the
+ * Vuestic surface root. Leave pure `.va-*` component rules unscoped so
+ * teleported modals still look correct.
+ */
+export function scopeVuesticCss(): Plugin {
+  return createCssScopePlugin({
+    name: 'scope-vuestic-css',
+    rootClassName: surfaces['vuestic-ui'].rootClassName,
+    documentTags: [':root', ':host', 'body'],
+    componentPrefix: 'va-',
+    matchId: (id) => id.endsWith('/vuestic-ui/dist/vuestic-ui.css'),
+  })
+}
+
+/**
  * Vuetify ships Material utility helpers (`.bg-white { background: #fff !important }`,
- * etc.) that **collide with Tailwind on the App Shell**. In dark Theme Mode the shell
- * uses `bg-white dark:bg-slate-900`; Vuetify's `!important` wins → white header +
- * light text = washed-out chrome when landing on Vuetify (e.g. Arco Vue → Vuetify).
- *
- * Scope non-component selectors under the Vuetify surface root. Keep pure `.v-*`
- * component rules global so teleported overlays (v-dialog / v-overlay) still style correctly.
+ * etc.) that **collide with Tailwind on the App Shell**. Scope non-component selectors
+ * under the Vuetify surface root. Keep pure `.v-*` component rules global so
+ * teleported overlays (v-dialog / v-overlay) still style correctly.
  */
 export function scopeVuetifyCss(): Plugin {
-  return {
+  return createCssScopePlugin({
     name: 'scope-vuetify-css',
-    enforce: 'pre',
-    async transform(code, id) {
-      const cleanId = id.split('?')[0].replace(/\\/g, '/')
-      // `import 'vuetify/styles'` → …/vuetify/lib/styles/main.css
-      if (!cleanId.endsWith('/vuetify/lib/styles/main.css') && !cleanId.endsWith('/vuetify/dist/vuetify.css')) {
-        return null
-      }
-
-      const result = await postcss([
-        prefixSelector({
-          prefix: vuetifyPrefix,
-          transform(_prefix, selector, prefixedSelector) {
-            const s = selector.trim()
-
-            // Resets / tokens that target document → island root only
-            if (
-              s === ':root' ||
-              s.startsWith(':root') ||
-              s === 'html' ||
-              s.startsWith('html.') ||
-              s.startsWith('html ') ||
-              s.startsWith('html,') ||
-              s === 'body' ||
-              s.startsWith('body.') ||
-              s.startsWith('body ') ||
-              s.startsWith('body,')
-            ) {
-              return s
-                .replace(/:root\b/g, vuetifyPrefix)
-                .replace(/\bhtml\b/g, vuetifyPrefix)
-                .replace(/\bbody\b/g, vuetifyPrefix)
-            }
-
-            // Pure Vuetify component / theme / overlay selectors stay global
-            // e.g. `.v-btn`, `.v-overlay__content`, `.v-theme--dark` — not `.bg-white`
-            if (
-              s.includes('.v-') ||
-              s.includes('[class*="v-"]') ||
-              s.includes("[class*='v-']") ||
-              s.includes('.v-theme--')
-            ) {
-              const nonVResidue = s
-                .replace(/\.v-[\w-]+/g, '')
-                .replace(/::?[\w-]+(\([^)]*\))?/g, '')
-                .replace(/\[[^\]]*]/g, '')
-                .replace(/#[\w-]+/g, '')
-                .replace(/[\s>+~.,*='"()]/g, '')
-                .trim()
-              if (!nonVResidue) return selector
-            }
-
-            // Tailwind-colliding utilities (bg-white, border, elevation-*, …) → scoped
-            return prefixedSelector
-          },
-        }),
-      ]).process(code, { from: cleanId })
-
-      return { code: result.css, map: null }
-    },
-  }
+    rootClassName: surfaces.vuetify.rootClassName,
+    documentTags: [':root', 'html', 'body'],
+    componentPrefix: 'v-',
+    matchId: (id) =>
+      id.endsWith('/vuetify/lib/styles/main.css') ||
+      id.endsWith('/vuetify/dist/vuetify.css'),
+  })
 }
 
 /**
@@ -151,65 +147,15 @@ export function scopeVuetifyCss(): Plugin {
  * `.q-*` component rules global so teleported dialogs / notifications still style correctly.
  */
 export function scopeQuasarCss(): Plugin {
-  return {
+  return createCssScopePlugin({
     name: 'scope-quasar-css',
-    enforce: 'pre',
-    async transform(code, id) {
-      const cleanId = id.split('?')[0].replace(/\\/g, '/')
-      if (
-        !cleanId.endsWith('/quasar/dist/quasar.css') &&
-        !cleanId.endsWith('/quasar/dist/quasar.prod.css')
-      ) {
-        return null
-      }
-
-      const result = await postcss([
-        prefixSelector({
-          prefix: quasarPrefix,
-          transform(_prefix, selector, prefixedSelector) {
-            const s = selector.trim()
-
-            if (
-              s === ':root' ||
-              s.startsWith(':root') ||
-              s === 'html' ||
-              s.startsWith('html.') ||
-              s.startsWith('html ') ||
-              s.startsWith('html,') ||
-              s === 'body' ||
-              s.startsWith('body.') ||
-              s.startsWith('body ') ||
-              s.startsWith('body,')
-            ) {
-              // Keep body.body--dark .q-* global (Dark plugin sets body class);
-              // only re-home bare html/body token roots to the island.
-              if (s.includes('.q-') || s.includes('body--')) {
-                return selector
-              }
-              return s
-                .replace(/:root\b/g, quasarPrefix)
-                .replace(/\bhtml\b/g, quasarPrefix)
-                .replace(/\bbody\b/g, quasarPrefix)
-            }
-
-            // Pure Quasar component / state selectors stay global (teleport)
-            if (s.includes('.q-') || s.includes('[class*="q-"]') || s.includes("[class*='q-']")) {
-              const nonQResidue = s
-                .replace(/\.q-[\w-]+/g, '')
-                .replace(/::?[\w-]+(\([^)]*\))?/g, '')
-                .replace(/\[[^\]]*]/g, '')
-                .replace(/#[\w-]+/g, '')
-                .replace(/[\s>+~.,*='"()]/g, '')
-                .trim()
-              if (!nonQResidue) return selector
-            }
-
-            return prefixedSelector
-          },
-        }),
-      ]).process(code, { from: cleanId })
-
-      return { code: result.css, map: null }
-    },
-  }
+    rootClassName: surfaces.quasar.rootClassName,
+    documentTags: [':root', 'html', 'body'],
+    componentPrefix: 'q-',
+    keepDocumentSelector: (selector) =>
+      selector.includes('.q-') || selector.includes('body--'),
+    matchId: (id) =>
+      id.endsWith('/quasar/dist/quasar.css') ||
+      id.endsWith('/quasar/dist/quasar.prod.css'),
+  })
 }

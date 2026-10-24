@@ -1,3 +1,4 @@
+import type { HireDateSort } from './showcaseScenario'
 import {
   ROLE_OPTIONS,
   STATUS_OPTIONS,
@@ -28,6 +29,12 @@ export interface UserFieldSpec {
   readonly sortable?: boolean
   readonly options?: readonly UserFieldOption[]
   readonly rules: UserFieldRules
+}
+
+export interface UserFormRule {
+  readonly required?: boolean
+  readonly type?: 'email'
+  readonly message: string
 }
 
 export const USER_FIELDS: readonly UserFieldSpec[] = [
@@ -99,6 +106,24 @@ export const USER_FORM_FIELDS = USER_FIELDS.filter((field) => field.form)
 export const USER_FIELD_BY_KEY = Object.fromEntries(
   USER_FIELDS.map((field) => [field.key, field]),
 ) as Record<UserFieldKey, UserFieldSpec>
+
+/** Library-agnostic validation rules; form libraries add their own triggers. */
+export function fieldFormRules(field: UserFieldSpec): UserFormRule[] {
+  const rules: UserFormRule[] = []
+  if (field.rules.required) {
+    rules.push({ required: true, message: field.rules.required })
+  }
+  if (field.rules.email) {
+    rules.push({ type: 'email', message: field.rules.email })
+  }
+  return rules
+}
+
+export const HIRE_DATE_SORT_LABELS: Record<HireDateSort, string> = {
+  none: '默认',
+  asc: '升序',
+  desc: '降序',
+}
 
 export const SHOWCASE_FILTERS = {
   keywordPlaceholder: '搜索姓名 / 邮箱',

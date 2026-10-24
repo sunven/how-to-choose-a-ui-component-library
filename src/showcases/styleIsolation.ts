@@ -18,7 +18,7 @@
  * Symptom: ant-design → semi-design looks unstyled; hard refresh of semi is fine.
  *
  * Fix:
- * 1. Ownership map + **activation id** so a newer activate can steal nodes.
+ * 1. **Activation id** ownership so a newer activate can steal nodes.
  * 2. **Deferred removal** (microtask): only remove a node if it is still owned
  *    by the disposing activation — giving the next activate a chance to steal.
  * 3. `useLayoutEffect` so steal happens before paint.
@@ -33,8 +33,6 @@ type CachedStyle =
 
 const styleCache = new Map<LibraryId, CachedStyle[]>()
 
-/** Library that currently owns a managed stylesheet node. */
-const styleOwner = new WeakMap<Element, LibraryId>()
 /** Activation that currently owns the node (defeats StrictMode double-mount). */
 const styleActivation = new WeakMap<Element, number>()
 
@@ -96,7 +94,6 @@ function recreate(item: CachedStyle, libraryId: LibraryId): HTMLElement {
 }
 
 function assignOwner(el: Element, libraryId: LibraryId, activationId: number) {
-  styleOwner.set(el, libraryId)
   styleActivation.set(el, activationId)
   el.setAttribute('data-showcase-lib', libraryId)
 }
@@ -182,7 +179,6 @@ export function activateLibraryStyles(libraryId: LibraryId): () => void {
 
       const take = (el: Element) => {
         if (styleActivation.get(el) !== activationId) return
-        if (styleOwner.get(el) !== libraryId) return
         const serialized = serialize(el)
         if (serialized) {
           const key = cacheKey(serialized)
@@ -191,7 +187,6 @@ export function activateLibraryStyles(libraryId: LibraryId): () => void {
             items.push(serialized)
           }
         }
-        styleOwner.delete(el)
         styleActivation.delete(el)
         el.remove()
       }
