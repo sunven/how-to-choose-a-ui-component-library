@@ -57,22 +57,34 @@ export interface ShowcaseScenario {
   dispose(): void
 }
 
+export const SHOWCASE_SCENARIO_ACTION_KEYS = [
+  'setKeyword',
+  'setRoleFilter',
+  'setStatusFilter',
+  'setPage',
+  'setHireDateSort',
+  'cycleHireDateSort',
+  'replacePageSelection',
+  'toggleSelect',
+  'toggleSelectAllPage',
+  'createUser',
+  'updateUser',
+  'deleteUser',
+] as const satisfies readonly (keyof ShowcaseScenario)[]
+
 /** The framework-agnostic Showcase Scenario action contract. */
 export type ShowcaseScenarioActions = Pick<
   ShowcaseScenario,
-  | 'setKeyword'
-  | 'setRoleFilter'
-  | 'setStatusFilter'
-  | 'setPage'
-  | 'setHireDateSort'
-  | 'cycleHireDateSort'
-  | 'replacePageSelection'
-  | 'toggleSelect'
-  | 'toggleSelectAllPage'
-  | 'createUser'
-  | 'updateUser'
-  | 'deleteUser'
+  (typeof SHOWCASE_SCENARIO_ACTION_KEYS)[number]
 >
+
+export function pickScenarioActions(
+  scenario: ShowcaseScenario,
+): ShowcaseScenarioActions {
+  return Object.fromEntries(
+    SHOWCASE_SCENARIO_ACTION_KEYS.map((key) => [key, scenario[key]]),
+  ) as ShowcaseScenarioActions
+}
 
 const PAGE_SIZE = 10
 

@@ -33,6 +33,7 @@ import {
   type UserRole,
   type UserStatus,
 } from '@/domain/user'
+import type { HireDateSort } from '@/domain/showcaseScenario'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const FormItem = Form.Item
@@ -57,7 +58,7 @@ const {
   pageSize,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   setHireDateSort,
   createUser,
   updateUser,
@@ -154,6 +155,10 @@ function confirmDelete(user: User) {
   Message.success('已删除')
 }
 
+function toHireDateSort(direction: string): HireDateSort {
+  return direction === 'ascend' ? 'asc' : direction === 'descend' ? 'desc' : 'none'
+}
+
 const hireDateModel = computed({
   get: () => (form.hireDate ? dayjs(form.hireDate) : undefined),
   set: (v: unknown) => {
@@ -190,7 +195,7 @@ const hireDateModel = computed({
       row-key="id"
       size="medium"
       :columns="columns"
-      :data="pageUsers"
+      :data="users"
       :row-selection="{
         type: 'checkbox',
         selectedRowKeys: selectedIds,
@@ -207,14 +212,7 @@ const hireDateModel = computed({
       @page-change="(p: number) => (page = p)"
       @sorter-change="
         (dataIndex: string, direction: string) => {
-          if (dataIndex === 'hireDate')
-            setHireDateSort(
-              direction === 'ascend'
-                ? 'asc'
-                : direction === 'descend'
-                  ? 'desc'
-                  : 'none',
-            )
+          if (dataIndex === 'hireDate') setHireDateSort(toHireDateSort(direction))
         }
       "
     >

@@ -1,6 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import {
   createShowcaseScenario,
+  pickScenarioActions,
   type ShowcaseScenarioActions,
   type ShowcaseScenarioSnapshot,
   type ShowcaseUserStore,
@@ -22,19 +23,5 @@ export function useUsers(store: ShowcaseUserStore = userStore): UsersController 
 
   useEffect(() => () => scenario.dispose(), [scenario])
 
-  return {
-    ...snapshot,
-    setKeyword: scenario.setKeyword,
-    setRoleFilter: scenario.setRoleFilter,
-    setStatusFilter: scenario.setStatusFilter,
-    setPage: scenario.setPage,
-    cycleHireDateSort: scenario.cycleHireDateSort,
-    setHireDateSort: scenario.setHireDateSort,
-    replacePageSelection: scenario.replacePageSelection,
-    toggleSelect: scenario.toggleSelect,
-    toggleSelectAllPage: scenario.toggleSelectAllPage,
-    createUser: scenario.createUser,
-    updateUser: scenario.updateUser,
-    deleteUser: scenario.deleteUser,
-  }
+  return { ...snapshot, ...pickScenarioActions(scenario) }
 }

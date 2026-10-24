@@ -33,7 +33,7 @@ const {
   pageCount,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   cycleHireDateSort,
   toggleSelect,
   toggleSelectAllPage,
@@ -48,7 +48,7 @@ const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
 
 const allPageSelected = computed(
-  () => pageUsers.value.length > 0 && pageUsers.value.every((u) => selectedIds.value.includes(u.id)),
+  () => users.value.length > 0 && users.value.every((u) => selectedIds.value.includes(u.id)),
 )
 
 function openCreate() {
@@ -97,13 +97,6 @@ function confirmDelete(user: User) {
   deleteUser(user.id)
 }
 
-function onRoleFilter(v: string) {
-  roleFilter.value = v as typeof roleFilter.value
-}
-
-function onStatusFilter(v: string) {
-  statusFilter.value = v as typeof statusFilter.value
-}
 </script>
 
 <template>
@@ -116,16 +109,14 @@ function onStatusFilter(v: string) {
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
         />
         <Select
-          :model-value="roleFilter"
+          v-model="roleFilter"
           :options="SHOWCASE_FILTER_OPTIONS.role"
           trigger-class="w-[140px]"
-          @update:model-value="onRoleFilter"
         />
         <Select
-          :model-value="statusFilter"
+          v-model="statusFilter"
           :options="SHOWCASE_FILTER_OPTIONS.status"
           trigger-class="w-[140px]"
-          @update:model-value="onStatusFilter"
         />
         <Button variant="outline" @click="cycleHireDateSort">
           入职排序：
@@ -158,7 +149,7 @@ function onStatusFilter(v: string) {
         </thead>
         <tbody>
           <tr
-            v-for="row in pageUsers"
+            v-for="row in users"
             :key="row.id"
             class="border-b last:border-0 hover:bg-muted/30"
           >
@@ -200,7 +191,7 @@ function onStatusFilter(v: string) {
               </Button>
             </td>
           </tr>
-          <tr v-if="pageUsers.length === 0">
+          <tr v-if="users.length === 0">
             <td
               :colspan="USER_TABLE_COLUMNS.length + 2"
               class="p-8 text-center text-muted-foreground"

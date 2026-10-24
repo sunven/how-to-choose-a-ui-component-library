@@ -46,7 +46,7 @@ const {
   pageSize,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   setHireDateSort,
   createUser,
   updateUser,
@@ -60,7 +60,7 @@ const errors = reactive<UserFormErrors>({})
 const islandEl = ref<HTMLElement | null>(null)
 
 const selectedUsers = computed({
-  get: () => pageUsers.value.filter((u) => selectedIds.value.includes(u.id)),
+  get: () => users.value.filter((u) => selectedIds.value.includes(u.id)),
   set: (rows: User[]) => {
     selectedIds.value = rows.map((r) => r.id)
   },
@@ -205,7 +205,7 @@ function statusSeverity(status: UserStatus) {
 
     <DataTable
       v-model:selection="selectedUsers"
-      :value="pageUsers"
+      :value="users"
       data-key="id"
       :sort-field="sortField"
       :sort-order="sortOrder"

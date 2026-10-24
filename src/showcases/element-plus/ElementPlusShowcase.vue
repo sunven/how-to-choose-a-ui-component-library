@@ -43,7 +43,7 @@ const {
   page,
   pageSize,
   total,
-  users: pageUsers,
+  users,
   replacePageSelection,
   setHireDateSort,
   createUser,
@@ -212,7 +212,7 @@ function onSelectionChange(rows: User[]) {
     </div>
 
     <ElTable
-      :data="pageUsers"
+      :data="users"
       row-key="id"
       style="width: 100%"
       @selection-change="onSelectionChange"

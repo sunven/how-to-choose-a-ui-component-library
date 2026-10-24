@@ -42,7 +42,7 @@ const {
   pageCount,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   cycleHireDateSort,
   toggleSelect,
   toggleSelectAllPage,
@@ -66,7 +66,7 @@ const statusFilterOptions = SHOWCASE_FILTER_OPTIONS.status.map((option) => ({
 }))
 
 const allPageSelected = computed(
-  () => pageUsers.value.length > 0 && pageUsers.value.every((u) => selectedIds.value.includes(u.id)),
+  () => users.value.length > 0 && users.value.every((u) => selectedIds.value.includes(u.id)),
 )
 
 function openCreate() {
@@ -115,13 +115,6 @@ function confirmDelete(user: User) {
   deleteUser(user.id)
 }
 
-function onRoleFilter(v: string) {
-  roleFilter.value = v as typeof roleFilter.value
-}
-
-function onStatusFilter(v: string) {
-  statusFilter.value = v as typeof statusFilter.value
-}
 </script>
 
 <template>
@@ -134,16 +127,14 @@ function onStatusFilter(v: string) {
           class="w-[220px]"
         />
         <FwbSelect
-          :model-value="roleFilter"
+          v-model="roleFilter"
           :options="roleFilterOptions"
           class="w-[140px]"
-          @update:model-value="onRoleFilter"
         />
         <FwbSelect
-          :model-value="statusFilter"
+          v-model="statusFilter"
           :options="statusFilterOptions"
           class="w-[140px]"
-          @update:model-value="onStatusFilter"
         />
         <FwbButton color="alternative" @click="cycleHireDateSort">
           入职排序：
@@ -171,7 +162,7 @@ function onStatusFilter(v: string) {
         <FwbTableHeadCell>操作</FwbTableHeadCell>
       </FwbTableHead>
       <FwbTableBody>
-        <FwbTableRow v-for="row in pageUsers" :key="row.id">
+        <FwbTableRow v-for="row in users" :key="row.id">
           <FwbTableCell>
             <FwbCheckbox
               :model-value="selectedIds.includes(row.id)"
@@ -199,7 +190,7 @@ function onStatusFilter(v: string) {
             </div>
           </FwbTableCell>
         </FwbTableRow>
-        <FwbTableRow v-if="pageUsers.length === 0">
+        <FwbTableRow v-if="users.length === 0">
           <FwbTableCell
             :colspan="USER_TABLE_COLUMNS.length + 2"
             class="text-center text-gray-500"

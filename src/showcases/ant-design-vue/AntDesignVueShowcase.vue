@@ -33,6 +33,7 @@ import {
   type UserRole,
   type UserStatus,
 } from '@/domain/user'
+import type { HireDateSort } from '@/domain/showcaseScenario'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const {
@@ -44,7 +45,7 @@ const {
   pageSize,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   setHireDateSort,
   createUser,
   updateUser,
@@ -162,12 +163,16 @@ function confirmDelete(user: User) {
   message.success('已删除')
 }
 
+function toHireDateSort(
+  order: string | null | undefined,
+): HireDateSort {
+  return order === 'ascend' ? 'asc' : order === 'descend' ? 'desc' : 'none'
+}
+
 const onTableChange: TableProps['onChange'] = (_pag, _filters, sorter) => {
   const s = Array.isArray(sorter) ? sorter[0] : sorter
   if (s && (s.field === 'hireDate' || s.columnKey === 'hireDate')) {
-    setHireDateSort(
-      s.order === 'ascend' ? 'asc' : s.order === 'descend' ? 'desc' : 'none',
-    )
+    setHireDateSort(toHireDateSort(s.order))
   }
 }
 
@@ -207,7 +212,7 @@ const hireDateModel = computed({
       row-key="id"
       size="middle"
       :columns="columns"
-      :data-source="pageUsers"
+      :data-source="users"
       :row-selection="{
         selectedRowKeys: selectedIds,
         onChange: (keys) => (selectedIds = keys as string[]),

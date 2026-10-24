@@ -30,7 +30,7 @@ const {
   pageSize,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   setHireDateSort,
   createUser,
   updateUser,
@@ -62,7 +62,7 @@ const columns: QTableColumn<User>[] = [
 ]
 
 const selectedRows = computed({
-  get: () => pageUsers.value.filter((u) => selectedIds.value.includes(u.id)),
+  get: () => users.value.filter((u) => selectedIds.value.includes(u.id)),
   set: (rows: User[]) => {
     selectedIds.value = rows.map((r) => r.id)
   },
@@ -190,7 +190,7 @@ function statusLabel(status: UserStatus) {
 
     <q-table
       v-model:selected="selectedRows"
-      :rows="pageUsers"
+      :rows="users"
       :columns="columns"
       row-key="id"
       selection="multiple"

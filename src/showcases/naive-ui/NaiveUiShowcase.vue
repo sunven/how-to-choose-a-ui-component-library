@@ -31,6 +31,7 @@ import {
   type User,
   type UserInput,
 } from '@/domain/user'
+import type { HireDateSort } from '@/domain/showcaseScenario'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const message = useMessage()
@@ -43,7 +44,7 @@ const {
   pageSize,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   setHireDateSort,
   createUser,
   updateUser,
@@ -81,6 +82,12 @@ const rules: FormRules = Object.fromEntries(
     return fieldRules.length ? [[field.key, fieldRules] as const] : []
   }),
 ) as FormRules
+
+function toHireDateSort(
+  order: string | boolean | null | undefined,
+): HireDateSort {
+  return order === 'ascend' ? 'asc' : order === 'descend' ? 'desc' : 'none'
+}
 
 const columns = computed<DataTableColumns<User>>(() => {
   const result: DataTableColumns<User> = [{ type: 'selection' }]
@@ -231,7 +238,7 @@ function confirmDelete(user: User) {
     <NDataTable
       remote
       :columns="columns"
-      :data="pageUsers"
+      :data="users"
       :row-key="(row: User) => row.id"
       :checked-row-keys="selectedIds"
       :pagination="false"
@@ -240,13 +247,7 @@ function confirmDelete(user: User) {
         (sorter) => {
           const s = Array.isArray(sorter) ? sorter[0] : sorter
           if (s && s.columnKey === 'hireDate')
-            setHireDateSort(
-              s.order === 'ascend'
-                ? 'asc'
-                : s.order === 'descend'
-                  ? 'desc'
-                  : 'none',
-            )
+            setHireDateSort(toHireDateSort(s.order))
         }
       "
     />

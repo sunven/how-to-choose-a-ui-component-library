@@ -36,7 +36,7 @@ const {
   pageCount,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   cycleHireDateSort,
   toggleSelect: setUserSelected,
   toggleSelectAllPage: setPageSelected,
@@ -51,7 +51,7 @@ const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
 
 const allPageSelected = computed(
-  () => pageUsers.value.length > 0 && pageUsers.value.every((u) => selectedIds.value.includes(u.id)),
+  () => users.value.length > 0 && users.value.every((u) => selectedIds.value.includes(u.id)),
 )
 
 function openCreate() {
@@ -185,7 +185,7 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in pageUsers" :key="row.id">
+          <tr v-for="row in users" :key="row.id">
             <td>
               <CheckboxRoot
                 class="reka-checkbox"
@@ -237,7 +237,7 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
               </button>
             </td>
           </tr>
-          <tr v-if="pageUsers.length === 0">
+          <tr v-if="users.length === 0">
             <td
               :colspan="USER_TABLE_COLUMNS.length + 2"
               style="text-align: center; padding: 2rem; color: var(--reka-muted-fg)"

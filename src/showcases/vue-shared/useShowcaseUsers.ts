@@ -1,7 +1,7 @@
 import { computed, onUnmounted, shallowRef } from 'vue'
 import {
   createShowcaseScenario,
-  type ShowcaseScenarioActions,
+  pickScenarioActions,
   type ShowcaseUserStore,
 } from '@/domain/showcaseScenario'
 import { userStore } from '@/domain/userStore'
@@ -44,21 +44,6 @@ export function useShowcaseUsers(store: ShowcaseUserStore = userStore) {
   const pageCount = computed(() => snapshot.value.pageCount)
   const users = computed(() => snapshot.value.users)
 
-  const actions: ShowcaseScenarioActions = {
-    setKeyword: scenario.setKeyword,
-    setRoleFilter: scenario.setRoleFilter,
-    setStatusFilter: scenario.setStatusFilter,
-    setPage: scenario.setPage,
-    setHireDateSort: scenario.setHireDateSort,
-    cycleHireDateSort: scenario.cycleHireDateSort,
-    replacePageSelection: scenario.replacePageSelection,
-    toggleSelect: scenario.toggleSelect,
-    toggleSelectAllPage: scenario.toggleSelectAllPage,
-    createUser: scenario.createUser,
-    updateUser: scenario.updateUser,
-    deleteUser: scenario.deleteUser,
-  }
-
   return {
     users,
     keyword,
@@ -70,6 +55,6 @@ export function useShowcaseUsers(store: ShowcaseUserStore = userStore) {
     pageCount,
     selectedIds,
     total,
-    ...actions,
+    ...pickScenarioActions(scenario),
   }
 }

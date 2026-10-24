@@ -28,8 +28,9 @@ const {
   pageCount,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   setHireDateSort,
+  cycleHireDateSort,
   createUser,
   updateUser,
   deleteUser,
@@ -72,7 +73,7 @@ const sortLabel = computed(() => {
 
 /** VaDataTable v-model is selected *rows*, not id list */
 const selectedRows = computed({
-  get: () => pageUsers.value.filter((u) => selectedIds.value.includes(u.id)),
+  get: () => users.value.filter((u) => selectedIds.value.includes(u.id)),
   set: (rows: User[]) => {
     selectedIds.value = rows.map((r) => r.id)
   },
@@ -129,12 +130,6 @@ function onSorted(payload: { sortBy?: string; sortingOrder?: 'asc' | 'desc' | nu
   setHireDateSort(payload.sortingOrder ?? 'none')
 }
 
-function cycleHireDateSort() {
-  if (hireDateSort.value === 'none') setHireDateSort('asc')
-  else if (hireDateSort.value === 'asc') setHireDateSort('desc')
-  else setHireDateSort('none')
-}
-
 function onOk(hide: () => void) {
   submit()
   if (!Object.keys(errors).length) hide()
@@ -179,7 +174,7 @@ function onOk(hide: () => void) {
 
     <VaDataTable
       v-model="selectedRows"
-      :items="pageUsers"
+      :items="users"
       :columns="columns"
       :sort-by="sortBy"
       :sorting-order="sortingOrder"

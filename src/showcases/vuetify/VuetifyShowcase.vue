@@ -28,7 +28,7 @@ const {
   pageCount,
   selectedIds,
   total,
-  users: pageUsers,
+  users,
   setHireDateSort,
   createUser,
   updateUser,
@@ -203,7 +203,7 @@ function statusLabel(status: UserStatus) {
     <v-data-table
       v-model="selectedIds"
       :headers="headers"
-      :items="pageUsers"
+      :items="users"
       :items-per-page="-1"
       :sort-by="sortBy"
       item-value="id"
