@@ -116,8 +116,12 @@ _Avoid_: 并排对比, side-by-side, 双栏模式；跨框架扁平混排；单�
 _Avoid_: 全量组件库目录；把不同 Framework 的库当成同一候选集；把 Ant Design 与 Ant Design Vue、shadcn 与 shadcn-vue、primevue 与 volt-ui 当成同一 Candidate Library；把 CSS-only 库挂进 react/vue；本批塞入未决议库
 
 **Candidate Library Catalog** (候选库目录):
-本站已完成交付门槛、可出现在 Library Switcher 与 Library Route 中的 Candidate Library 有序集合；每项具有唯一 id、唯一 Framework 归属和 Library Profile，且每个 Framework 有固定默认项。Catalog 不包含 Showcase 加载方式或渲染实现。
+本站已完成交付门槛、可出现在 Library Switcher 与 Library Route 中的 Candidate Library 有序集合；每项具有唯一 id、唯一 Framework 归属和 Library Profile，且每个 Framework 有固定默认项。Catalog 不包含 Showcase 加载方式或渲染实现；渲染注册见 **Showcase Registry**。
 _Avoid_: Showcase loader；npm 包清单；跨 Framework 扁平列表
+
+**Showcase Registry** (展示注册表):
+每个 Candidate Library 在渲染层的唯一注册项：以 LibraryId 解析出该库的 Showcase，并负责加载与框架归一化。与 **Candidate Library Catalog** 分离：Catalog 只管身份、Library Profile 与路由顺序，不含加载方式或渲染实现；Registry 不参与路由解析、默认库或回退决策。注册项与 Catalog 的 Candidate 一一对应；缺项、多项或指向错误实现都属于注册错误。
+_Avoid_: 把 loader / 渲染实现塞回 Catalog；按 Framework 维护多张渲染表；在 Registry 里做路由回退或默认库决策；用 Registry 替代 Library Route 的合法性校验
 
 **React Candidate Expansion** (React 候选扩展):
 在已有 React 三库之上，新增 Arco Design、Semi Design、Mantine 三个 React Candidate Library 的真机 Showcase 与 Library Profile。场景全对齐；React Switcher 顺序：Ant Design → MUI → shadcn/ui → Arco Design → Semi Design → Mantine；默认库仍为 Ant Design。
