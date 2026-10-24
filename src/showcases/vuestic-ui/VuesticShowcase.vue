@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FIELD_BY_KEY,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -19,7 +25,7 @@ const {
   statusFilter,
   hireDateSort,
   page,
-  pageSize,
+  pageCount,
   selectedIds,
   total,
   pageUsers,
@@ -35,23 +41,21 @@ const editing = ref<User | null>(null)
 const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
 
-const roleFilterOptions = [
-  { text: '全部角色', value: 'all' },
-  ...ROLE_OPTIONS.map((o) => ({ text: o.label, value: o.value })),
-]
-const statusFilterOptions = [
-  { text: '全部状态', value: 'all' },
-  { text: STATUS_LABELS.active, value: 'active' },
-  { text: STATUS_LABELS.disabled, value: 'disabled' },
-]
-const roleFormOptions = ROLE_OPTIONS.map((o) => ({ text: o.label, value: o.value }))
+const roleFilterOptions = SHOWCASE_FILTER_OPTIONS.role.map((option) => ({
+  text: option.label,
+  value: option.value,
+}))
+const statusFilterOptions = SHOWCASE_FILTER_OPTIONS.status.map((option) => ({
+  text: option.label,
+  value: option.value,
+}))
 
 const columns = [
-  { key: 'name', label: '姓名' },
-  { key: 'email', label: '邮箱' },
-  { key: 'role', label: '角色' },
-  { key: 'status', label: '状态' },
-  { key: 'hireDate', label: '入职日期', sortable: true },
+  ...USER_TABLE_COLUMNS.map((field) => ({
+    key: field.key,
+    label: field.label,
+    sortable: Boolean(field.sortable),
+  })),
   { key: 'actions', label: '操作', width: 140, tdAlign: 'right' as const },
 ]
 
@@ -66,8 +70,6 @@ const sortLabel = computed(() => {
   if (hireDateSort.value === 'desc') return '降序'
   return '默认'
 })
-
-const pages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 
 /** VaDataTable v-model is selected *rows*, not id list */
 const selectedRows = computed({
@@ -148,7 +150,7 @@ function onOk(hide: () => void) {
           v-model="keyword"
           class="flex-none"
           label="搜索"
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px; min-width: 180px"
           @update:model-value="resetFiltersPage"
         />
@@ -158,7 +160,7 @@ function onOk(hide: () => void) {
           :options="roleFilterOptions"
           text-by="text"
           value-by="value"
-          label="角色"
+          :label="USER_FIELD_BY_KEY.role.label"
           style="width: 140px; min-width: 120px"
           @update:model-value="resetFiltersPage"
         />
@@ -168,7 +170,7 @@ function onOk(hide: () => void) {
           :options="statusFilterOptions"
           text-by="text"
           value-by="value"
-          label="状态"
+          :label="USER_FIELD_BY_KEY.status.label"
           style="width: 140px; min-width: 120px"
           @update:model-value="resetFiltersPage"
         />
@@ -223,7 +225,7 @@ function onOk(hide: () => void) {
       <span class="text-sm" style="color: var(--va-secondary)">共 {{ total }} 条</span>
       <VaPagination
         v-model="page"
-        :pages="pages"
+        :pages="pageCount"
         :visible-pages="7"
         buttons-preset="secondary"
         gapped
@@ -242,35 +244,59 @@ function onOk(hide: () => void) {
       @ok="onOk"
     >
       <div class="flex flex-col gap-3 py-1">
-        <VaInput
-          v-model="form.name"
-          label="姓名"
-          :error="!!errors.name"
-          :error-messages="errors.name"
-        />
-        <VaInput
-          v-model="form.email"
-          label="邮箱"
-          :error="!!errors.email"
-          :error-messages="errors.email"
-        />
-        <VaSelect
-          v-model="form.role"
-          :options="roleFormOptions"
-          text-by="text"
-          value-by="value"
-          label="角色"
-        />
-        <div class="flex items-center gap-3">
-          <span class="text-sm">状态</span>
-          <VaSwitch
-            :model-value="form.status === 'active'"
-            label="启用"
-            @update:model-value="(v: boolean) => (form.status = v ? 'active' : 'disabled')"
+        <template v-for="field in USER_FORM_FIELDS" :key="field.key">
+          <div v-if="field.key === 'status'" class="space-y-1">
+            <div class="flex items-center gap-3">
+              <span class="text-sm">
+                {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+              </span>
+              <VaSwitch
+                :model-value="form.status === 'active'"
+                :label="form.status === 'active' ? STATUS_LABELS.active : STATUS_LABELS.disabled"
+                @update:model-value="
+                  (value: boolean) =>
+                    (form.status = value ? 'active' : 'disabled')
+                "
+              />
+            </div>
+            <span v-if="errors.status" class="text-xs text-red-500">
+              {{ errors.status }}
+            </span>
+          </div>
+          <VaSelect
+            v-else-if="field.control === 'select'"
+            v-model="form[field.key]"
+            :options="field.options?.map((option) => ({ text: option.label, value: option.value }))"
+            text-by="text"
+            value-by="value"
+            :label="field.label"
+            :required="Boolean(field.rules.required)"
+            :error="!!errors[field.key]"
+            :error-messages="errors[field.key]"
           />
-        </div>
-        <VaInput v-model="form.hireDate" type="date" label="入职日期" />
-        <VaTextarea v-model="form.remark" label="备注" :min-rows="3" />
+          <VaInput
+            v-else-if="field.control === 'date'"
+            v-model="form.hireDate"
+            type="date"
+            :label="field.label"
+          />
+          <VaTextarea
+            v-else-if="field.control === 'textarea'"
+            v-model="form.remark"
+            :label="field.label"
+            :placeholder="field.placeholder"
+            :min-rows="3"
+          />
+          <VaInput
+            v-else
+            v-model="form[field.key]"
+            :label="field.label"
+            :placeholder="field.placeholder"
+            :required="Boolean(field.rules.required)"
+            :error="!!errors[field.key]"
+            :error-messages="errors[field.key]"
+          />
+        </template>
       </div>
     </VaModal>
   </div>

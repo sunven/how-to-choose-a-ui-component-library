@@ -20,15 +20,18 @@ import {
   type FormRules,
 } from 'element-plus'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
-  type UserRole,
-  type UserStatus,
 } from '@/domain/user'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
@@ -57,15 +60,31 @@ const formRef = ref<FormInstance>()
 const form = reactive<UserInput>(emptyUserInput())
 const canonicalErrors = reactive<UserFormErrors>({})
 
-const rules: FormRules<UserInput> = {
-  name: [{ required: true, message: '请输入姓名', trigger: 'blur' }],
-  email: [
-    { required: true, message: '请输入邮箱', trigger: 'blur' },
-    { type: 'email', message: '邮箱格式不正确', trigger: 'blur' },
-  ],
-  role: [{ required: true, message: '请选择角色', trigger: 'change' }],
-  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
-}
+const rules: FormRules<UserInput> = Object.fromEntries(
+  USER_FORM_FIELDS.flatMap((field) => {
+    const fieldRules: {
+      required?: boolean
+      type?: 'email'
+      message: string
+      trigger: 'blur' | 'change'
+    }[] = []
+    if (field.rules.required) {
+      fieldRules.push({
+        required: true,
+        message: field.rules.required,
+        trigger: field.control === 'select' ? 'change' : 'blur',
+      })
+    }
+    if (field.rules.email) {
+      fieldRules.push({
+        type: 'email',
+        message: field.rules.email,
+        trigger: 'blur',
+      })
+    }
+    return fieldRules.length ? [[field.key, fieldRules] as const] : []
+  }),
+) as FormRules<UserInput>
 
 function setCanonicalErrors(errors: UserFormErrors) {
   for (const key of Object.keys(canonicalErrors)) {
@@ -95,7 +114,11 @@ function openEdit(user: User) {
 
 async function submit() {
   if (!formRef.value) return
-  await formRef.value.validate()
+  try {
+    await formRef.value.validate()
+  } catch {
+    return
+  }
   const input: UserInput = {
     name: form.name.trim(),
     email: form.email.trim(),
@@ -156,7 +179,7 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
         <ElInput
           v-model="keyword"
           clearable
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
           @update:model-value="resetFiltersPage"
         />
@@ -165,12 +188,11 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
           style="width: 120px"
           @change="resetFiltersPage"
         >
-          <ElOption label="全部角色" value="all" />
           <ElOption
-            v-for="o in ROLE_OPTIONS"
-            :key="o.value"
-            :label="o.label"
-            :value="o.value"
+            v-for="option in SHOWCASE_FILTER_OPTIONS.role"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
           />
         </ElSelect>
         <ElSelect
@@ -178,9 +200,12 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
           style="width: 120px"
           @change="resetFiltersPage"
         >
-          <ElOption label="全部状态" value="all" />
-          <ElOption :label="STATUS_LABELS.active" value="active" />
-          <ElOption :label="STATUS_LABELS.disabled" value="disabled" />
+          <ElOption
+            v-for="option in SHOWCASE_FILTER_OPTIONS.status"
+            :key="option.value"
+            :label="option.label"
+            :value="option.value"
+          />
         </ElSelect>
       </div>
       <ElButton type="primary" @click="openCreate">新建用户</ElButton>
@@ -194,28 +219,39 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
       @sort-change="onSortChange"
     >
       <ElTableColumn type="selection" width="48" reserve-selection />
-      <ElTableColumn prop="name" label="姓名" min-width="100" />
-      <ElTableColumn prop="email" label="邮箱" min-width="180" />
-      <ElTableColumn prop="role" label="角色" width="100">
-        <template #default="{ row }">
-          {{ ROLE_LABELS[row.role as UserRole] }}
-        </template>
-      </ElTableColumn>
-      <ElTableColumn prop="status" label="状态" width="100">
-        <template #default="{ row }">
-          <ElTag :type="row.status === 'active' ? 'success' : 'info'" size="small">
-            {{ STATUS_LABELS[row.status as UserStatus] }}
-          </ElTag>
-        </template>
-      </ElTableColumn>
       <ElTableColumn
-        prop="hireDate"
-        label="入职日期"
-        width="140"
-        sortable="custom"
-        :sort-orders="['ascending', 'descending', null]"
-        :sort-order="sortOrders[hireDateSort]"
-      />
+        v-for="column in USER_TABLE_COLUMNS"
+        :key="column.key"
+        :prop="column.key"
+        :label="column.label"
+        :min-width="column.key === 'email' ? 180 : 100"
+        :width="
+          column.key === 'role' || column.key === 'status'
+            ? 100
+            : column.key === 'hireDate'
+              ? 140
+              : undefined
+        "
+        :sortable="column.sortable ? 'custom' : false"
+        :sort-orders="
+          column.sortable ? ['ascending', 'descending', null] : undefined
+        "
+        :sort-order="column.sortable ? sortOrders[hireDateSort] : undefined"
+      >
+        <template #default="{ row }">
+          <ElTag
+            v-if="column.key === 'status'"
+            :type="row.status === 'active' ? 'success' : 'info'"
+            size="small"
+          >
+            {{ STATUS_LABELS[row.status] }}
+          </ElTag>
+          <template v-else-if="column.key === 'role'">
+            {{ ROLE_LABELS[row.role] }}
+          </template>
+          <template v-else>{{ row[column.key] }}</template>
+        </template>
+      </ElTableColumn>
       <ElTableColumn label="操作" width="140" fixed="right">
         <template #default="{ row }">
           <ElButton link type="primary" size="small" @click="openEdit(row)">编辑</ElButton>
@@ -241,42 +277,56 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
       destroy-on-close
     >
       <ElForm ref="formRef" :model="form" :rules="rules" label-position="top">
-        <ElFormItem label="姓名" prop="name" :error="canonicalErrors.name">
-          <ElInput v-model="form.name" placeholder="请输入姓名" />
-        </ElFormItem>
-        <ElFormItem label="邮箱" prop="email" :error="canonicalErrors.email">
-          <ElInput v-model="form.email" placeholder="name@example.com" />
-        </ElFormItem>
-        <ElFormItem label="角色" prop="role" :error="canonicalErrors.role">
-          <ElSelect v-model="form.role" class="w-full">
+        <ElFormItem
+          v-for="field in USER_FORM_FIELDS"
+          :key="field.key"
+          :label="field.label"
+          :prop="field.key"
+          :error="canonicalErrors[field.key]"
+        >
+          <ElSwitch
+            v-if="field.key === 'status'"
+            :model-value="form.status === 'active'"
+            :active-text="STATUS_LABELS.active"
+            :inactive-text="STATUS_LABELS.disabled"
+            @update:model-value="
+              (value: boolean) =>
+                (form.status = value ? 'active' : 'disabled')
+            "
+          />
+          <ElSelect
+            v-else-if="field.control === 'select'"
+            v-model="form[field.key]"
+            class="w-full"
+          >
             <ElOption
-              v-for="o in ROLE_OPTIONS"
-              :key="o.value"
-              :label="o.label"
-              :value="o.value"
+              v-for="option in field.options ?? []"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
             />
           </ElSelect>
-        </ElFormItem>
-        <ElFormItem label="状态" prop="status" :error="canonicalErrors.status">
-          <ElSwitch
-            :model-value="form.status === 'active'"
-            active-text="启用"
-            inactive-text="禁用"
-            @update:model-value="(v: boolean) => (form.status = v ? 'active' : 'disabled')"
-          />
-        </ElFormItem>
-        <ElFormItem label="入职日期" prop="hireDate">
           <ElDatePicker
+            v-else-if="field.control === 'date'"
             v-model="form.hireDate"
             type="date"
             value-format="YYYY-MM-DD"
-            placeholder="选择日期"
+            :placeholder="field.placeholder"
             class="w-full"
             style="width: 100%"
           />
-        </ElFormItem>
-        <ElFormItem label="备注" prop="remark">
-          <ElInput v-model="form.remark" type="textarea" :rows="3" placeholder="可选" />
+          <ElInput
+            v-else-if="field.control === 'textarea'"
+            v-model="form.remark"
+            type="textarea"
+            :rows="3"
+            :placeholder="field.placeholder"
+          />
+          <ElInput
+            v-else
+            v-model="form[field.key]"
+            :placeholder="field.placeholder"
+          />
         </ElFormItem>
       </ElForm>
       <template #footer>

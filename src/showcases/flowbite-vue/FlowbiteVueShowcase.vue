@@ -17,15 +17,18 @@ import {
   FwbToggle,
 } from 'flowbite-vue'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
-  type UserRole,
-  type UserStatus,
 } from '@/domain/user'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
@@ -36,6 +39,7 @@ const {
   hireDateSort,
   page,
   pageSize,
+  pageCount,
   selectedIds,
   total,
   pageUsers,
@@ -53,18 +57,15 @@ const editing = ref<User | null>(null)
 const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
 
-const roleFilterOptions = [
-  { name: '全部角色', value: 'all' },
-  ...ROLE_OPTIONS.map((o) => ({ name: o.label, value: o.value })),
-]
-const statusFilterOptions = [
-  { name: '全部状态', value: 'all' },
-  { name: STATUS_LABELS.active, value: 'active' },
-  { name: STATUS_LABELS.disabled, value: 'disabled' },
-]
-const roleFormOptions = ROLE_OPTIONS.map((o) => ({ name: o.label, value: o.value }))
+const roleFilterOptions = SHOWCASE_FILTER_OPTIONS.role.map((option) => ({
+  name: option.label,
+  value: option.value,
+}))
+const statusFilterOptions = SHOWCASE_FILTER_OPTIONS.status.map((option) => ({
+  name: option.label,
+  value: option.value,
+}))
 
-const totalPages = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 const allPageSelected = computed(
   () => pageUsers.value.length > 0 && pageUsers.value.every((u) => selectedIds.value.includes(u.id)),
 )
@@ -132,7 +133,7 @@ function onStatusFilter(v: string) {
       <div class="flex min-w-0 flex-1 flex-wrap items-end gap-2">
         <FwbInput
           v-model="keyword"
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           class="w-[220px]"
           @update:model-value="resetFiltersPage"
         />
@@ -165,11 +166,12 @@ function onStatusFilter(v: string) {
             @update:model-value="(v: boolean) => toggleSelectAllPage(v)"
           />
         </FwbTableHeadCell>
-        <FwbTableHeadCell>姓名</FwbTableHeadCell>
-        <FwbTableHeadCell>邮箱</FwbTableHeadCell>
-        <FwbTableHeadCell>角色</FwbTableHeadCell>
-        <FwbTableHeadCell>状态</FwbTableHeadCell>
-        <FwbTableHeadCell>入职日期</FwbTableHeadCell>
+        <FwbTableHeadCell
+          v-for="field in USER_TABLE_COLUMNS"
+          :key="field.key"
+        >
+          {{ field.label }}
+        </FwbTableHeadCell>
         <FwbTableHeadCell>操作</FwbTableHeadCell>
       </FwbTableHead>
       <FwbTableBody>
@@ -180,11 +182,18 @@ function onStatusFilter(v: string) {
               @update:model-value="(v: boolean) => toggleSelect(row.id, v)"
             />
           </FwbTableCell>
-          <FwbTableCell>{{ row.name }}</FwbTableCell>
-          <FwbTableCell>{{ row.email }}</FwbTableCell>
-          <FwbTableCell>{{ ROLE_LABELS[row.role as UserRole] }}</FwbTableCell>
-          <FwbTableCell>{{ STATUS_LABELS[row.status as UserStatus] }}</FwbTableCell>
-          <FwbTableCell>{{ row.hireDate }}</FwbTableCell>
+          <FwbTableCell
+            v-for="field in USER_TABLE_COLUMNS"
+            :key="field.key"
+          >
+            <template v-if="field.key === 'role'">
+              {{ ROLE_LABELS[row.role] }}
+            </template>
+            <template v-else-if="field.key === 'status'">
+              {{ STATUS_LABELS[row.status] }}
+            </template>
+            <template v-else>{{ row[field.key] }}</template>
+          </FwbTableCell>
           <FwbTableCell>
             <div class="flex flex-wrap items-center gap-2">
               <FwbButton size="xs" color="alternative" @click="openEdit(row)">编辑</FwbButton>
@@ -195,7 +204,12 @@ function onStatusFilter(v: string) {
           </FwbTableCell>
         </FwbTableRow>
         <FwbTableRow v-if="pageUsers.length === 0">
-          <FwbTableCell colspan="7" class="text-center text-gray-500">暂无数据</FwbTableCell>
+          <FwbTableCell
+            :colspan="USER_TABLE_COLUMNS.length + 2"
+            class="text-center text-gray-500"
+          >
+            暂无数据
+          </FwbTableCell>
         </FwbTableRow>
       </FwbTableBody>
     </FwbTable>
@@ -204,7 +218,7 @@ function onStatusFilter(v: string) {
       <span class="text-sm text-gray-500">共 {{ total }} 条</span>
       <FwbPagination
         v-model="page"
-        :total-pages="totalPages"
+        :total-pages="pageCount"
         :per-page="pageSize"
         :total-items="total"
         show-icons
@@ -219,29 +233,57 @@ function onStatusFilter(v: string) {
       </template>
       <template #body>
         <div class="flex flex-col gap-3">
-          <FwbInput
-            v-model="form.name"
-            label="姓名"
-            :validation-status="errors.name ? 'error' : undefined"
-            :validation-message="errors.name"
-          />
-          <FwbInput
-            v-model="form.email"
-            label="邮箱"
-            :validation-status="errors.email ? 'error' : undefined"
-            :validation-message="errors.email"
-          />
-          <FwbSelect v-model="form.role" label="角色" :options="roleFormOptions" />
-          <div class="flex items-center gap-3">
-            <span class="text-sm font-medium">状态</span>
-            <FwbToggle
-              :model-value="form.status === 'active'"
-              label="启用"
-              @update:model-value="(v: boolean) => (form.status = v ? 'active' : 'disabled')"
+          <template v-for="field in USER_FORM_FIELDS" :key="field.key">
+            <div v-if="field.key === 'status'" class="space-y-1">
+              <div class="flex items-center gap-3">
+                <span class="text-sm font-medium">
+                  {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+                </span>
+                <FwbToggle
+                  :model-value="form.status === 'active'"
+                  :label="form.status === 'active' ? STATUS_LABELS.active : STATUS_LABELS.disabled"
+                  @update:model-value="
+                    (value: boolean) =>
+                      (form.status = value ? 'active' : 'disabled')
+                  "
+                />
+              </div>
+              <span v-if="errors.status" class="text-xs text-red-500">
+                {{ errors.status }}
+              </span>
+            </div>
+            <FwbSelect
+              v-else-if="field.control === 'select'"
+              v-model="form[field.key]"
+              :label="field.label + (field.rules.required ? ' *' : '')"
+              :options="field.options?.map((option) => ({ name: option.label, value: option.value }))"
+              :validation-status="errors[field.key] ? 'error' : undefined"
+              :validation-message="errors[field.key]"
             />
-          </div>
-          <FwbInput v-model="form.hireDate" type="date" label="入职日期" />
-          <FwbTextarea v-model="form.remark" label="备注" :rows="3" placeholder="可选" />
+            <FwbInput
+              v-else-if="field.control === 'date'"
+              v-model="form.hireDate"
+              type="date"
+              :label="field.label"
+              :placeholder="field.placeholder"
+            />
+            <FwbTextarea
+              v-else-if="field.control === 'textarea'"
+              v-model="form.remark"
+              :label="field.label"
+              :rows="3"
+              :placeholder="field.placeholder"
+            />
+            <FwbInput
+              v-else
+              v-model="form[field.key]"
+              :label="field.label + (field.rules.required ? ' *' : '')"
+              :type="field.control === 'email' ? 'email' : 'text'"
+              :placeholder="field.placeholder"
+              :validation-status="errors[field.key] ? 'error' : undefined"
+              :validation-message="errors[field.key]"
+            />
+          </template>
         </div>
       </template>
       <template #footer>

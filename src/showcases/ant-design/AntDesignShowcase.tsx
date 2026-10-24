@@ -15,13 +15,19 @@ import {
   message,
   theme,
 } from 'antd'
-import type { ColumnsType, TableProps } from 'antd/es/table'
+import type { ColumnType, ColumnsType, TableProps } from 'antd/es/table'
 import zhCN from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  type UserFieldSpec,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -33,6 +39,80 @@ import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 
 dayjs.locale('zh-cn')
+
+function fieldRules(field: UserFieldSpec) {
+  const rules: { required?: boolean; type?: 'email'; message: string }[] = []
+  if (field.rules.required) {
+    rules.push({ required: true, message: field.rules.required })
+  }
+  if (field.rules.email) {
+    rules.push({ type: 'email', message: field.rules.email })
+  }
+  return rules
+}
+
+function FormField({ field }: { field: UserFieldSpec }) {
+  const rules = fieldRules(field)
+
+  if (field.key === 'status') {
+    return (
+      <Form.Item
+        label={field.label}
+        name={field.key}
+        rules={rules}
+        valuePropName="checked"
+        getValueFromEvent={(checked: boolean) =>
+          checked ? 'active' : 'disabled'
+        }
+        getValueProps={(value: UserStatus) => ({ checked: value === 'active' })}
+      >
+        <Switch
+          checkedChildren={STATUS_LABELS.active}
+          unCheckedChildren={STATUS_LABELS.disabled}
+        />
+      </Form.Item>
+    )
+  }
+
+  if (field.key === 'hireDate') {
+    return (
+      <Form.Item
+        label={field.label}
+        name={field.key}
+        rules={rules}
+        getValueFromEvent={(value: dayjs.Dayjs | null) =>
+          value ? value.format('YYYY-MM-DD') : ''
+        }
+        getValueProps={(value: string) => ({
+          value: value ? dayjs(value) : null,
+        })}
+      >
+        <DatePicker className="w-full" placeholder={field.placeholder} />
+      </Form.Item>
+    )
+  }
+
+  return (
+    <Form.Item label={field.label} name={field.key} rules={rules}>
+      {field.control === 'select' ? (
+        <Select
+          placeholder={field.placeholder}
+          options={field.options?.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+        />
+      ) : field.control === 'textarea' ? (
+        <Input.TextArea rows={3} placeholder={field.placeholder} />
+      ) : (
+        <Input
+          type={field.control === 'email' ? 'email' : 'text'}
+          placeholder={field.placeholder}
+        />
+      )}
+    </Form.Item>
+  )
+}
 
 export function AntDesignShowcase({ users }: ShowcaseProps) {
   const mode = useThemeMode()
@@ -60,7 +140,12 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
   }
 
   const submit = async () => {
-    const values = await form.validateFields()
+    let values: UserInput
+    try {
+      values = await form.validateFields()
+    } catch {
+      return
+    }
     const input: UserInput = {
       name: values.name.trim(),
       email: values.email.trim(),
@@ -87,34 +172,33 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
 
   const columns: ColumnsType<User> = useMemo(
     () => [
-      { title: '姓名', dataIndex: 'name', key: 'name' },
-      { title: '邮箱', dataIndex: 'email', key: 'email' },
-      {
-        title: '角色',
-        dataIndex: 'role',
-        key: 'role',
-        render: (role: UserRole) => ROLE_LABELS[role],
-      },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        key: 'status',
-        render: (status: UserStatus) => (
-          <Tag color={status === 'active' ? 'success' : 'default'}>{STATUS_LABELS[status]}</Tag>
-        ),
-      },
-      {
-        title: '入职日期',
-        dataIndex: 'hireDate',
-        key: 'hireDate',
-        sorter: true,
-        sortOrder:
-          users.hireDateSort === 'asc'
-            ? 'ascend'
-            : users.hireDateSort === 'desc'
-              ? 'descend'
-              : null,
-      },
+      ...USER_TABLE_COLUMNS.map((field) => {
+        const column: ColumnType<User> = {
+          title: field.label,
+          dataIndex: field.key,
+          key: field.key,
+        }
+
+        if (field.key === 'role') {
+          column.render = (role: UserRole) => ROLE_LABELS[role]
+        } else if (field.key === 'status') {
+          column.render = (status: UserStatus) => (
+            <Tag color={status === 'active' ? 'success' : 'default'}>
+              {STATUS_LABELS[status]}
+            </Tag>
+          )
+        } else if (field.sortable) {
+          column.sorter = true
+          column.sortOrder =
+            users.hireDateSort === 'asc'
+              ? 'ascend'
+              : users.hireDateSort === 'desc'
+                ? 'descend'
+                : null
+        }
+
+        return column
+      }),
       {
         title: '操作',
         key: 'actions',
@@ -164,7 +248,7 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
           <Space wrap>
             <Input.Search
               allowClear
-              placeholder="搜索姓名 / 邮箱"
+              placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
               style={{ width: 220 }}
               value={users.filters.keyword}
               onChange={(e) => users.setKeyword(e.target.value)}
@@ -173,20 +257,13 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
               style={{ width: 120 }}
               value={users.filters.role}
               onChange={users.setRoleFilter}
-              options={[
-                { value: 'all', label: '全部角色' },
-                ...ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-              ]}
+              options={SHOWCASE_FILTER_OPTIONS.role}
             />
             <Select
               style={{ width: 120 }}
               value={users.filters.status}
               onChange={users.setStatusFilter}
-              options={[
-                { value: 'all', label: '全部状态' },
-                { value: 'active', label: STATUS_LABELS.active },
-                { value: 'disabled', label: STATUS_LABELS.disabled },
-              ]}
+              options={SHOWCASE_FILTER_OPTIONS.status}
             />
           </Space>
           <Button type="primary" onClick={openCreate}>
@@ -224,43 +301,9 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
           destroyOnClose
         >
           <Form form={form} layout="vertical" className="mt-2">
-            <Form.Item label="姓名" name="name" rules={[{ required: true, message: '请输入姓名' }]}>
-              <Input placeholder="请输入姓名" />
-            </Form.Item>
-            <Form.Item
-              label="邮箱"
-              name="email"
-              rules={[
-                { required: true, message: '请输入邮箱' },
-                { type: 'email', message: '邮箱格式不正确' },
-              ]}
-            >
-              <Input placeholder="name@example.com" />
-            </Form.Item>
-            <Form.Item label="角色" name="role" rules={[{ required: true, message: '请选择角色' }]}>
-              <Select options={ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))} />
-            </Form.Item>
-            <Form.Item
-              label="状态"
-              name="status"
-              rules={[{ required: true, message: '请选择状态' }]}
-              valuePropName="checked"
-              getValueFromEvent={(checked: boolean) => (checked ? 'active' : 'disabled')}
-              getValueProps={(value: UserStatus) => ({ checked: value === 'active' })}
-            >
-              <Switch checkedChildren="启用" unCheckedChildren="禁用" />
-            </Form.Item>
-            <Form.Item
-              label="入职日期"
-              name="hireDate"
-              getValueFromEvent={(d: dayjs.Dayjs | null) => (d ? d.format('YYYY-MM-DD') : '')}
-              getValueProps={(v: string) => ({ value: v ? dayjs(v) : null })}
-            >
-              <DatePicker className="w-full" />
-            </Form.Item>
-            <Form.Item label="备注" name="remark">
-              <Input.TextArea rows={3} placeholder="可选" />
-            </Form.Item>
+            {USER_FORM_FIELDS.map((field) => (
+              <FormField key={field.key} field={field} />
+            ))}
           </Form>
         </Modal>
       </div>

@@ -19,14 +19,17 @@ import {
   type FormRules,
 } from 'naive-ui'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
   type UserInput,
-  type UserRole,
-  type UserStatus,
 } from '@/domain/user'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
@@ -53,60 +56,79 @@ const editing = ref<User | null>(null)
 const formRef = ref<FormInst | null>(null)
 const form = reactive<UserInput>(emptyUserInput())
 
-const rules: FormRules = {
-  name: [{ required: true, message: '请输入姓名', trigger: ['blur', 'input'] }],
-  email: [
-    { required: true, message: '请输入邮箱', trigger: ['blur', 'input'] },
-    { type: 'email', message: '邮箱格式不正确', trigger: ['blur', 'input'] },
-  ],
-  role: [{ required: true, message: '请选择角色', trigger: ['change', 'blur'] }],
-}
+const rules: FormRules = Object.fromEntries(
+  USER_FORM_FIELDS.flatMap((field) => {
+    const fieldRules: {
+      required?: boolean
+      type?: 'email'
+      message: string
+      trigger: ('blur' | 'input' | 'change')[]
+    }[] = []
+    if (field.rules.required) {
+      fieldRules.push({
+        required: true,
+        message: field.rules.required,
+        trigger:
+          field.control === 'select' ? ['change', 'blur'] : ['blur', 'input'],
+      })
+    }
+    if (field.rules.email) {
+      fieldRules.push({
+        type: 'email',
+        message: field.rules.email,
+        trigger: ['blur', 'input'],
+      })
+    }
+    return fieldRules.length ? [[field.key, fieldRules] as const] : []
+  }),
+) as FormRules
 
-const roleFilterOptions = [
-  { label: '全部角色', value: 'all' },
-  ...ROLE_OPTIONS.map((o) => ({ label: o.label, value: o.value })),
-]
-const statusFilterOptions = [
-  { label: '全部状态', value: 'all' },
-  { label: STATUS_LABELS.active, value: 'active' },
-  { label: STATUS_LABELS.disabled, value: 'disabled' },
-]
-const roleFormOptions = ROLE_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
+const columns = computed<DataTableColumns<User>>(() => {
+  const result: DataTableColumns<User> = [{ type: 'selection' }]
 
-const columns = computed<DataTableColumns<User>>(() => [
-  { type: 'selection' },
-  { title: '姓名', key: 'name' },
-  { title: '邮箱', key: 'email' },
-  {
-    title: '角色',
-    key: 'role',
-    render: (row) => ROLE_LABELS[row.role as UserRole],
-  },
-  {
-    title: '状态',
-    key: 'status',
-    render: (row) =>
-      h(
-        NTag,
-        { type: row.status === 'active' ? 'success' : 'default', size: 'small', bordered: false },
-        { default: () => STATUS_LABELS[row.status as UserStatus] },
-      ),
-  },
-  {
-    title: '入职日期',
-    key: 'hireDate',
-    sorter: true,
-    sortOrder:
-      hireDateSort.value === 'asc'
-        ? 'ascend'
-        : hireDateSort.value === 'desc'
-          ? 'descend'
-          : false,
-  },
-  {
+  for (const field of USER_TABLE_COLUMNS) {
+    if (field.key === 'role') {
+      result.push({
+        title: field.label,
+        key: field.key,
+        render: (row: User) => ROLE_LABELS[row.role],
+      })
+    } else if (field.key === 'status') {
+      result.push({
+        title: field.label,
+        key: field.key,
+        render: (row: User) =>
+          h(
+            NTag,
+            {
+              type: row.status === 'active' ? 'success' : 'default',
+              size: 'small',
+              bordered: false,
+            },
+            { default: () => STATUS_LABELS[row.status] },
+          ),
+      })
+    } else if (field.sortable) {
+      result.push({
+        title: field.label,
+        key: field.key,
+        sorter: true,
+        sortOrder:
+          hireDateSort.value === 'asc'
+            ? 'ascend'
+            : hireDateSort.value === 'desc'
+              ? 'descend'
+              : false,
+      })
+    } else {
+      result.push({ title: field.label, key: field.key })
+    }
+  }
+
+  result.push({
     title: '操作',
     key: 'actions',
-    render: (row) =>
+    render: (row: User) =>
       h(NSpace, { size: 4 }, {
         default: () => [
           h(
@@ -126,8 +148,10 @@ const columns = computed<DataTableColumns<User>>(() => [
           ),
         ],
       }),
-  },
-])
+  })
+
+  return result
+})
 
 function openCreate() {
   editing.value = null
@@ -188,19 +212,19 @@ function confirmDelete(user: User) {
         <NInput
           v-model:value="keyword"
           clearable
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
           @update:value="resetFiltersPage"
         />
         <NSelect
           v-model:value="roleFilter"
-          :options="roleFilterOptions"
+          :options="SHOWCASE_FILTER_OPTIONS.role"
           style="width: 120px"
           @update:value="resetFiltersPage"
         />
         <NSelect
           v-model:value="statusFilter"
-          :options="statusFilterOptions"
+          :options="SHOWCASE_FILTER_OPTIONS.status"
           style="width: 120px"
           @update:value="resetFiltersPage"
         />
@@ -245,34 +269,48 @@ function confirmDelete(user: User) {
       "
     >
       <NForm ref="formRef" :model="form" :rules="rules" label-placement="top">
-        <NFormItem label="姓名" path="name">
-          <NInput v-model:value="form.name" placeholder="请输入姓名" />
-        </NFormItem>
-        <NFormItem label="邮箱" path="email">
-          <NInput v-model:value="form.email" placeholder="name@example.com" />
-        </NFormItem>
-        <NFormItem label="角色" path="role">
-          <NSelect v-model:value="form.role" :options="roleFormOptions" />
-        </NFormItem>
-        <NFormItem label="状态" path="status">
+        <NFormItem
+          v-for="field in USER_FORM_FIELDS"
+          :key="field.key"
+          :label="field.label"
+          :path="field.key"
+        >
           <NSwitch
+            v-if="field.key === 'status'"
             :value="form.status === 'active'"
-            @update:value="(v: boolean) => (form.status = v ? 'active' : 'disabled')"
+            @update:value="
+              (value: boolean) =>
+                (form.status = value ? 'active' : 'disabled')
+            "
           >
-            <template #checked>启用</template>
-            <template #unchecked>禁用</template>
+            <template #checked>{{ STATUS_LABELS.active }}</template>
+            <template #unchecked>{{ STATUS_LABELS.disabled }}</template>
           </NSwitch>
-        </NFormItem>
-        <NFormItem label="入职日期" path="hireDate">
+          <NSelect
+            v-else-if="field.control === 'select'"
+            v-model:value="form[field.key]"
+            :options="field.options ?? []"
+          />
           <NDatePicker
+            v-else-if="field.control === 'date'"
             v-model:value="form.hireDate"
             type="date"
             value-format="yyyy-MM-dd"
+            :placeholder="field.placeholder"
             style="width: 100%"
           />
-        </NFormItem>
-        <NFormItem label="备注" path="remark">
-          <NInput v-model:value="form.remark" type="textarea" :rows="3" placeholder="可选" />
+          <NInput
+            v-else-if="field.control === 'textarea'"
+            v-model:value="form.remark"
+            type="textarea"
+            :rows="3"
+            :placeholder="field.placeholder"
+          />
+          <NInput
+            v-else
+            v-model:value="form[field.key]"
+            :placeholder="field.placeholder"
+          />
         </NFormItem>
       </NForm>
     </NModal>

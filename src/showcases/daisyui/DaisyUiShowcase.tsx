@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  withUserFieldValue,
+  type UserFieldKey,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -16,6 +23,27 @@ import {
 import type { ShowcaseProps } from '../types'
 
 const surface = librarySurfaces.daisyui
+
+function renderCell(user: User, key: UserFieldKey) {
+  switch (key) {
+    case 'role':
+      return ROLE_LABELS[user.role]
+    case 'status':
+      return (
+        <span
+          className={
+            user.status === 'active'
+              ? 'dy-badge dy-badge-success dy-badge-sm'
+              : 'dy-badge dy-badge-ghost dy-badge-sm'
+          }
+        >
+          {STATUS_LABELS[user.status]}
+        </span>
+      )
+    default:
+      return user[key]
+  }
+}
 
 /**
  * Vanilla Showcase (V2): React only prints DOM with daisyUI semantic classes.
@@ -83,7 +111,7 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
           <input
             type="search"
             className="dy-input dy-input-bordered dy-input-sm w-full sm:w-56"
-            placeholder="搜索姓名 / 邮箱"
+            placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
             value={users.filters.keyword}
             onChange={(e) => users.setKeyword(e.target.value)}
           />
@@ -93,10 +121,9 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
             onChange={(e) => users.setRoleFilter(e.target.value as typeof users.filters.role)}
             aria-label="角色筛选"
           >
-            <option value="all">全部角色</option>
-            {ROLE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+            {SHOWCASE_FILTER_OPTIONS.role.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
@@ -108,9 +135,11 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
             }
             aria-label="状态筛选"
           >
-            <option value="all">全部状态</option>
-            <option value="active">{STATUS_LABELS.active}</option>
-            <option value="disabled">{STATUS_LABELS.disabled}</option>
+            {SHOWCASE_FILTER_OPTIONS.status.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
           <button type="button" className="dy-btn dy-btn-outline dy-btn-sm" onClick={users.cycleHireDateSort}>
             入职排序：
@@ -139,11 +168,9 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
                   aria-label="全选本页"
                 />
               </th>
-              <th>姓名</th>
-              <th>邮箱</th>
-              <th>角色</th>
-              <th>状态</th>
-              <th>入职日期</th>
+              {USER_TABLE_COLUMNS.map((field) => (
+                <th key={field.key}>{field.label}</th>
+              ))}
               <th className="text-right">操作</th>
             </tr>
           </thead>
@@ -159,21 +186,14 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
                     aria-label={`选择 ${row.name}`}
                   />
                 </td>
-                <td>{row.name}</td>
-                <td className="text-base-content/70">{row.email}</td>
-                <td>{ROLE_LABELS[row.role]}</td>
-                <td>
-                  <span
-                    className={
-                      row.status === 'active'
-                        ? 'dy-badge dy-badge-success dy-badge-sm'
-                        : 'dy-badge dy-badge-ghost dy-badge-sm'
-                    }
+                {USER_TABLE_COLUMNS.map((field) => (
+                  <td
+                    key={field.key}
+                    className={field.key === 'email' ? 'text-base-content/70' : undefined}
                   >
-                    {STATUS_LABELS[row.status]}
-                  </span>
-                </td>
-                <td>{row.hireDate}</td>
+                    {renderCell(row, field.key)}
+                  </td>
+                ))}
                 <td className="text-right">
                   <button
                     type="button"
@@ -196,7 +216,10 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
             ))}
             {users.users.length === 0 && (
               <tr>
-                <td colSpan={7} className="py-8 text-center text-base-content/60">
+                <td
+                  colSpan={USER_TABLE_COLUMNS.length + 2}
+                  className="py-8 text-center text-base-content/60"
+                >
                   暂无数据
                 </td>
               </tr>
@@ -235,74 +258,97 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
             {editing ? '编辑用户' : '新建用户'}
           </h3>
           <div className="mt-4 grid gap-3">
-            <label className="dy-form-control w-full">
-              <span className="dy-label-text mb-1">姓名</span>
-              <input
-                type="text"
-                className={`dy-input dy-input-bordered dy-input-sm w-full ${errors.name ? 'dy-input-error' : ''}`}
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              />
-              {errors.name && <span className="dy-label-text-alt text-error mt-1">{errors.name}</span>}
-            </label>
-            <label className="dy-form-control w-full">
-              <span className="dy-label-text mb-1">邮箱</span>
-              <input
-                type="email"
-                className={`dy-input dy-input-bordered dy-input-sm w-full ${errors.email ? 'dy-input-error' : ''}`}
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              />
-              {errors.email && (
-                <span className="dy-label-text-alt text-error mt-1">{errors.email}</span>
-              )}
-            </label>
-            <label className="dy-form-control w-full">
-              <span className="dy-label-text mb-1">角色</span>
-              <select
-                className="dy-select dy-select-bordered dy-select-sm w-full"
-                value={form.role}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, role: e.target.value as UserInput['role'] }))
-                }
-              >
-                {ROLE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <div className="flex items-center justify-between rounded-lg border border-base-300 px-3 py-2">
-              <span className="dy-label-text">状态（启用）</span>
-              <input
-                type="checkbox"
-                className="dy-toggle dy-toggle-primary dy-toggle-sm"
-                checked={form.status === 'active'}
-                onChange={(e) =>
-                  setForm((f) => ({ ...f, status: e.target.checked ? 'active' : 'disabled' }))
-                }
-                aria-label="状态启用"
-              />
-            </div>
-            <label className="dy-form-control w-full">
-              <span className="dy-label-text mb-1">入职日期</span>
-              <input
-                type="date"
-                className="dy-input dy-input-bordered dy-input-sm w-full"
-                value={form.hireDate}
-                onChange={(e) => setForm((f) => ({ ...f, hireDate: e.target.value }))}
-              />
-            </label>
-            <label className="dy-form-control w-full">
-              <span className="dy-label-text mb-1">备注</span>
-              <textarea
-                className="dy-textarea dy-textarea-bordered dy-textarea-sm w-full"
-                rows={3}
-                value={form.remark}
-                onChange={(e) => setForm((f) => ({ ...f, remark: e.target.value }))}
-              />
-            </label>
+            {USER_FORM_FIELDS.map((field) =>
+              field.key === 'status' ? (
+                <div key={field.key} className="space-y-1">
+                  <div className="flex items-center justify-between rounded-lg border border-base-300 px-3 py-2">
+                    <span className="dy-label-text">
+                      {field.label}
+                      {field.rules.required ? ' *' : ''}
+                    </span>
+                    <input
+                      type="checkbox"
+                      className="dy-toggle dy-toggle-primary dy-toggle-sm"
+                      checked={form.status === 'active'}
+                      onChange={(e) =>
+                        setForm((current) =>
+                          withUserFieldValue(
+                            current,
+                            'status',
+                            e.target.checked ? 'active' : 'disabled',
+                          ),
+                        )
+                      }
+                      aria-label={field.label}
+                    />
+                  </div>
+                  {errors.status && (
+                    <span className="dy-label-text-alt text-error">
+                      {errors.status}
+                    </span>
+                  )}
+                </div>
+              ) : (
+                <label key={field.key} className="dy-form-control w-full">
+                  <span className="dy-label-text mb-1">
+                    {field.label}
+                    {field.rules.required ? ' *' : ''}
+                  </span>
+                  {field.control === 'select' ? (
+                    <select
+                      className="dy-select dy-select-bordered dy-select-sm w-full"
+                      value={form[field.key]}
+                      onChange={(e) =>
+                        setForm((current) =>
+                          withUserFieldValue(current, field.key, e.target.value),
+                        )
+                      }
+                    >
+                      {field.options?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : field.control === 'textarea' ? (
+                    <textarea
+                      className="dy-textarea dy-textarea-bordered dy-textarea-sm w-full"
+                      rows={3}
+                      placeholder={field.placeholder}
+                      value={form[field.key]}
+                      onChange={(e) =>
+                        setForm((current) =>
+                          withUserFieldValue(current, field.key, e.target.value),
+                        )
+                      }
+                    />
+                  ) : (
+                    <input
+                      type={
+                        field.control === 'email'
+                          ? 'email'
+                          : field.control === 'date'
+                            ? 'date'
+                            : 'text'
+                      }
+                      className={`dy-input dy-input-bordered dy-input-sm w-full ${errors[field.key] ? 'dy-input-error' : ''}`}
+                      placeholder={field.placeholder}
+                      value={form[field.key]}
+                      onChange={(e) =>
+                        setForm((current) =>
+                          withUserFieldValue(current, field.key, e.target.value),
+                        )
+                      }
+                    />
+                  )}
+                  {errors[field.key] && (
+                    <span className="dy-label-text-alt text-error mt-1">
+                      {errors[field.key]}
+                    </span>
+                  )}
+                </label>
+              ),
+            )}
           </div>
           <div className="dy-modal-action">
             <button type="button" className="dy-btn dy-btn-ghost dy-btn-sm" onClick={closeModal}>

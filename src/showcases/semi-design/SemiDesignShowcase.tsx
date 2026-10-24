@@ -21,8 +21,14 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import '@douyinfe/semi-ui/dist/css/semi.min.css'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
+  EMAIL_RE,
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -105,31 +111,32 @@ export function SemiDesignShowcase({ users }: ShowcaseProps) {
 
   const columns: ColumnProps<User>[] = useMemo(
     () => [
-      { title: '姓名', dataIndex: 'name' },
-      { title: '邮箱', dataIndex: 'email' },
-      {
-        title: '角色',
-        dataIndex: 'role',
-        render: (role: UserRole) => ROLE_LABELS[role],
-      },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        render: (status: UserStatus) => (
-          <Tag color={status === 'active' ? 'green' : 'grey'}>{STATUS_LABELS[status]}</Tag>
-        ),
-      },
-      {
-        title: '入职日期',
-        dataIndex: 'hireDate',
-        sorter: true,
-        sortOrder:
-          users.hireDateSort === 'asc'
-            ? 'ascend'
-            : users.hireDateSort === 'desc'
-              ? 'descend'
-              : false,
-      },
+      ...USER_TABLE_COLUMNS.map((field) => {
+        const column: ColumnProps<User> = {
+          title: field.label,
+          dataIndex: field.key,
+        }
+
+        if (field.key === 'role') {
+          column.render = (role: UserRole) => ROLE_LABELS[role]
+        } else if (field.key === 'status') {
+          column.render = (status: UserStatus) => (
+            <Tag color={status === 'active' ? 'green' : 'grey'}>
+              {STATUS_LABELS[status]}
+            </Tag>
+          )
+        } else if (field.sortable) {
+          column.sorter = true
+          column.sortOrder =
+            users.hireDateSort === 'asc'
+              ? 'ascend'
+              : users.hireDateSort === 'desc'
+                ? 'descend'
+                : false
+        }
+
+        return column
+      }),
       {
         title: '操作',
         dataIndex: 'id',
@@ -165,7 +172,7 @@ export function SemiDesignShowcase({ users }: ShowcaseProps) {
           <Space wrap>
             <Input
               showClear
-              placeholder="搜索姓名 / 邮箱"
+              placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
               style={{ width: 220 }}
               value={users.filters.keyword}
               onChange={users.setKeyword}
@@ -174,20 +181,13 @@ export function SemiDesignShowcase({ users }: ShowcaseProps) {
               style={{ width: 120 }}
               value={users.filters.role}
               onChange={(v) => users.setRoleFilter(v as typeof users.filters.role)}
-              optionList={[
-                { value: 'all', label: '全部角色' },
-                ...ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-              ]}
+              optionList={SHOWCASE_FILTER_OPTIONS.role}
             />
             <Select
               style={{ width: 120 }}
               value={users.filters.status}
               onChange={(v) => users.setStatusFilter(v as typeof users.filters.status)}
-              optionList={[
-                { value: 'all', label: '全部状态' },
-                { value: 'active', label: STATUS_LABELS.active },
-                { value: 'disabled', label: STATUS_LABELS.disabled },
-              ]}
+              optionList={SHOWCASE_FILTER_OPTIONS.status}
             />
           </Space>
           <Button theme="solid" type="primary" onClick={openCreate}>
@@ -238,54 +238,101 @@ export function SemiDesignShowcase({ users }: ShowcaseProps) {
             labelPosition="top"
             initValues={emptyUserInput()}
           >
-            <Form.Input
-              field="name"
-              label="姓名"
-              placeholder="请输入姓名"
-              rules={[{ required: true, message: '请输入姓名' }]}
-            />
-            <Form.Input
-              field="email"
-              label="邮箱"
-              placeholder="name@example.com"
-              rules={[
-                { required: true, message: '请输入邮箱' },
-                {
-                  validator: (_rule, value) => {
-                    if (!value) return true
-                    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))
-                  },
-                  message: '邮箱格式不正确',
-                },
-              ]}
-            />
-            <Form.Select
-              field="role"
-              label="角色"
-              style={{ width: '100%' }}
-              rules={[{ required: true, message: '请选择角色' }]}
-              optionList={ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
-            />
-            <Form.Slot label="状态">
-              <div className="flex items-center gap-2">
-                <Switch
-                  checked={statusActive}
-                  onChange={(checked) => {
-                    setStatusActive(checked)
-                    formApiRef.current?.setValue('status', checked ? 'active' : 'disabled')
-                  }}
+            {USER_FORM_FIELDS.map((field) => {
+              if (field.key === 'role') {
+                return (
+                  <Form.Select
+                    key={field.key}
+                    field={field.key}
+                    label={field.label}
+                    style={{ width: '100%' }}
+                    rules={
+                      field.rules.required
+                        ? [{ required: true, message: field.rules.required }]
+                        : []
+                    }
+                    optionList={field.options?.map((option) => ({
+                      value: option.value,
+                      label: option.label,
+                    }))}
+                  />
+                )
+              }
+
+              if (field.key === 'status') {
+                return (
+                  <Form.Slot
+                    key={field.key}
+                    label={`${field.label}${field.rules.required ? ' *' : ''}`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={statusActive}
+                        onChange={(checked) => {
+                          setStatusActive(checked)
+                          formApiRef.current?.setValue(
+                            'status',
+                            checked ? 'active' : 'disabled',
+                          )
+                        }}
+                      />
+                      <Typography.Text>
+                        {statusActive ? STATUS_LABELS.active : STATUS_LABELS.disabled}
+                      </Typography.Text>
+                    </div>
+                  </Form.Slot>
+                )
+              }
+
+              if (field.key === 'hireDate') {
+                return (
+                  <Form.DatePicker
+                    key={field.key}
+                    field={field.key}
+                    label={field.label}
+                    style={{ width: '100%' }}
+                    type="date"
+                    format="yyyy-MM-dd"
+                    placeholder={field.placeholder}
+                  />
+                )
+              }
+
+              if (field.key === 'remark') {
+                return (
+                  <Form.TextArea
+                    key={field.key}
+                    field={field.key}
+                    label={field.label}
+                    placeholder={field.placeholder}
+                    rows={3}
+                  />
+                )
+              }
+
+              return (
+                <Form.Input
+                  key={field.key}
+                  field={field.key}
+                  label={field.label}
+                  placeholder={field.placeholder}
+                  rules={
+                    field.rules.email
+                      ? [
+                          { required: true, message: field.rules.required },
+                          {
+                            validator: (_rule: unknown, value: unknown) =>
+                              !value || EMAIL_RE.test(String(value)),
+                            message: field.rules.email,
+                          },
+                        ]
+                      : field.rules.required
+                        ? [{ required: true, message: field.rules.required }]
+                        : []
+                  }
                 />
-                <Typography.Text>{statusActive ? '启用' : '禁用'}</Typography.Text>
-              </div>
-            </Form.Slot>
-            <Form.DatePicker
-              field="hireDate"
-              label="入职日期"
-              style={{ width: '100%' }}
-              type="date"
-              format="yyyy-MM-dd"
-            />
-            <Form.TextArea field="remark" label="备注" placeholder="可选" rows={3} />
+              )
+            })}
           </Form>
         </Modal>
       </div>

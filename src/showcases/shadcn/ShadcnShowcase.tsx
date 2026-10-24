@@ -1,7 +1,15 @@
 import { useState } from 'react'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FIELD_BY_KEY,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  withUserFieldValue,
+  type UserFieldKey,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -29,6 +37,27 @@ import {
 } from './ui/select'
 import { Switch } from './ui/switch'
 import { Textarea } from './ui/textarea'
+
+function renderCell(user: User, key: UserFieldKey) {
+  switch (key) {
+    case 'role':
+      return ROLE_LABELS[user.role]
+    case 'status':
+      return (
+        <span
+          className={
+            user.status === 'active'
+              ? 'rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700'
+              : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600'
+          }
+        >
+          {STATUS_LABELS[user.status]}
+        </span>
+      )
+    default:
+      return user[key]
+  }
+}
 
 export function ShadcnShowcase({ users }: ShowcaseProps) {
   const [open, setOpen] = useState(false)
@@ -84,7 +113,7 @@ export function ShadcnShowcase({ users }: ShowcaseProps) {
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <Input
             className="sm:w-56"
-            placeholder="搜索姓名 / 邮箱"
+            placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
             value={users.filters.keyword}
             onChange={(e) => users.setKeyword(e.target.value)}
           />
@@ -93,13 +122,12 @@ export function ShadcnShowcase({ users }: ShowcaseProps) {
             onValueChange={(v) => users.setRoleFilter(v as typeof users.filters.role)}
           >
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="角色" />
+              <SelectValue placeholder={USER_FIELD_BY_KEY.role.label} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部角色</SelectItem>
-              {ROLE_OPTIONS.map((o) => (
-                <SelectItem key={o.value} value={o.value}>
-                  {o.label}
+              {SHOWCASE_FILTER_OPTIONS.role.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -109,12 +137,14 @@ export function ShadcnShowcase({ users }: ShowcaseProps) {
             onValueChange={(v) => users.setStatusFilter(v as typeof users.filters.status)}
           >
             <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="状态" />
+              <SelectValue placeholder={USER_FIELD_BY_KEY.status.label} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">全部状态</SelectItem>
-              <SelectItem value="active">{STATUS_LABELS.active}</SelectItem>
-              <SelectItem value="disabled">{STATUS_LABELS.disabled}</SelectItem>
+              {SHOWCASE_FILTER_OPTIONS.status.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Button type="button" variant="outline" onClick={users.cycleHireDateSort}>
@@ -142,11 +172,11 @@ export function ShadcnShowcase({ users }: ShowcaseProps) {
                   aria-label="全选本页"
                 />
               </th>
-              <th className="p-2 font-medium">姓名</th>
-              <th className="p-2 font-medium">邮箱</th>
-              <th className="p-2 font-medium">角色</th>
-              <th className="p-2 font-medium">状态</th>
-              <th className="p-2 font-medium">入职日期</th>
+              {USER_TABLE_COLUMNS.map((field) => (
+                <th key={field.key} className="p-2 font-medium">
+                  {field.label}
+                </th>
+              ))}
               <th className="p-2 text-right font-medium">操作</th>
             </tr>
           </thead>
@@ -160,21 +190,18 @@ export function ShadcnShowcase({ users }: ShowcaseProps) {
                     aria-label={`选择 ${row.name}`}
                   />
                 </td>
-                <td className="p-2">{row.name}</td>
-                <td className="p-2 text-muted-foreground">{row.email}</td>
-                <td className="p-2">{ROLE_LABELS[row.role]}</td>
-                <td className="p-2">
-                  <span
+                {USER_TABLE_COLUMNS.map((field) => (
+                  <td
+                    key={field.key}
                     className={
-                      row.status === 'active'
-                        ? 'rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700'
-                        : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600'
+                      field.key === 'email'
+                        ? 'p-2 text-muted-foreground'
+                        : 'p-2'
                     }
                   >
-                    {STATUS_LABELS[row.status]}
-                  </span>
-                </td>
-                <td className="p-2">{row.hireDate}</td>
+                    {renderCell(row, field.key)}
+                  </td>
+                ))}
                 <td className="p-2 text-right">
                   <Button type="button" variant="ghost" size="sm" onClick={() => openEdit(row)}>
                     编辑
@@ -195,7 +222,10 @@ export function ShadcnShowcase({ users }: ShowcaseProps) {
             ))}
             {users.users.length === 0 && (
               <tr>
-                <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                <td
+                  colSpan={USER_TABLE_COLUMNS.length + 2}
+                  className="p-8 text-center text-muted-foreground"
+                >
                   暂无数据
                 </td>
               </tr>
@@ -236,69 +266,105 @@ export function ShadcnShowcase({ users }: ShowcaseProps) {
             <DialogTitle>{editing ? '编辑用户' : '新建用户'}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-3 py-2">
-            <div className="grid gap-1.5">
-              <Label htmlFor="shadcn-name">姓名</Label>
-              <Input
-                id="shadcn-name"
-                value={form.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-              />
-              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="shadcn-email">邮箱</Label>
-              <Input
-                id="shadcn-email"
-                value={form.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-              />
-              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-            </div>
-            <div className="grid gap-1.5">
-              <Label>角色</Label>
-              <Select
-                value={form.role}
-                onValueChange={(v) => setForm((f) => ({ ...f, role: v as UserInput['role'] }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={o.value}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center justify-between rounded-md border px-3 py-2">
-              <Label htmlFor="shadcn-status">状态（启用）</Label>
-              <Switch
-                id="shadcn-status"
-                checked={form.status === 'active'}
-                onCheckedChange={(c) =>
-                  setForm((f) => ({ ...f, status: c ? 'active' : 'disabled' }))
-                }
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="shadcn-hire">入职日期</Label>
-              <Input
-                id="shadcn-hire"
-                type="date"
-                value={form.hireDate}
-                onChange={(e) => setForm((f) => ({ ...f, hireDate: e.target.value }))}
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="shadcn-remark">备注</Label>
-              <Textarea
-                id="shadcn-remark"
-                value={form.remark}
-                onChange={(e) => setForm((f) => ({ ...f, remark: e.target.value }))}
-              />
-            </div>
+            {USER_FORM_FIELDS.map((field) =>
+              field.key === 'status' ? (
+                <div key={field.key} className="space-y-1">
+                  <div className="flex items-center justify-between rounded-md border px-3 py-2">
+                    <Label htmlFor="shadcn-status">
+                      {field.label}
+                      {field.rules.required ? ' *' : ''}：
+                      {STATUS_LABELS[form.status]}
+                    </Label>
+                    <Switch
+                      id="shadcn-status"
+                      checked={form.status === 'active'}
+                      onCheckedChange={(checked) =>
+                        setForm((current) =>
+                          withUserFieldValue(
+                            current,
+                            'status',
+                            checked ? 'active' : 'disabled',
+                          ),
+                        )
+                      }
+                    />
+                  </div>
+                  {errors.status && (
+                    <p className="text-xs text-destructive">{errors.status}</p>
+                  )}
+                </div>
+              ) : (
+                <div key={field.key} className="grid gap-1.5">
+                  <Label htmlFor={`shadcn-${field.key}`}>
+                    {field.label}
+                    {field.rules.required ? ' *' : ''}
+                  </Label>
+                  {field.control === 'select' ? (
+                    <Select
+                      value={form[field.key]}
+                      onValueChange={(value) =>
+                        setForm((current) =>
+                          withUserFieldValue(current, field.key, value),
+                        )
+                      }
+                    >
+                      <SelectTrigger id={`shadcn-${field.key}`}>
+                        <SelectValue placeholder={field.placeholder} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {field.options?.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : field.control === 'textarea' ? (
+                    <Textarea
+                      id={`shadcn-${field.key}`}
+                      placeholder={field.placeholder}
+                      value={form[field.key]}
+                      onChange={(e) =>
+                        setForm((current) =>
+                          withUserFieldValue(
+                            current,
+                            field.key,
+                            e.target.value,
+                          ),
+                        )
+                      }
+                    />
+                  ) : (
+                    <Input
+                      id={`shadcn-${field.key}`}
+                      type={
+                        field.control === 'email'
+                          ? 'email'
+                          : field.control === 'date'
+                            ? 'date'
+                            : 'text'
+                      }
+                      placeholder={field.placeholder}
+                      value={form[field.key]}
+                      onChange={(e) =>
+                        setForm((current) =>
+                          withUserFieldValue(
+                            current,
+                            field.key,
+                            e.target.value,
+                          ),
+                        )
+                      }
+                    />
+                  )}
+                  {errors[field.key] && (
+                    <p className="text-xs text-destructive">
+                      {errors[field.key]}
+                    </p>
+                  )}
+                </div>
+              ),
+            )}
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>

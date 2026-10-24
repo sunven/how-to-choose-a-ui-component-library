@@ -12,15 +12,18 @@ import {
   SwitchThumb,
 } from 'reka-ui'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
-  type UserRole,
-  type UserStatus,
 } from '@/domain/user'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
@@ -30,7 +33,7 @@ const {
   statusFilter,
   hireDateSort,
   page,
-  pageSize,
+  pageCount,
   selectedIds,
   total,
   pageUsers,
@@ -48,18 +51,6 @@ const editing = ref<User | null>(null)
 const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
 
-const roleFilterOptions = [
-  { value: 'all', label: '全部角色' },
-  ...ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-]
-const statusFilterOptions = [
-  { value: 'all', label: '全部状态' },
-  { value: 'active', label: STATUS_LABELS.active },
-  { value: 'disabled', label: STATUS_LABELS.disabled },
-]
-const roleFormOptions = ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))
-
-const pageCount = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 const allPageSelected = computed(
   () => pageUsers.value.length > 0 && pageUsers.value.every((u) => selectedIds.value.includes(u.id)),
 )
@@ -131,7 +122,7 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
         <input
           v-model="keyword"
           class="reka-input reka-input--search"
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           @input="resetFiltersPage"
         />
         <select
@@ -139,8 +130,12 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
           class="reka-select reka-select--filter"
           @change="resetFiltersPage"
         >
-          <option v-for="o in roleFilterOptions" :key="o.value" :value="o.value">
-            {{ o.label }}
+          <option
+            v-for="option in SHOWCASE_FILTER_OPTIONS.role"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
           </option>
         </select>
         <select
@@ -148,8 +143,12 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
           class="reka-select reka-select--filter"
           @change="resetFiltersPage"
         >
-          <option v-for="o in statusFilterOptions" :key="o.value" :value="o.value">
-            {{ o.label }}
+          <option
+            v-for="option in SHOWCASE_FILTER_OPTIONS.status"
+            :key="option.value"
+            :value="option.value"
+          >
+            {{ option.label }}
           </option>
         </select>
         <button type="button" class="reka-btn reka-btn--outline" @click="cycleHireDateSort">
@@ -183,11 +182,9 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
                 </CheckboxIndicator>
               </CheckboxRoot>
             </th>
-            <th>姓名</th>
-            <th>邮箱</th>
-            <th>角色</th>
-            <th>状态</th>
-            <th>入职日期</th>
+            <th v-for="field in USER_TABLE_COLUMNS" :key="field.key">
+              {{ field.label }}
+            </th>
             <th style="text-align: right">操作</th>
           </tr>
         </thead>
@@ -212,18 +209,25 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
                 </CheckboxIndicator>
               </CheckboxRoot>
             </td>
-            <td>{{ row.name }}</td>
-            <td style="color: var(--reka-muted-fg)">{{ row.email }}</td>
-            <td>{{ ROLE_LABELS[row.role as UserRole] }}</td>
-            <td>
+            <td
+              v-for="field in USER_TABLE_COLUMNS"
+              :key="field.key"
+              :style="
+                field.key === 'email' ? 'color: var(--reka-muted-fg)' : undefined
+              "
+            >
               <span
+                v-if="field.key === 'status'"
                 class="reka-badge"
                 :class="row.status === 'active' ? 'reka-badge--ok' : ''"
               >
-                {{ STATUS_LABELS[row.status as UserStatus] }}
+                {{ STATUS_LABELS[row.status] }}
               </span>
+              <template v-else-if="field.key === 'role'">
+                {{ ROLE_LABELS[row.role] }}
+              </template>
+              <template v-else>{{ row[field.key] }}</template>
             </td>
-            <td>{{ row.hireDate }}</td>
             <td style="text-align: right">
               <button type="button" class="reka-btn reka-btn--ghost reka-btn--sm" @click="openEdit(row)">
                 编辑
@@ -238,7 +242,10 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
             </td>
           </tr>
           <tr v-if="pageUsers.length === 0">
-            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--reka-muted-fg)">
+            <td
+              :colspan="USER_TABLE_COLUMNS.length + 2"
+              style="text-align: center; padding: 2rem; color: var(--reka-muted-fg)"
+            >
               暂无数据
             </td>
           </tr>
@@ -278,54 +285,89 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
           <DialogTitle class="reka-dialog-title">
             {{ editing ? '编辑用户' : '新建用户' }}
           </DialogTitle>
-          <div class="reka-field">
-            <label class="reka-label" for="reka-name">姓名</label>
-            <input id="reka-name" v-model="form.name" class="reka-input" />
-            <p v-if="errors.name" class="reka-error">{{ errors.name }}</p>
-          </div>
-          <div class="reka-field">
-            <label class="reka-label" for="reka-email">邮箱</label>
-            <input id="reka-email" v-model="form.email" class="reka-input" />
-            <p v-if="errors.email" class="reka-error">{{ errors.email }}</p>
-          </div>
-          <div class="reka-field">
-            <label class="reka-label" for="reka-role">角色</label>
-            <select id="reka-role" v-model="form.role" class="reka-select">
-              <option v-for="o in roleFormOptions" :key="o.value" :value="o.value">
-                {{ o.label }}
-              </option>
-            </select>
-          </div>
-          <div
-            class="reka-field"
-            style="
-              display: flex;
-              flex-direction: row;
-              align-items: center;
-              justify-content: space-between;
-              border: 1px solid var(--reka-border);
-              border-radius: 0.375rem;
-              padding: 0.5rem 0.75rem;
-            "
-          >
-            <label class="reka-label" for="reka-status">状态（启用）</label>
-            <SwitchRoot
-              id="reka-status"
-              class="reka-switch"
-              :checked="form.status === 'active'"
-              @update:checked="(c) => (form.status = c ? 'active' : 'disabled')"
-            >
-              <SwitchThumb class="reka-switch-thumb" />
-            </SwitchRoot>
-          </div>
-          <div class="reka-field">
-            <label class="reka-label" for="reka-hire">入职日期</label>
-            <input id="reka-hire" v-model="form.hireDate" type="date" class="reka-input" />
-          </div>
-          <div class="reka-field">
-            <label class="reka-label" for="reka-remark">备注</label>
-            <textarea id="reka-remark" v-model="form.remark" class="reka-textarea" rows="3" />
-          </div>
+          <template v-for="field in USER_FORM_FIELDS" :key="field.key">
+            <template v-if="field.key === 'status'">
+              <div
+                class="reka-field"
+                style="
+                  display: flex;
+                  flex-direction: row;
+                  align-items: center;
+                  justify-content: space-between;
+                  border: 1px solid var(--reka-border);
+                  border-radius: 0.375rem;
+                  padding: 0.5rem 0.75rem;
+                "
+              >
+                <label class="reka-label" for="reka-status">
+                  {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+                </label>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm">{{ STATUS_LABELS[form.status] }}</span>
+                  <SwitchRoot
+                    id="reka-status"
+                    class="reka-switch"
+                    :checked="form.status === 'active'"
+                    @update:checked="
+                      (checked) =>
+                        (form.status = checked ? 'active' : 'disabled')
+                    "
+                  >
+                    <SwitchThumb class="reka-switch-thumb" />
+                  </SwitchRoot>
+                </div>
+              </div>
+              <p v-if="errors.status" class="reka-error">
+                {{ errors.status }}
+              </p>
+            </template>
+            <div v-else class="reka-field">
+              <label class="reka-label" :for="`reka-${field.key}`">
+                {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+              </label>
+              <select
+                v-if="field.control === 'select'"
+                :id="`reka-${field.key}`"
+                v-model="form[field.key]"
+                class="reka-select"
+              >
+                <option
+                  v-for="option in field.options ?? []"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+              <input
+                v-else-if="field.control === 'date'"
+                :id="`reka-${field.key}`"
+                v-model="form.hireDate"
+                type="date"
+                class="reka-input"
+                :placeholder="field.placeholder"
+              />
+              <textarea
+                v-else-if="field.control === 'textarea'"
+                :id="`reka-${field.key}`"
+                v-model="form.remark"
+                class="reka-textarea"
+                rows="3"
+                :placeholder="field.placeholder"
+              />
+              <input
+                v-else
+                :id="`reka-${field.key}`"
+                v-model="form[field.key]"
+                class="reka-input"
+                :type="field.control === 'email' ? 'email' : 'text'"
+                :placeholder="field.placeholder"
+              />
+              <p v-if="errors[field.key]" class="reka-error">
+                {{ errors[field.key] }}
+              </p>
+            </div>
+          </template>
           <div class="flex justify-end gap-2" style="margin-top: 0.5rem">
             <button type="button" class="reka-btn reka-btn--outline" @click="dialogOpen = false">
               取消

@@ -1,15 +1,18 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
-  type UserRole,
-  type UserStatus,
 } from '@/domain/user'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 import Button from './ui/Button.vue'
@@ -27,7 +30,7 @@ const {
   statusFilter,
   hireDateSort,
   page,
-  pageSize,
+  pageCount,
   selectedIds,
   total,
   pageUsers,
@@ -45,18 +48,6 @@ const editing = ref<User | null>(null)
 const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
 
-const roleFilterOptions = [
-  { value: 'all', label: '全部角色' },
-  ...ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-]
-const statusFilterOptions = [
-  { value: 'all', label: '全部状态' },
-  { value: 'active', label: STATUS_LABELS.active },
-  { value: 'disabled', label: STATUS_LABELS.disabled },
-]
-const roleFormOptions = ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))
-
-const pageCount = computed(() => Math.max(1, Math.ceil(total.value / pageSize)))
 const allPageSelected = computed(
   () => pageUsers.value.length > 0 && pageUsers.value.every((u) => selectedIds.value.includes(u.id)),
 )
@@ -125,18 +116,18 @@ function onStatusFilter(v: string) {
         <Input
           v-model="keyword"
           class="sm:w-56"
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           @update:model-value="resetFiltersPage"
         />
         <Select
           :model-value="roleFilter"
-          :options="roleFilterOptions"
+          :options="SHOWCASE_FILTER_OPTIONS.role"
           trigger-class="w-[140px]"
           @update:model-value="onRoleFilter"
         />
         <Select
           :model-value="statusFilter"
-          :options="statusFilterOptions"
+          :options="SHOWCASE_FILTER_OPTIONS.status"
           trigger-class="w-[140px]"
           @update:model-value="onStatusFilter"
         />
@@ -159,11 +150,13 @@ function onStatusFilter(v: string) {
                 @update:checked="toggleSelectAllPage"
               />
             </th>
-            <th class="p-2 font-medium">姓名</th>
-            <th class="p-2 font-medium">邮箱</th>
-            <th class="p-2 font-medium">角色</th>
-            <th class="p-2 font-medium">状态</th>
-            <th class="p-2 font-medium">入职日期</th>
+            <th
+              v-for="field in USER_TABLE_COLUMNS"
+              :key="field.key"
+              class="p-2 font-medium"
+            >
+              {{ field.label }}
+            </th>
             <th class="p-2 text-right font-medium">操作</th>
           </tr>
         </thead>
@@ -180,21 +173,30 @@ function onStatusFilter(v: string) {
                 @update:checked="(c) => toggleSelect(row.id, c)"
               />
             </td>
-            <td class="p-2">{{ row.name }}</td>
-            <td class="p-2 text-muted-foreground">{{ row.email }}</td>
-            <td class="p-2">{{ ROLE_LABELS[row.role as UserRole] }}</td>
-            <td class="p-2">
+            <td
+              v-for="field in USER_TABLE_COLUMNS"
+              :key="field.key"
+              :class="
+                field.key === 'email'
+                  ? 'p-2 text-muted-foreground'
+                  : 'p-2'
+              "
+            >
               <span
+                v-if="field.key === 'status'"
                 :class="
                   row.status === 'active'
                     ? 'rounded-full bg-emerald-50 px-2 py-0.5 text-xs text-emerald-700'
                     : 'rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600'
                 "
               >
-                {{ STATUS_LABELS[row.status as UserStatus] }}
+                {{ STATUS_LABELS[row.status] }}
               </span>
+              <template v-else-if="field.key === 'role'">
+                {{ ROLE_LABELS[row.role] }}
+              </template>
+              <template v-else>{{ row[field.key] }}</template>
             </td>
-            <td class="p-2">{{ row.hireDate }}</td>
             <td class="p-2 text-right">
               <Button variant="ghost" size="sm" @click="openEdit(row)">编辑</Button>
               <Button variant="ghost" size="sm" class="text-destructive" @click="confirmDelete(row)">
@@ -203,7 +205,12 @@ function onStatusFilter(v: string) {
             </td>
           </tr>
           <tr v-if="pageUsers.length === 0">
-            <td colspan="7" class="p-8 text-center text-muted-foreground">暂无数据</td>
+            <td
+              :colspan="USER_TABLE_COLUMNS.length + 2"
+              class="p-8 text-center text-muted-foreground"
+            >
+              暂无数据
+            </td>
           </tr>
         </tbody>
       </table>
@@ -228,40 +235,64 @@ function onStatusFilter(v: string) {
 
     <Dialog v-model:open="dialogOpen" :title="editing ? '编辑用户' : '新建用户'">
       <div class="grid gap-3 py-2">
-        <div class="grid gap-1.5">
-          <Label for="sv-name">姓名</Label>
-          <Input id="sv-name" v-model="form.name" />
-          <p v-if="errors.name" class="text-xs text-destructive">{{ errors.name }}</p>
-        </div>
-        <div class="grid gap-1.5">
-          <Label for="sv-email">邮箱</Label>
-          <Input id="sv-email" v-model="form.email" />
-          <p v-if="errors.email" class="text-xs text-destructive">{{ errors.email }}</p>
-        </div>
-        <div class="grid gap-1.5">
-          <Label>角色</Label>
-          <Select
-            v-model="form.role"
-            :options="roleFormOptions"
-            @update:model-value="(v) => (form.role = v as UserInput['role'])"
-          />
-        </div>
-        <div class="flex items-center justify-between rounded-md border px-3 py-2">
-          <Label for="sv-status">状态（启用）</Label>
-          <Switch
-            id="sv-status"
-            :checked="form.status === 'active'"
-            @update:checked="(c) => (form.status = c ? 'active' : 'disabled')"
-          />
-        </div>
-        <div class="grid gap-1.5">
-          <Label for="sv-hire">入职日期</Label>
-          <Input id="sv-hire" v-model="form.hireDate" type="date" />
-        </div>
-        <div class="grid gap-1.5">
-          <Label for="sv-remark">备注</Label>
-          <Textarea id="sv-remark" v-model="form.remark" />
-        </div>
+        <template v-for="field in USER_FORM_FIELDS" :key="field.key">
+          <div v-if="field.key === 'status'" class="space-y-1">
+            <div class="flex items-center justify-between rounded-md border px-3 py-2">
+              <Label for="sv-status">
+                {{ field.label }}{{ field.rules.required ? ' *' : '' }}：
+                {{ STATUS_LABELS[form.status] }}
+              </Label>
+              <Switch
+                id="sv-status"
+                :checked="form.status === 'active'"
+                @update:checked="
+                  (checked) =>
+                    (form.status = checked ? 'active' : 'disabled')
+                "
+              />
+            </div>
+            <p v-if="errors.status" class="text-xs text-destructive">
+              {{ errors.status }}
+            </p>
+          </div>
+          <div v-else class="grid gap-1.5">
+            <Label
+              :for="
+                field.control === 'select' ? undefined : `sv-${field.key}`
+              "
+            >
+              {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+            </Label>
+            <Select
+              v-if="field.control === 'select'"
+              v-model="form[field.key]"
+              :options="field.options ?? []"
+            />
+            <Input
+              v-else-if="field.control === 'date'"
+              :id="`sv-${field.key}`"
+              v-model="form.hireDate"
+              type="date"
+              :placeholder="field.placeholder"
+            />
+            <Textarea
+              v-else-if="field.control === 'textarea'"
+              :id="`sv-${field.key}`"
+              v-model="form.remark"
+              :placeholder="field.placeholder"
+            />
+            <Input
+              v-else
+              :id="`sv-${field.key}`"
+              v-model="form[field.key]"
+              :type="field.control === 'email' ? 'email' : 'text'"
+              :placeholder="field.placeholder"
+            />
+            <p v-if="errors[field.key]" class="text-xs text-destructive">
+              {{ errors[field.key] }}
+            </p>
+          </div>
+        </template>
       </div>
       <div class="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <Button variant="outline" @click="dialogOpen = false">取消</Button>

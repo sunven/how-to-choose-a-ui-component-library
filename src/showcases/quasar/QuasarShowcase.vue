@@ -2,8 +2,13 @@
 import { computed, reactive, ref } from 'vue'
 import { useQuasar, type QTableColumn, type QTableProps } from 'quasar'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -39,35 +44,21 @@ const editing = ref<User | null>(null)
 const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
 
-const roleFilterOptions = [
-  { label: '全部角色', value: 'all' },
-  ...ROLE_OPTIONS.map((o) => ({ label: o.label, value: o.value })),
-]
-const statusFilterOptions = [
-  { label: '全部状态', value: 'all' },
-  { label: STATUS_LABELS.active, value: 'active' },
-  { label: STATUS_LABELS.disabled, value: 'disabled' },
-]
-const roleFormOptions = ROLE_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
-
 const columns: QTableColumn<User>[] = [
-  { name: 'name', label: '姓名', field: 'name', align: 'left' },
-  { name: 'email', label: '邮箱', field: 'email', align: 'left' },
-  {
-    name: 'role',
-    label: '角色',
-    field: 'role',
-    align: 'left',
-    format: (v: UserRole) => ROLE_LABELS[v],
-  },
-  { name: 'status', label: '状态', field: 'status', align: 'left' },
-  {
-    name: 'hireDate',
-    label: '入职日期',
-    field: 'hireDate',
-    align: 'left',
-    sortable: true,
-  },
+  ...USER_TABLE_COLUMNS.map((field) => {
+    const column: QTableColumn<User> = {
+      name: field.key,
+      label: field.label,
+      field: field.key,
+      align: 'left',
+    }
+    if (field.key === 'role') {
+      column.format = (value: UserRole) => ROLE_LABELS[value]
+    } else if (field.sortable) {
+      column.sortable = true
+    }
+    return column
+  }),
   { name: 'actions', label: '操作', field: 'id', align: 'right' },
 ]
 
@@ -171,13 +162,13 @@ function statusLabel(status: UserStatus) {
           dense
           outlined
           clearable
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
           @update:model-value="resetFiltersPage"
         />
         <q-select
           v-model="roleFilter"
-          :options="roleFilterOptions"
+          :options="SHOWCASE_FILTER_OPTIONS.role"
           dense
           outlined
           emit-value
@@ -187,7 +178,7 @@ function statusLabel(status: UserStatus) {
         />
         <q-select
           v-model="statusFilter"
-          :options="statusFilterOptions"
+          :options="SHOWCASE_FILTER_OPTIONS.status"
           dense
           outlined
           emit-value
@@ -240,53 +231,68 @@ function statusLabel(status: UserStatus) {
           <div class="text-h6">{{ editing ? '编辑用户' : '新建用户' }}</div>
         </q-card-section>
         <q-card-section class="q-gutter-md">
-          <q-input
-            v-model="form.name"
-            label="姓名"
-            outlined
-            dense
-            :error="!!errors.name"
-            :error-message="errors.name"
-          />
-          <q-input
-            v-model="form.email"
-            label="邮箱"
-            placeholder="name@example.com"
-            outlined
-            dense
-            :error="!!errors.email"
-            :error-message="errors.email"
-          />
-          <q-select
-            v-model="form.role"
-            :options="roleFormOptions"
-            label="角色"
-            outlined
-            dense
-            emit-value
-            map-options
-            :error="!!errors.role"
-            :error-message="errors.role"
-          />
-          <div class="row items-center q-gutter-sm">
-            <span class="text-body2">状态</span>
-            <q-toggle
-              :model-value="form.status === 'active'"
-              :label="form.status === 'active' ? '启用' : '禁用'"
-              color="primary"
-              @update:model-value="(v: boolean) => (form.status = v ? 'active' : 'disabled')"
+          <template v-for="field in USER_FORM_FIELDS" :key="field.key">
+            <div
+              v-if="field.key === 'status'"
+              class="row items-center q-gutter-sm"
+            >
+              <span class="text-body2">
+                {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+              </span>
+              <q-toggle
+                :model-value="form.status === 'active'"
+                :label="form.status === 'active' ? STATUS_LABELS.active : STATUS_LABELS.disabled"
+                color="primary"
+                :error="!!errors.status"
+                :error-message="errors.status"
+                @update:model-value="
+                  (value: boolean) =>
+                    (form.status = value ? 'active' : 'disabled')
+                "
+              />
+            </div>
+            <q-select
+              v-else-if="field.control === 'select'"
+              v-model="form[field.key]"
+              :options="field.options ?? []"
+              :label="field.label + (field.rules.required ? ' *' : '')"
+              outlined
+              dense
+              emit-value
+              map-options
+              :error="!!errors[field.key]"
+              :error-message="errors[field.key]"
             />
-          </div>
-          <q-input v-model="form.hireDate" label="入职日期" type="date" outlined dense />
-          <q-input
-            v-model="form.remark"
-            label="备注"
-            placeholder="可选"
-            type="textarea"
-            outlined
-            dense
-            autogrow
-          />
+            <q-input
+              v-else-if="field.control === 'date'"
+              v-model="form.hireDate"
+              :label="field.label"
+              type="date"
+              outlined
+              dense
+            />
+            <q-input
+              v-else-if="field.control === 'textarea'"
+              v-model="form.remark"
+              :label="field.label"
+              :placeholder="field.placeholder"
+              type="textarea"
+              outlined
+              dense
+              autogrow
+            />
+            <q-input
+              v-else
+              v-model="form[field.key]"
+              :label="field.label + (field.rules.required ? ' *' : '')"
+              :placeholder="field.placeholder"
+              :type="field.control === 'email' ? 'email' : 'text'"
+              outlined
+              dense
+              :error="!!errors[field.key]"
+              :error-message="errors[field.key]"
+            />
+          </template>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="取消" @click="dialogOpen = false" />

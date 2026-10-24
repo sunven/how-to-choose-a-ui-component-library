@@ -16,8 +16,13 @@ import ToggleSwitch from 'primevue/toggleswitch'
 import { useConfirm } from 'primevue/useconfirm'
 import { useToast } from 'primevue/usetoast'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -52,17 +57,6 @@ const dialogOpen = ref(false)
 const editing = ref<User | null>(null)
 const form = reactive<UserInput>(emptyUserInput())
 const errors = reactive<UserFormErrors>({})
-
-const roleFilterOptions = [
-  { label: '全部角色', value: 'all' },
-  ...ROLE_OPTIONS.map((o) => ({ label: o.label, value: o.value })),
-]
-const statusFilterOptions = [
-  { label: '全部状态', value: 'all' },
-  { label: STATUS_LABELS.active, value: 'active' },
-  { label: STATUS_LABELS.disabled, value: 'disabled' },
-]
-const roleFormOptions = ROLE_OPTIONS.map((o) => ({ label: o.label, value: o.value }))
 
 const selectedUsers = computed({
   get: () => pageUsers.value.filter((u) => selectedIds.value.includes(u.id)),
@@ -185,13 +179,13 @@ function statusSeverity(status: UserStatus) {
       <div class="flex flex-wrap items-center gap-2">
         <InputText
           v-model="keyword"
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
           @update:model-value="resetFiltersPage"
         />
         <Select
           v-model="roleFilter"
-          :options="roleFilterOptions"
+          :options="SHOWCASE_FILTER_OPTIONS.role"
           option-label="label"
           option-value="value"
           style="width: 120px"
@@ -199,7 +193,7 @@ function statusSeverity(status: UserStatus) {
         />
         <Select
           v-model="statusFilter"
-          :options="statusFilterOptions"
+          :options="SHOWCASE_FILTER_OPTIONS.status"
           option-label="label"
           option-value="value"
           style="width: 120px"
@@ -220,19 +214,25 @@ function statusSeverity(status: UserStatus) {
       @sort="onSort"
     >
       <Column selection-mode="multiple" header-style="width: 3rem" />
-      <Column field="name" header="姓名" />
-      <Column field="email" header="邮箱" />
-      <Column field="role" header="角色">
+      <Column
+        v-for="field in USER_TABLE_COLUMNS"
+        :key="field.key"
+        :field="field.key"
+        :header="field.label"
+        :sortable="Boolean(field.sortable)"
+      >
         <template #body="{ data }">
-          {{ roleLabel(data.role) }}
+          <Tag
+            v-if="field.key === 'status'"
+            :value="STATUS_LABELS[data.status as UserStatus]"
+            :severity="statusSeverity(data.status)"
+          />
+          <template v-else-if="field.key === 'role'">
+            {{ roleLabel(data.role) }}
+          </template>
+          <template v-else>{{ data[field.key] }}</template>
         </template>
       </Column>
-      <Column field="status" header="状态">
-        <template #body="{ data }">
-          <Tag :value="STATUS_LABELS[data.status as UserStatus]" :severity="statusSeverity(data.status)" />
-        </template>
-      </Column>
-      <Column field="hireDate" header="入职日期" sortable />
       <Column header="操作" style="width: 10rem">
         <template #body="{ data }">
           <Button label="编辑" link size="small" @click="openEdit(data)" />
@@ -260,42 +260,62 @@ function statusSeverity(status: UserStatus) {
       :closable="true"
     >
       <div class="flex flex-col gap-3 pt-1">
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium">姓名</label>
-          <InputText v-model="form.name" placeholder="请输入姓名" class="w-full" />
-          <small v-if="errors.name" class="text-red-500">{{ errors.name }}</small>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium">邮箱</label>
-          <InputText v-model="form.email" placeholder="name@example.com" class="w-full" />
-          <small v-if="errors.email" class="text-red-500">{{ errors.email }}</small>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium">角色</label>
-          <Select
-            v-model="form.role"
-            :options="roleFormOptions"
-            option-label="label"
-            option-value="value"
-            class="w-full"
-          />
-          <small v-if="errors.role" class="text-red-500">{{ errors.role }}</small>
-        </div>
-        <div class="flex items-center gap-3">
-          <label class="text-sm font-medium">状态</label>
-          <ToggleSwitch
-            :model-value="form.status === 'active'"
-            @update:model-value="(v: boolean) => (form.status = v ? 'active' : 'disabled')"
-          />
-          <span class="text-sm">{{ form.status === 'active' ? '启用' : '禁用' }}</span>
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium">入职日期</label>
-          <DatePicker v-model="hireDateModel" date-format="yy-mm-dd" class="w-full" show-icon />
-        </div>
-        <div class="flex flex-col gap-1">
-          <label class="text-sm font-medium">备注</label>
-          <Textarea v-model="form.remark" rows="3" placeholder="可选" class="w-full" auto-resize />
+        <div
+          v-for="field in USER_FORM_FIELDS"
+          :key="field.key"
+          class="flex flex-col gap-1"
+        >
+          <div v-if="field.key === 'status'" class="flex items-center gap-3">
+            <label class="text-sm font-medium">
+              {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+            </label>
+            <ToggleSwitch
+              :model-value="form.status === 'active'"
+              @update:model-value="
+                (value: boolean) =>
+                  (form.status = value ? 'active' : 'disabled')
+              "
+            />
+            <span class="text-sm">{{ STATUS_LABELS[form.status] }}</span>
+          </div>
+          <template v-else>
+            <label class="text-sm font-medium">
+              {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+            </label>
+            <Select
+              v-if="field.control === 'select'"
+              v-model="form[field.key]"
+              :options="field.options"
+              option-label="label"
+              option-value="value"
+              class="w-full"
+            />
+            <DatePicker
+              v-else-if="field.control === 'date'"
+              v-model="hireDateModel"
+              date-format="yy-mm-dd"
+              :placeholder="field.placeholder"
+              class="w-full"
+              show-icon
+            />
+            <Textarea
+              v-else-if="field.control === 'textarea'"
+              v-model="form.remark"
+              rows="3"
+              :placeholder="field.placeholder"
+              class="w-full"
+              auto-resize
+            />
+            <InputText
+              v-else
+              v-model="form[field.key]"
+              :placeholder="field.placeholder"
+              class="w-full"
+            />
+          </template>
+          <small v-if="errors[field.key]" class="text-red-500">
+            {{ errors[field.key] }}
+          </small>
         </div>
       </div>
       <template #footer>

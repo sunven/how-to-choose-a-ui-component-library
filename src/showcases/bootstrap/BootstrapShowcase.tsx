@@ -5,8 +5,15 @@ import { Modal } from 'bootstrap'
 // (!important p-*/m-*/gap-*) rewrite the App Shell grid proportions.
 import bootstrapCss from './bootstrap.scoped.css?raw'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  withUserFieldValue,
+  type UserFieldKey,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -22,6 +29,27 @@ import { injectLibraryStyle } from '@/showcases/styleIsolation'
 import type { ShowcaseProps } from '../types'
 
 const surface = librarySurfaces.bootstrap
+
+function renderCell(user: User, key: UserFieldKey) {
+  switch (key) {
+    case 'role':
+      return ROLE_LABELS[user.role]
+    case 'status':
+      return (
+        <span
+          className={
+            user.status === 'active'
+              ? 'badge text-bg-success'
+              : 'badge text-bg-secondary'
+          }
+        >
+          {STATUS_LABELS[user.status]}
+        </span>
+      )
+    default:
+      return user[key]
+  }
+}
 
 /**
  * Vanilla Showcase (V2): React prints DOM with Bootstrap classes.
@@ -123,7 +151,7 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
             type="search"
             className="form-control form-control-sm"
             style={{ maxWidth: 220 }}
-            placeholder="搜索姓名 / 邮箱"
+            placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
             value={users.filters.keyword}
             onChange={(e) => users.setKeyword(e.target.value)}
           />
@@ -134,10 +162,9 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
             onChange={(e) => users.setRoleFilter(e.target.value as typeof users.filters.role)}
             aria-label="角色筛选"
           >
-            <option value="all">全部角色</option>
-            {ROLE_OPTIONS.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
+            {SHOWCASE_FILTER_OPTIONS.role.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
               </option>
             ))}
           </select>
@@ -150,9 +177,11 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
             }
             aria-label="状态筛选"
           >
-            <option value="all">全部状态</option>
-            <option value="active">{STATUS_LABELS.active}</option>
-            <option value="disabled">{STATUS_LABELS.disabled}</option>
+            {SHOWCASE_FILTER_OPTIONS.status.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
           </select>
           <button
             type="button"
@@ -185,11 +214,11 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
                   aria-label="全选本页"
                 />
               </th>
-              <th scope="col">姓名</th>
-              <th scope="col">邮箱</th>
-              <th scope="col">角色</th>
-              <th scope="col">状态</th>
-              <th scope="col">入职日期</th>
+              {USER_TABLE_COLUMNS.map((field) => (
+                <th key={field.key} scope="col">
+                  {field.label}
+                </th>
+              ))}
               <th scope="col" className="text-end">
                 操作
               </th>
@@ -207,21 +236,14 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
                     aria-label={`选择 ${row.name}`}
                   />
                 </td>
-                <td>{row.name}</td>
-                <td className="text-secondary">{row.email}</td>
-                <td>{ROLE_LABELS[row.role]}</td>
-                <td>
-                  <span
-                    className={
-                      row.status === 'active'
-                        ? 'badge text-bg-success'
-                        : 'badge text-bg-secondary'
-                    }
+                {USER_TABLE_COLUMNS.map((field) => (
+                  <td
+                    key={field.key}
+                    className={field.key === 'email' ? 'text-secondary' : undefined}
                   >
-                    {STATUS_LABELS[row.status]}
-                  </span>
-                </td>
-                <td>{row.hireDate}</td>
+                    {renderCell(row, field.key)}
+                  </td>
+                ))}
                 <td className="text-end">
                   <button
                     type="button"
@@ -244,7 +266,10 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
             ))}
             {users.users.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center text-secondary py-4">
+                <td
+                  colSpan={USER_TABLE_COLUMNS.length + 2}
+                  className="text-center text-secondary py-4"
+                >
                   暂无数据
                 </td>
               </tr>
@@ -299,94 +324,107 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
               />
             </div>
             <div className="modal-body">
-              <div className="mb-3">
-                <label className="form-label" htmlFor="bs-name">
-                  姓名
-                </label>
-                <input
-                  id="bs-name"
-                  type="text"
-                  className={`form-control form-control-sm${errors.name ? ' is-invalid' : ''}`}
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                />
-                {errors.name && <div className="invalid-feedback d-block">{errors.name}</div>}
-              </div>
-              <div className="mb-3">
-                <label className="form-label" htmlFor="bs-email">
-                  邮箱
-                </label>
-                <input
-                  id="bs-email"
-                  type="email"
-                  className={`form-control form-control-sm${errors.email ? ' is-invalid' : ''}`}
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                />
-                {errors.email && <div className="invalid-feedback d-block">{errors.email}</div>}
-              </div>
-              <div className="mb-3">
-                <label className="form-label" htmlFor="bs-role">
-                  角色
-                </label>
-                <select
-                  id="bs-role"
-                  className="form-select form-select-sm"
-                  value={form.role}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, role: e.target.value as UserInput['role'] }))
-                  }
-                >
-                  {ROLE_OPTIONS.map((o) => (
-                    <option key={o.value} value={o.value}>
-                      {o.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mb-3 d-flex align-items-center justify-content-between border rounded px-3 py-2">
-                <span className="form-label mb-0">状态（启用）</span>
-                <div className="form-check form-switch m-0">
-                  <input
-                    className="form-check-input"
-                    type="checkbox"
-                    role="switch"
-                    id="bs-status"
-                    checked={form.status === 'active'}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        status: e.target.checked ? 'active' : 'disabled',
-                      }))
-                    }
-                    aria-label="状态启用"
-                  />
-                </div>
-              </div>
-              <div className="mb-3">
-                <label className="form-label" htmlFor="bs-hire">
-                  入职日期
-                </label>
-                <input
-                  id="bs-hire"
-                  type="date"
-                  className="form-control form-control-sm"
-                  value={form.hireDate}
-                  onChange={(e) => setForm((f) => ({ ...f, hireDate: e.target.value }))}
-                />
-              </div>
-              <div className="mb-0">
-                <label className="form-label" htmlFor="bs-remark">
-                  备注
-                </label>
-                <textarea
-                  id="bs-remark"
-                  className="form-control form-control-sm"
-                  rows={3}
-                  value={form.remark}
-                  onChange={(e) => setForm((f) => ({ ...f, remark: e.target.value }))}
-                />
-              </div>
+              {USER_FORM_FIELDS.map((field) =>
+                field.key === 'status' ? (
+                  <div key={field.key} className="mb-3">
+                    <div className="d-flex align-items-center justify-content-between border rounded px-3 py-2">
+                      <span className="form-label mb-0">
+                        {field.label}
+                        {field.rules.required ? ' *' : ''}
+                      </span>
+                      <div className="form-check form-switch m-0">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          role="switch"
+                          id="bs-status"
+                          checked={form.status === 'active'}
+                          onChange={(e) =>
+                            setForm((current) =>
+                              withUserFieldValue(
+                                current,
+                                'status',
+                                e.target.checked ? 'active' : 'disabled',
+                              ),
+                            )
+                          }
+                          aria-label={field.label}
+                        />
+                      </div>
+                    </div>
+                    {errors.status && (
+                      <div className="invalid-feedback d-block">
+                        {errors.status}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div
+                    key={field.key}
+                    className={field.key === 'remark' ? 'mb-0' : 'mb-3'}
+                  >
+                    <label className="form-label" htmlFor={`bs-${field.key}`}>
+                      {field.label}
+                      {field.rules.required ? ' *' : ''}
+                    </label>
+                    {field.control === 'select' ? (
+                      <select
+                        id={`bs-${field.key}`}
+                        className={`form-select form-select-sm${errors[field.key] ? ' is-invalid' : ''}`}
+                        value={form[field.key]}
+                        onChange={(e) =>
+                          setForm((current) =>
+                            withUserFieldValue(current, field.key, e.target.value),
+                          )
+                        }
+                      >
+                        {field.options?.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    ) : field.control === 'textarea' ? (
+                      <textarea
+                        id={`bs-${field.key}`}
+                        className={`form-control form-control-sm${errors[field.key] ? ' is-invalid' : ''}`}
+                        rows={3}
+                        placeholder={field.placeholder}
+                        value={form[field.key]}
+                        onChange={(e) =>
+                          setForm((current) =>
+                            withUserFieldValue(current, field.key, e.target.value),
+                          )
+                        }
+                      />
+                    ) : (
+                      <input
+                        id={`bs-${field.key}`}
+                        type={
+                          field.control === 'email'
+                            ? 'email'
+                            : field.control === 'date'
+                              ? 'date'
+                              : 'text'
+                        }
+                        className={`form-control form-control-sm${errors[field.key] ? ' is-invalid' : ''}`}
+                        placeholder={field.placeholder}
+                        value={form[field.key]}
+                        onChange={(e) =>
+                          setForm((current) =>
+                            withUserFieldValue(current, field.key, e.target.value),
+                          )
+                        }
+                      />
+                    )}
+                    {errors[field.key] && (
+                      <div className="invalid-feedback d-block">
+                        {errors[field.key]}
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
             </div>
             <div className="modal-footer">
               <button type="button" className="btn btn-outline-secondary btn-sm" onClick={closeModal}>

@@ -20,8 +20,14 @@ import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import '@arco-design/web-react/dist/css/arco.css'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  type UserFieldSpec,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -35,6 +41,74 @@ import type { ShowcaseProps } from '../types'
 dayjs.locale('zh-cn')
 
 const FormItem = Form.Item
+
+function fieldRules(field: UserFieldSpec) {
+  const rules: { required?: boolean; type?: 'email'; message: string }[] = []
+  if (field.rules.required) {
+    rules.push({ required: true, message: field.rules.required })
+  }
+  if (field.rules.email) {
+    rules.push({ type: 'email', message: field.rules.email })
+  }
+  return rules
+}
+
+function FormField({ field }: { field: UserFieldSpec }) {
+  const rules = fieldRules(field)
+
+  if (field.key === 'status') {
+    return (
+      <FormItem
+        label={field.label}
+        field={field.key}
+        rules={rules}
+        triggerPropName="checked"
+        formatter={(value) => value === 'active'}
+        normalize={(value) => (value ? 'active' : 'disabled')}
+      >
+        <Switch
+          checkedText={STATUS_LABELS.active}
+          uncheckedText={STATUS_LABELS.disabled}
+        />
+      </FormItem>
+    )
+  }
+
+  if (field.key === 'hireDate') {
+    return (
+      <FormItem
+        label={field.label}
+        field={field.key}
+        rules={rules}
+        formatter={(value) => (value ? dayjs(String(value)) : undefined)}
+        normalize={(value) => (value ? dayjs(value).format('YYYY-MM-DD') : '')}
+      >
+        <DatePicker style={{ width: '100%' }} placeholder={field.placeholder} />
+      </FormItem>
+    )
+  }
+
+  return (
+    <FormItem label={field.label} field={field.key} rules={rules}>
+      {field.control === 'select' ? (
+        <Select
+          placeholder={field.placeholder}
+          options={field.options?.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+        />
+      ) : field.control === 'textarea' ? (
+        <Input.TextArea rows={3} placeholder={field.placeholder} />
+      ) : (
+        <Input
+          type={field.control === 'email' ? 'email' : 'text'}
+          placeholder={field.placeholder}
+        />
+      )}
+    </FormItem>
+  )
+}
 
 export function ArcoDesignShowcase({ users }: ShowcaseProps) {
   // body[arco-theme] is applied by themeModeStore; mode keeps ConfigProvider in sync if needed
@@ -94,31 +168,32 @@ export function ArcoDesignShowcase({ users }: ShowcaseProps) {
 
   const columns: TableColumnProps<User>[] = useMemo(
     () => [
-      { title: '姓名', dataIndex: 'name' },
-      { title: '邮箱', dataIndex: 'email' },
-      {
-        title: '角色',
-        dataIndex: 'role',
-        render: (role: UserRole) => ROLE_LABELS[role],
-      },
-      {
-        title: '状态',
-        dataIndex: 'status',
-        render: (status: UserStatus) => (
-          <Tag color={status === 'active' ? 'green' : 'gray'}>{STATUS_LABELS[status]}</Tag>
-        ),
-      },
-      {
-        title: '入职日期',
-        dataIndex: 'hireDate',
-        sorter: true,
-        sortOrder:
-          users.hireDateSort === 'asc'
-            ? 'ascend'
-            : users.hireDateSort === 'desc'
-              ? 'descend'
-              : undefined,
-      },
+      ...USER_TABLE_COLUMNS.map((field) => {
+        const column: TableColumnProps<User> = {
+          title: field.label,
+          dataIndex: field.key,
+        }
+
+        if (field.key === 'role') {
+          column.render = (role: UserRole) => ROLE_LABELS[role]
+        } else if (field.key === 'status') {
+          column.render = (status: UserStatus) => (
+            <Tag color={status === 'active' ? 'green' : 'gray'}>
+              {STATUS_LABELS[status]}
+            </Tag>
+          )
+        } else if (field.sortable) {
+          column.sorter = true
+          column.sortOrder =
+            users.hireDateSort === 'asc'
+              ? 'ascend'
+              : users.hireDateSort === 'desc'
+                ? 'descend'
+                : undefined
+        }
+
+        return column
+      }),
       {
         title: '操作',
         dataIndex: 'id',
@@ -163,7 +238,7 @@ export function ArcoDesignShowcase({ users }: ShowcaseProps) {
           <Space wrap>
             <Input.Search
               allowClear
-              placeholder="搜索姓名 / 邮箱"
+              placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
               style={{ width: 220 }}
               value={users.filters.keyword}
               onChange={users.setKeyword}
@@ -172,20 +247,13 @@ export function ArcoDesignShowcase({ users }: ShowcaseProps) {
               style={{ width: 120 }}
               value={users.filters.role}
               onChange={(v) => users.setRoleFilter(v as typeof users.filters.role)}
-              options={[
-                { value: 'all', label: '全部角色' },
-                ...ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-              ]}
+              options={SHOWCASE_FILTER_OPTIONS.role}
             />
             <Select
               style={{ width: 120 }}
               value={users.filters.status}
               onChange={(v) => users.setStatusFilter(v as typeof users.filters.status)}
-              options={[
-                { value: 'all', label: '全部状态' },
-                { value: 'active', label: STATUS_LABELS.active },
-                { value: 'disabled', label: STATUS_LABELS.disabled },
-              ]}
+              options={SHOWCASE_FILTER_OPTIONS.status}
             />
           </Space>
           <Button type="primary" onClick={openCreate}>
@@ -223,50 +291,9 @@ export function ArcoDesignShowcase({ users }: ShowcaseProps) {
           unmountOnExit
         >
           <Form form={form} layout="vertical" autoComplete="off">
-            <FormItem
-              label="姓名"
-              field="name"
-              rules={[{ required: true, message: '请输入姓名' }]}
-            >
-              <Input placeholder="请输入姓名" />
-            </FormItem>
-            <FormItem
-              label="邮箱"
-              field="email"
-              rules={[
-                { required: true, message: '请输入邮箱' },
-                { type: 'email', message: '邮箱格式不正确' },
-              ]}
-            >
-              <Input placeholder="name@example.com" />
-            </FormItem>
-            <FormItem
-              label="角色"
-              field="role"
-              rules={[{ required: true, message: '请选择角色' }]}
-            >
-              <Select options={ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))} />
-            </FormItem>
-            <FormItem
-              label="状态"
-              field="status"
-              triggerPropName="checked"
-              formatter={(value) => value === 'active'}
-              normalize={(value) => (value ? 'active' : 'disabled')}
-            >
-              <Switch checkedText="启用" uncheckedText="禁用" />
-            </FormItem>
-            <FormItem
-              label="入职日期"
-              field="hireDate"
-              formatter={(value) => (value ? dayjs(String(value)) : undefined)}
-              normalize={(value) => (value ? dayjs(value).format('YYYY-MM-DD') : '')}
-            >
-              <DatePicker style={{ width: '100%' }} />
-            </FormItem>
-            <FormItem label="备注" field="remark">
-              <Input.TextArea rows={3} placeholder="可选" />
-            </FormItem>
+            {USER_FORM_FIELDS.map((field) => (
+              <FormField key={field.key} field={field} />
+            ))}
           </Form>
         </Modal>
       </div>

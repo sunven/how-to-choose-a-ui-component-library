@@ -21,8 +21,16 @@ import 'dayjs/locale/zh-cn'
 import '@mantine/core/styles.css'
 import '@mantine/dates/styles.css'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FIELD_BY_KEY,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  withUserFieldValue,
+  type UserFieldKey,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -33,6 +41,30 @@ import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
 
 dayjs.locale('zh-cn')
+
+function renderCell(user: User, key: UserFieldKey) {
+  switch (key) {
+    case 'role':
+      return ROLE_LABELS[user.role]
+    case 'status':
+      return (
+        <Badge
+          color={user.status === 'active' ? 'green' : 'gray'}
+          variant="light"
+        >
+          {STATUS_LABELS[user.status]}
+        </Badge>
+      )
+    case 'email':
+      return (
+        <Text size="sm" c="dimmed">
+          {user.email}
+        </Text>
+      )
+    default:
+      return user[key]
+  }
+}
 
 export function MantineShowcase({ users }: ShowcaseProps) {
   const mode = useThemeMode()
@@ -98,33 +130,26 @@ export function MantineShowcase({ users }: ShowcaseProps) {
             <Group gap="sm" wrap="wrap" align="flex-end">
               <TextInput
                 label="搜索"
-                placeholder="搜索姓名 / 邮箱"
+                placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
                 value={users.filters.keyword}
                 onChange={(e) => users.setKeyword(e.currentTarget.value)}
                 w={220}
               />
               <Select
-                label="角色"
+                label={USER_FIELD_BY_KEY.role.label}
                 w={140}
                 value={users.filters.role}
                 onChange={(v) => users.setRoleFilter((v ?? 'all') as typeof users.filters.role)}
-                data={[
-                  { value: 'all', label: '全部角色' },
-                  ...ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-                ]}
+                data={SHOWCASE_FILTER_OPTIONS.role}
               />
               <Select
-                label="状态"
+                label={USER_FIELD_BY_KEY.status.label}
                 w={140}
                 value={users.filters.status}
                 onChange={(v) =>
                   users.setStatusFilter((v ?? 'all') as typeof users.filters.status)
                 }
-                data={[
-                  { value: 'all', label: '全部状态' },
-                  { value: 'active', label: STATUS_LABELS.active },
-                  { value: 'disabled', label: STATUS_LABELS.disabled },
-                ]}
+                data={SHOWCASE_FILTER_OPTIONS.status}
               />
               <Button variant="default" size="sm" onClick={users.cycleHireDateSort}>
                 入职排序：{sortLabel}
@@ -145,11 +170,9 @@ export function MantineShowcase({ users }: ShowcaseProps) {
                       onChange={(e) => users.toggleSelectAllPage(e.currentTarget.checked)}
                     />
                   </Table.Th>
-                  <Table.Th>姓名</Table.Th>
-                  <Table.Th>邮箱</Table.Th>
-                  <Table.Th>角色</Table.Th>
-                  <Table.Th>状态</Table.Th>
-                  <Table.Th>入职日期</Table.Th>
+                  {USER_TABLE_COLUMNS.map((field) => (
+                    <Table.Th key={field.key}>{field.label}</Table.Th>
+                  ))}
                   <Table.Th ta="right">操作</Table.Th>
                 </Table.Tr>
               </Table.Thead>
@@ -163,19 +186,11 @@ export function MantineShowcase({ users }: ShowcaseProps) {
                         onChange={(e) => users.toggleSelect(row.id, e.currentTarget.checked)}
                       />
                     </Table.Td>
-                    <Table.Td>{row.name}</Table.Td>
-                    <Table.Td>
-                      <Text size="sm" c="dimmed">
-                        {row.email}
-                      </Text>
-                    </Table.Td>
-                    <Table.Td>{ROLE_LABELS[row.role]}</Table.Td>
-                    <Table.Td>
-                      <Badge color={row.status === 'active' ? 'green' : 'gray'} variant="light">
-                        {STATUS_LABELS[row.status]}
-                      </Badge>
-                    </Table.Td>
-                    <Table.Td>{row.hireDate}</Table.Td>
+                    {USER_TABLE_COLUMNS.map((field) => (
+                      <Table.Td key={field.key}>
+                        {renderCell(row, field.key)}
+                      </Table.Td>
+                    ))}
                     <Table.Td>
                       <Group gap={4} justify="flex-end">
                         <Button size="xs" variant="subtle" onClick={() => openEdit(row)}>
@@ -197,7 +212,7 @@ export function MantineShowcase({ users }: ShowcaseProps) {
                 ))}
                 {users.users.length === 0 && (
                   <Table.Tr>
-                    <Table.Td colSpan={7}>
+                    <Table.Td colSpan={USER_TABLE_COLUMNS.length + 2}>
                       <Text ta="center" c="dimmed" py="lg">
                         暂无数据
                       </Text>
@@ -227,56 +242,117 @@ export function MantineShowcase({ users }: ShowcaseProps) {
             centered
           >
             <Stack gap="sm">
-              <TextInput
-                label="姓名"
-                required
-                value={form.name}
-                error={errors.name}
-                onChange={(e) => setForm((f) => ({ ...f, name: e.currentTarget.value }))}
-              />
-              <TextInput
-                label="邮箱"
-                required
-                value={form.email}
-                error={errors.email}
-                onChange={(e) => setForm((f) => ({ ...f, email: e.currentTarget.value }))}
-              />
-              <Select
-                label="角色"
-                required
-                value={form.role}
-                onChange={(v) =>
-                  setForm((f) => ({ ...f, role: (v ?? 'viewer') as UserInput['role'] }))
+              {USER_FORM_FIELDS.map((field) => {
+                if (field.key === 'role') {
+                  return (
+                    <Select
+                      key={field.key}
+                      label={field.label}
+                      required={Boolean(field.rules.required)}
+                      value={form.role}
+                      error={errors.role}
+                      onChange={(value) =>
+                        setForm((current) =>
+                          withUserFieldValue(current, 'role', value ?? 'viewer'),
+                        )
+                      }
+                      data={field.options?.map((option) => ({
+                        value: option.value,
+                        label: option.label,
+                      }))}
+                    />
+                  )
                 }
-                data={ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
-              />
-              <Switch
-                label={form.status === 'active' ? '状态：启用' : '状态：禁用'}
-                checked={form.status === 'active'}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    status: e.currentTarget.checked ? 'active' : 'disabled',
-                  }))
+
+                if (field.key === 'status') {
+                  return (
+                    <div key={field.key}>
+                      <Switch
+                        label={`${field.label}${field.rules.required ? ' *' : ''}：${STATUS_LABELS[form.status]}`}
+                        checked={form.status === 'active'}
+                        onChange={(e) =>
+                          setForm((current) =>
+                            withUserFieldValue(
+                              current,
+                              'status',
+                              e.currentTarget.checked ? 'active' : 'disabled',
+                            ),
+                          )
+                        }
+                      />
+                      {errors.status && (
+                        <Text size="xs" c="red">
+                          {errors.status}
+                        </Text>
+                      )}
+                    </div>
+                  )
                 }
-              />
-              <DateInput
-                label="入职日期"
-                valueFormat="YYYY-MM-DD"
-                value={form.hireDate ? dayjs(form.hireDate).toDate() : null}
-                onChange={(d) =>
-                  setForm((f) => ({
-                    ...f,
-                    hireDate: d ? dayjs(d).format('YYYY-MM-DD') : '',
-                  }))
+
+                if (field.key === 'hireDate') {
+                  return (
+                    <DateInput
+                      key={field.key}
+                      label={field.label}
+                      valueFormat="YYYY-MM-DD"
+                      placeholder={field.placeholder}
+                      value={form.hireDate ? dayjs(form.hireDate).toDate() : null}
+                      onChange={(value) =>
+                        setForm((current) =>
+                          withUserFieldValue(
+                            current,
+                            'hireDate',
+                            value ? dayjs(value).format('YYYY-MM-DD') : '',
+                          ),
+                        )
+                      }
+                    />
+                  )
                 }
-              />
-              <Textarea
-                label="备注"
-                minRows={3}
-                value={form.remark}
-                onChange={(e) => setForm((f) => ({ ...f, remark: e.currentTarget.value }))}
-              />
+
+                if (field.key === 'remark') {
+                  return (
+                    <Textarea
+                      key={field.key}
+                      label={field.label}
+                      minRows={3}
+                      placeholder={field.placeholder}
+                      value={form.remark}
+                      error={errors.remark}
+                      onChange={(e) =>
+                        setForm((current) =>
+                          withUserFieldValue(
+                            current,
+                            'remark',
+                            e.currentTarget.value,
+                          ),
+                        )
+                      }
+                    />
+                  )
+                }
+
+                return (
+                  <TextInput
+                    key={field.key}
+                    label={field.label}
+                    required={Boolean(field.rules.required)}
+                    type={field.control === 'email' ? 'email' : 'text'}
+                    placeholder={field.placeholder}
+                    value={form[field.key]}
+                    error={errors[field.key]}
+                    onChange={(e) =>
+                      setForm((current) =>
+                        withUserFieldValue(
+                          current,
+                          field.key,
+                          e.currentTarget.value,
+                        ),
+                      )
+                    }
+                  />
+                )
+              })}
               <Group justify="flex-end" mt="sm">
                 <Button variant="default" onClick={() => setOpen(false)}>
                   取消

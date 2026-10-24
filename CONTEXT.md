@@ -166,6 +166,10 @@ _Avoid_: 空 Vanilla 框架无库；半成品进 Switcher；用 headless 原语�
 唯一业务场景为「用户管理」：表格为主展示用户列表；通过 Modal 打开表单进行新建/编辑。全部 Candidate Library 共用同一字段、列、校验语义与文案；任一库不得降级场景。
 _Avoid_: 多业务场景切换；页内常驻表单；Drawer 表单；Vue 专用缩水场景
 
+**Showcase Scenario Spec** (展示场景规格):
+**Showcase Scenario** 的字段与呈现语义单一来源：字段顺序、表格列、标签/占位符、控件类型、筛选标签/选项与校验消息。Spec 由框架无关模块持有；各 Candidate Library 的 Showcase 只负责把字段映射到该库原生表格/表单与错误展示，不重新定义字段或校验。Spec 不包含按钮、分页、空态等 native chrome 文案，也不改变 Showcase Scenario 的数据与状态机。
+_Avoid_: 每个 Showcase 各自重写列/标签/规则；把原生组件布局或分页文案塞进 Spec；用 Spec 替代 Showcase Scenario 的状态机；字段/校验出现双标准
+
 **Form Chrome** (表单容器):
 承载 Form Showcase 的容器固定为 Modal（弹窗）。列表提供「新建」；行操作提供「编辑」（回填）与删除类操作。
 _Avoid_: Drawer, 页内嵌表单（非 v1）

@@ -1,8 +1,15 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  type UserFieldSpec,
+} from '@/domain/showcaseSpec'
+import {
+  EMAIL_RE,
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -18,7 +25,7 @@ const {
   statusFilter,
   hireDateSort,
   page,
-  pageSize,
+  pageCount,
   selectedIds,
   total,
   pageUsers,
@@ -37,25 +44,44 @@ const form = reactive<UserInput>(emptyUserInput())
 const snackbar = ref(false)
 const snackbarText = ref('')
 
-const roleFilterItems = [
-  { title: '全部角色', value: 'all' as const },
-  ...ROLE_OPTIONS.map((o) => ({ title: o.label, value: o.value })),
-]
-const statusFilterItems = [
-  { title: '全部状态', value: 'all' as const },
-  { title: STATUS_LABELS.active, value: 'active' as const },
-  { title: STATUS_LABELS.disabled, value: 'disabled' as const },
-]
-const roleFormItems = ROLE_OPTIONS.map((o) => ({ title: o.label, value: o.value }))
+const roleFilterItems = SHOWCASE_FILTER_OPTIONS.role.map((option) => ({
+  title: option.label,
+  value: option.value,
+}))
+const statusFilterItems = SHOWCASE_FILTER_OPTIONS.status.map((option) => ({
+  title: option.label,
+  value: option.value,
+}))
 
 const headers = [
-  { title: '姓名', key: 'name', sortable: false },
-  { title: '邮箱', key: 'email', sortable: false },
-  { title: '角色', key: 'role', sortable: false },
-  { title: '状态', key: 'status', sortable: false },
-  { title: '入职日期', key: 'hireDate', sortable: true },
+  ...USER_TABLE_COLUMNS.map((field) => ({
+    title: field.label,
+    key: field.key,
+    sortable: Boolean(field.sortable),
+  })),
   { title: '操作', key: 'actions', sortable: false, align: 'end' as const },
 ]
+
+function fieldRules(field: UserFieldSpec) {
+  const rules: ((value: unknown) => true | string)[] = []
+  if (field.rules.required) {
+    rules.push(
+      (value) =>
+        (typeof value === 'string' ? value.trim() : value) ||
+        field.rules.required ||
+        true,
+    )
+  }
+  if (field.rules.email) {
+    rules.push(
+      (value) =>
+        EMAIL_RE.test(String(value ?? '').trim()) ||
+        field.rules.email ||
+        true,
+    )
+  }
+  return rules
+}
 
 const sortBy = computed(() => {
   if (hireDateSort.value === 'asc') return [{ key: 'hireDate', order: 'asc' as const }]
@@ -63,12 +89,6 @@ const sortBy = computed(() => {
   return []
 })
 
-const nameRules = [(v: string) => !!v?.trim() || '请输入姓名']
-const emailRules = [
-  (v: string) => !!v?.trim() || '请输入邮箱',
-  (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v?.trim() ?? '') || '邮箱格式不正确',
-]
-const roleRules = [(v: string) => !!v || '请选择角色']
 
 function showMessage(text: string) {
   snackbarText.value = text
@@ -160,7 +180,7 @@ function statusLabel(status: UserStatus) {
           density="compact"
           hide-details
           clearable
-          label="搜索姓名 / 邮箱"
+          :label="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
           @update:model-value="resetFiltersPage"
         />
@@ -217,7 +237,7 @@ function statusLabel(status: UserStatus) {
     <div class="flex justify-end">
       <v-pagination
         v-model="page"
-        :length="Math.max(1, Math.ceil(total / pageSize))"
+        :length="pageCount"
         density="comfortable"
         total-visible="7"
       />
@@ -229,50 +249,58 @@ function statusLabel(status: UserStatus) {
         <v-card-title>{{ editing ? '编辑用户' : '新建用户' }}</v-card-title>
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="submit">
-            <v-text-field
-              v-model="form.name"
-              label="姓名"
-              :rules="nameRules"
-              density="comfortable"
-            />
-            <v-text-field
-              v-model="form.email"
-              label="邮箱"
-              placeholder="name@example.com"
-              :rules="emailRules"
-              density="comfortable"
-            />
-            <v-select
-              v-model="form.role"
-              :items="roleFormItems"
-              label="角色"
-              :rules="roleRules"
-              density="comfortable"
-            />
-            <div class="mb-4 flex items-center gap-3">
-              <span class="text-body-2">状态</span>
-              <v-switch
-                :model-value="form.status === 'active'"
-                color="primary"
-                hide-details
-                density="compact"
-                :label="form.status === 'active' ? '启用' : '禁用'"
-                @update:model-value="(v) => (form.status = v ? 'active' : 'disabled')"
+            <template v-for="field in USER_FORM_FIELDS" :key="field.key">
+              <div
+                v-if="field.key === 'status'"
+                class="mb-4 flex items-center gap-3"
+              >
+                <span class="text-body-2">
+                  {{ field.label }}{{ field.rules.required ? ' *' : '' }}
+                </span>
+                <v-switch
+                  :model-value="form.status === 'active'"
+                  color="primary"
+                  hide-details
+                  density="compact"
+                  :label="form.status === 'active' ? STATUS_LABELS.active : STATUS_LABELS.disabled"
+                  @update:model-value="(value) => (form.status = value ? 'active' : 'disabled')"
+                />
+              </div>
+              <v-select
+                v-else-if="field.control === 'select'"
+                v-model="form[field.key]"
+                :items="field.options?.map((option) => ({ title: option.label, value: option.value }))"
+                :label="field.label"
+                :rules="fieldRules(field)"
+                :required="Boolean(field.rules.required)"
+                density="comfortable"
               />
-            </div>
-            <v-text-field
-              v-model="form.hireDate"
-              label="入职日期"
-              type="date"
-              density="comfortable"
-            />
-            <v-textarea
-              v-model="form.remark"
-              label="备注"
-              placeholder="可选"
-              rows="3"
-              density="comfortable"
-            />
+              <v-text-field
+                v-else-if="field.control === 'date'"
+                v-model="form.hireDate"
+                :label="field.label"
+                type="date"
+                density="comfortable"
+              />
+              <v-textarea
+                v-else-if="field.control === 'textarea'"
+                v-model="form.remark"
+                :label="field.label"
+                :placeholder="field.placeholder"
+                rows="3"
+                density="comfortable"
+              />
+              <v-text-field
+                v-else
+                v-model="form[field.key]"
+                :label="field.label"
+                :placeholder="field.placeholder"
+                :type="field.control === 'email' ? 'email' : 'text'"
+                :rules="fieldRules(field)"
+                :required="Boolean(field.rules.required)"
+                density="comfortable"
+              />
+            </template>
           </v-form>
         </v-card-text>
         <v-card-actions>

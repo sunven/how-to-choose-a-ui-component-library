@@ -9,6 +9,7 @@ import {
   DialogTitle,
   FormControl,
   FormControlLabel,
+  FormHelperText,
   InputLabel,
   MenuItem,
   Select,
@@ -32,8 +33,16 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FIELD_BY_KEY,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  withUserFieldValue,
+  type UserFieldKey,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -42,6 +51,24 @@ import {
 } from '@/domain/user'
 import { useThemeMode } from '@/domain/useThemeMode'
 import type { ShowcaseProps } from '../types'
+
+function renderCell(user: User, key: UserFieldKey) {
+  switch (key) {
+    case 'role':
+      return ROLE_LABELS[user.role]
+    case 'status':
+      return (
+        <Chip
+          size="small"
+          label={STATUS_LABELS[user.status]}
+          color={user.status === 'active' ? 'success' : 'default'}
+          variant={user.status === 'active' ? 'filled' : 'outlined'}
+        />
+      )
+    default:
+      return user[key]
+  }
+}
 
 export function MuiShowcase({ users }: ShowcaseProps) {
   const mode = useThemeMode()
@@ -115,37 +142,38 @@ export function MuiShowcase({ users }: ShowcaseProps) {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} flexWrap="wrap" useFlexGap>
               <TextField
                 size="small"
-                label="搜索姓名 / 邮箱"
+                label={SHOWCASE_FILTERS.keywordPlaceholder}
                 value={users.filters.keyword}
                 onChange={(e) => users.setKeyword(e.target.value)}
               />
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>角色</InputLabel>
+                <InputLabel>{USER_FIELD_BY_KEY.role.label}</InputLabel>
                 <Select
-                  label="角色"
+                  label={USER_FIELD_BY_KEY.role.label}
                   value={users.filters.role}
                   onChange={(e) => users.setRoleFilter(e.target.value as typeof users.filters.role)}
                 >
-                  <MenuItem value="all">全部角色</MenuItem>
-                  {ROLE_OPTIONS.map((o) => (
-                    <MenuItem key={o.value} value={o.value}>
-                      {o.label}
+                  {SHOWCASE_FILTER_OPTIONS.role.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
               <FormControl size="small" sx={{ minWidth: 120 }}>
-                <InputLabel>状态</InputLabel>
+                <InputLabel>{USER_FIELD_BY_KEY.status.label}</InputLabel>
                 <Select
-                  label="状态"
+                  label={USER_FIELD_BY_KEY.status.label}
                   value={users.filters.status}
                   onChange={(e) =>
                     users.setStatusFilter(e.target.value as typeof users.filters.status)
                   }
                 >
-                  <MenuItem value="all">全部状态</MenuItem>
-                  <MenuItem value="active">{STATUS_LABELS.active}</MenuItem>
-                  <MenuItem value="disabled">{STATUS_LABELS.disabled}</MenuItem>
+                  {SHOWCASE_FILTER_OPTIONS.status.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      {option.label}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </Stack>
@@ -165,19 +193,21 @@ export function MuiShowcase({ users }: ShowcaseProps) {
                       onChange={(e) => users.toggleSelectAllPage(e.target.checked)}
                     />
                   </TableCell>
-                  <TableCell>姓名</TableCell>
-                  <TableCell>邮箱</TableCell>
-                  <TableCell>角色</TableCell>
-                  <TableCell>状态</TableCell>
-                  <TableCell sortDirection={sortDirection}>
-                    <TableSortLabel
-                      active={users.hireDateSort !== 'none'}
-                      direction={users.hireDateSort === 'desc' ? 'desc' : 'asc'}
-                      onClick={users.cycleHireDateSort}
-                    >
-                      入职日期
-                    </TableSortLabel>
-                  </TableCell>
+                  {USER_TABLE_COLUMNS.map((field) =>
+                    field.sortable ? (
+                      <TableCell key={field.key} sortDirection={sortDirection}>
+                        <TableSortLabel
+                          active={users.hireDateSort !== 'none'}
+                          direction={users.hireDateSort === 'desc' ? 'desc' : 'asc'}
+                          onClick={users.cycleHireDateSort}
+                        >
+                          {field.label}
+                        </TableSortLabel>
+                      </TableCell>
+                    ) : (
+                      <TableCell key={field.key}>{field.label}</TableCell>
+                    ),
+                  )}
                   <TableCell align="right">操作</TableCell>
                 </TableRow>
               </TableHead>
@@ -190,18 +220,11 @@ export function MuiShowcase({ users }: ShowcaseProps) {
                         onChange={(e) => users.toggleSelect(row.id, e.target.checked)}
                       />
                     </TableCell>
-                    <TableCell>{row.name}</TableCell>
-                    <TableCell>{row.email}</TableCell>
-                    <TableCell>{ROLE_LABELS[row.role]}</TableCell>
-                    <TableCell>
-                      <Chip
-                        size="small"
-                        label={STATUS_LABELS[row.status]}
-                        color={row.status === 'active' ? 'success' : 'default'}
-                        variant={row.status === 'active' ? 'filled' : 'outlined'}
-                      />
-                    </TableCell>
-                    <TableCell>{row.hireDate}</TableCell>
+                    {USER_TABLE_COLUMNS.map((field) => (
+                      <TableCell key={field.key}>
+                        {renderCell(row, field.key)}
+                      </TableCell>
+                    ))}
                     <TableCell align="right">
                       <Button size="small" onClick={() => openEdit(row)}>
                         编辑
@@ -220,7 +243,10 @@ export function MuiShowcase({ users }: ShowcaseProps) {
                 ))}
                 {users.users.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell
+                      colSpan={USER_TABLE_COLUMNS.length + 2}
+                      align="center"
+                    >
                       暂无数据
                     </TableCell>
                   </TableRow>
@@ -244,65 +270,112 @@ export function MuiShowcase({ users }: ShowcaseProps) {
             <DialogTitle>{editing ? '编辑用户' : '新建用户'}</DialogTitle>
             <DialogContent>
               <Stack spacing={2} sx={{ mt: 1 }}>
-                <TextField
-                  label="姓名"
-                  required
-                  value={form.name}
-                  error={Boolean(errors.name)}
-                  helperText={errors.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                />
-                <TextField
-                  label="邮箱"
-                  required
-                  value={form.email}
-                  error={Boolean(errors.email)}
-                  helperText={errors.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                />
-                <FormControl fullWidth>
-                  <InputLabel>角色</InputLabel>
-                  <Select
-                    label="角色"
-                    value={form.role}
-                    onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as UserInput['role'] }))}
-                  >
-                    {ROLE_OPTIONS.map((o) => (
-                      <MenuItem key={o.value} value={o.value}>
-                        {o.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={form.status === 'active'}
+                {USER_FORM_FIELDS.map((field) => {
+                  if (field.key === 'role') {
+                    return (
+                      <FormControl
+                        key={field.key}
+                        fullWidth
+                        required={Boolean(field.rules.required)}
+                        error={Boolean(errors.role)}
+                      >
+                        <InputLabel>{field.label}</InputLabel>
+                        <Select
+                          label={field.label}
+                          value={form.role}
+                          onChange={(e) =>
+                            setForm((current) =>
+                              withUserFieldValue(current, 'role', e.target.value),
+                            )
+                          }
+                        >
+                          {field.options?.map((option) => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                        {errors.role && (
+                          <FormHelperText>{errors.role}</FormHelperText>
+                        )}
+                      </FormControl>
+                    )
+                  }
+
+                  if (field.key === 'status') {
+                    return (
+                      <FormControl
+                        key={field.key}
+                        error={Boolean(errors.status)}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Switch
+                              checked={form.status === 'active'}
+                              onChange={(e) =>
+                                setForm((current) =>
+                                  withUserFieldValue(
+                                    current,
+                                    'status',
+                                    e.target.checked ? 'active' : 'disabled',
+                                  ),
+                                )
+                              }
+                            />
+                          }
+                          label={`${field.label}${field.rules.required ? ' *' : ''}：${STATUS_LABELS[form.status]}`}
+                        />
+                        {errors.status && (
+                          <FormHelperText>{errors.status}</FormHelperText>
+                        )}
+                      </FormControl>
+                    )
+                  }
+
+                  if (field.key === 'hireDate') {
+                    return (
+                      <DatePicker
+                        key={field.key}
+                        label={field.label}
+                        value={form.hireDate ? dayjs(form.hireDate) : null}
+                        onChange={(value) =>
+                          setForm((current) =>
+                            withUserFieldValue(
+                              current,
+                              'hireDate',
+                              value ? value.format('YYYY-MM-DD') : '',
+                            ),
+                          )
+                        }
+                        slotProps={{ textField: { fullWidth: true } }}
+                      />
+                    )
+                  }
+
+                  return (
+                    <TextField
+                      key={field.key}
+                      label={field.label}
+                      required={Boolean(field.rules.required)}
+                      type={field.control === 'email' ? 'email' : 'text'}
+                      multiline={field.control === 'textarea'}
+                      minRows={field.control === 'textarea' ? 3 : undefined}
+                      placeholder={field.placeholder}
+                      value={form[field.key]}
+                      error={Boolean(errors[field.key])}
+                      helperText={errors[field.key]}
                       onChange={(e) =>
-                        setForm((f) => ({
-                          ...f,
-                          status: e.target.checked ? 'active' : 'disabled',
-                        }))
+                        setForm((current) =>
+                          withUserFieldValue(
+                            current,
+                            field.key,
+                            e.target.value,
+                          ),
+                        )
                       }
                     />
-                  }
-                  label={form.status === 'active' ? '启用' : '禁用'}
-                />
-                <DatePicker
-                  label="入职日期"
-                  value={form.hireDate ? dayjs(form.hireDate) : null}
-                  onChange={(d) =>
-                    setForm((f) => ({ ...f, hireDate: d ? d.format('YYYY-MM-DD') : '' }))
-                  }
-                  slotProps={{ textField: { fullWidth: true } }}
-                />
-                <TextField
-                  label="备注"
-                  multiline
-                  minRows={3}
-                  value={form.remark}
-                  onChange={(e) => setForm((f) => ({ ...f, remark: e.target.value }))}
-                />
+                  )
+                })}
               </Stack>
             </DialogContent>
             <DialogActions>

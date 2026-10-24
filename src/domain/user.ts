@@ -45,15 +45,25 @@ export interface UserFormErrors {
   remark?: string
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+export const USER_VALIDATION_MESSAGES = {
+  nameRequired: '请输入姓名',
+  emailRequired: '请输入邮箱',
+  emailInvalid: '邮箱格式不正确',
+  roleRequired: '请选择角色',
+  statusRequired: '请选择状态',
+} as const
 
 export function validateUserInput(input: UserInput): UserFormErrors {
   const errors: UserFormErrors = {}
-  if (!input.name.trim()) errors.name = '请输入姓名'
-  if (!input.email.trim()) errors.email = '请输入邮箱'
-  else if (!EMAIL_RE.test(input.email.trim())) errors.email = '邮箱格式不正确'
-  if (!input.role) errors.role = '请选择角色'
-  if (!input.status) errors.status = '请选择状态'
+  if (!input.name.trim()) errors.name = USER_VALIDATION_MESSAGES.nameRequired
+  if (!input.email.trim()) errors.email = USER_VALIDATION_MESSAGES.emailRequired
+  else if (!EMAIL_RE.test(input.email.trim())) {
+    errors.email = USER_VALIDATION_MESSAGES.emailInvalid
+  }
+  if (!input.role) errors.role = USER_VALIDATION_MESSAGES.roleRequired
+  if (!input.status) errors.status = USER_VALIDATION_MESSAGES.statusRequired
   return errors
 }
 

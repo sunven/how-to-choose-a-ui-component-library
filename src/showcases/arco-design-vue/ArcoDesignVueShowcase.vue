@@ -18,8 +18,14 @@ import {
 } from '@arco-design/web-vue'
 import dayjs from 'dayjs'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  type UserFieldSpec,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -30,6 +36,17 @@ import {
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const FormItem = Form.Item
+
+function fieldRules(field: UserFieldSpec) {
+  const rules: { required?: boolean; type?: 'email'; message: string }[] = []
+  if (field.rules.required) {
+    rules.push({ required: true, message: field.rules.required })
+  }
+  if (field.rules.email) {
+    rules.push({ type: 'email', message: field.rules.email })
+  }
+  return rules
+}
 
 const {
   keyword,
@@ -53,38 +70,39 @@ const editing = ref<User | null>(null)
 const formRef = ref<FormInstance>()
 const form = reactive<UserInput>(emptyUserInput())
 
-const columns = computed<TableColumnData[]>(() => [
-  { title: '姓名', dataIndex: 'name' },
-  { title: '邮箱', dataIndex: 'email' },
-  {
-    title: '角色',
-    dataIndex: 'role',
-    slotName: 'role',
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    slotName: 'status',
-  },
-  {
-    title: '入职日期',
-    dataIndex: 'hireDate',
-    sortable: {
-      sortDirections: ['ascend', 'descend'],
-      sorter: true,
-      sortOrder:
-        hireDateSort.value === 'asc'
-          ? 'ascend'
-          : hireDateSort.value === 'desc'
-            ? 'descend'
-            : '',
-    },
-  },
-  {
-    title: '操作',
-    slotName: 'actions',
-  },
-])
+const columns = computed<TableColumnData[]>(() => {
+  const result: TableColumnData[] = []
+
+  for (const field of USER_TABLE_COLUMNS) {
+    if (field.key === 'role' || field.key === 'status') {
+      result.push({
+        title: field.label,
+        dataIndex: field.key,
+        slotName: field.key,
+      })
+    } else if (field.sortable) {
+      result.push({
+        title: field.label,
+        dataIndex: field.key,
+        sortable: {
+          sortDirections: ['ascend', 'descend'],
+          sorter: true,
+          sortOrder:
+            hireDateSort.value === 'asc'
+              ? 'ascend'
+              : hireDateSort.value === 'desc'
+                ? 'descend'
+                : '',
+        },
+      })
+    } else {
+      result.push({ title: field.label, dataIndex: field.key })
+    }
+  }
+
+  result.push({ title: '操作', slotName: 'actions' })
+  return result
+})
 
 function openCreate() {
   editing.value = null
@@ -152,7 +170,7 @@ const hireDateModel = computed({
         <Input.Search
           v-model="keyword"
           allow-clear
-          placeholder="搜索姓名 / 邮箱"
+          :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
           @input="resetFiltersPage"
           @clear="resetFiltersPage"
@@ -160,20 +178,13 @@ const hireDateModel = computed({
         <Select
           v-model="roleFilter"
           style="width: 120px"
-          :options="[
-            { value: 'all', label: '全部角色' },
-            ...ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label })),
-          ]"
+          :options="SHOWCASE_FILTER_OPTIONS.role"
           @change="resetFiltersPage"
         />
         <Select
           v-model="statusFilter"
           style="width: 120px"
-          :options="[
-            { value: 'all', label: '全部状态' },
-            { value: 'active', label: STATUS_LABELS.active },
-            { value: 'disabled', label: STATUS_LABELS.disabled },
-          ]"
+          :options="SHOWCASE_FILTER_OPTIONS.status"
           @change="resetFiltersPage"
         />
       </Space>
@@ -244,45 +255,44 @@ const hireDateModel = computed({
     >
       <Form ref="formRef" :model="form" layout="vertical" auto-label-width>
         <FormItem
-          field="name"
-          label="姓名"
-          :rules="[{ required: true, message: '请输入姓名' }]"
+          v-for="field in USER_FORM_FIELDS"
+          :key="field.key"
+          :field="field.key"
+          :label="field.label"
+          :rules="fieldRules(field)"
         >
-          <Input v-model="form.name" placeholder="请输入姓名" />
-        </FormItem>
-        <FormItem
-          field="email"
-          label="邮箱"
-          :rules="[
-            { required: true, message: '请输入邮箱' },
-            { type: 'email', message: '邮箱格式不正确' },
-          ]"
-        >
-          <Input v-model="form.email" placeholder="name@example.com" />
-        </FormItem>
-        <FormItem
-          field="role"
-          label="角色"
-          :rules="[{ required: true, message: '请选择角色' }]"
-        >
-          <Select
-            v-model="form.role"
-            :options="ROLE_OPTIONS.map((o) => ({ value: o.value, label: o.label }))"
-          />
-        </FormItem>
-        <FormItem field="status" label="状态">
           <Switch
+            v-if="field.key === 'status'"
             :model-value="form.status === 'active'"
-            checked-text="启用"
-            unchecked-text="禁用"
-            @change="(v: string | number | boolean) => (form.status = v ? 'active' : 'disabled')"
+            :checked-text="STATUS_LABELS.active"
+            :unchecked-text="STATUS_LABELS.disabled"
+            @change="
+              (value: string | number | boolean) =>
+                (form.status = value ? 'active' : 'disabled')
+            "
           />
-        </FormItem>
-        <FormItem field="hireDate" label="入职日期">
-          <DatePicker v-model="hireDateModel" style="width: 100%" />
-        </FormItem>
-        <FormItem field="remark" label="备注">
-          <Input.TextArea v-model="form.remark" :auto-size="{ minRows: 3 }" placeholder="可选" />
+          <Select
+            v-else-if="field.control === 'select'"
+            v-model="form[field.key]"
+            :options="field.options?.map((option) => ({ value: option.value, label: option.label }))"
+          />
+          <DatePicker
+            v-else-if="field.control === 'date'"
+            v-model="hireDateModel"
+            :placeholder="field.placeholder"
+            style="width: 100%"
+          />
+          <Input.TextArea
+            v-else-if="field.control === 'textarea'"
+            v-model="form.remark"
+            :auto-size="{ minRows: 3 }"
+            :placeholder="field.placeholder"
+          />
+          <Input
+            v-else
+            v-model="form[field.key]"
+            :placeholder="field.placeholder"
+          />
         </FormItem>
       </Form>
     </Modal>

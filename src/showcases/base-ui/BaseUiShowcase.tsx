@@ -9,15 +9,21 @@ import { Input } from '@base-ui/react/input'
 import { Select } from '@base-ui/react/select'
 import { Switch } from '@base-ui/react/switch'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FIELD_BY_KEY,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  withUserFieldValue,
+  type UserFieldKey,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
   type UserFormErrors,
   type UserInput,
-  type UserRole,
-  type UserStatus,
 } from '@/domain/user'
 import type { ShowcaseProps } from '../types'
 import './base-ui.structural.css'
@@ -27,16 +33,16 @@ interface SelectOption<Value extends string> {
   label: string
 }
 
-const ROLE_FILTER_OPTIONS: SelectOption<'all' | UserRole>[] = [
-  { value: 'all', label: '全部角色' },
-  ...ROLE_OPTIONS,
-]
-
-const STATUS_FILTER_OPTIONS: SelectOption<'all' | UserStatus>[] = [
-  { value: 'all', label: '全部状态' },
-  { value: 'active', label: STATUS_LABELS.active },
-  { value: 'disabled', label: STATUS_LABELS.disabled },
-]
+function renderCell(user: User, key: UserFieldKey) {
+  switch (key) {
+    case 'role':
+      return ROLE_LABELS[user.role]
+    case 'status':
+      return STATUS_LABELS[user.status]
+    default:
+      return user[key]
+  }
+}
 
 export function BaseUiShowcase({ users }: ShowcaseProps) {
   const [open, setOpen] = useState(false)
@@ -102,20 +108,20 @@ export function BaseUiShowcase({ users }: ShowcaseProps) {
           <Field.Root className="base-ui-field base-ui-search-field">
             <Field.Label>搜索</Field.Label>
             <Input
-              placeholder="搜索姓名 / 邮箱"
+              placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
               value={users.filters.keyword}
               onValueChange={users.setKeyword}
             />
           </Field.Root>
           <UnstyledSelectField
-            label="角色"
-            options={ROLE_FILTER_OPTIONS}
+            label={USER_FIELD_BY_KEY.role.label}
+            options={SHOWCASE_FILTER_OPTIONS.role}
             value={users.filters.role}
             onValueChange={users.setRoleFilter}
           />
           <UnstyledSelectField
-            label="状态"
-            options={STATUS_FILTER_OPTIONS}
+            label={USER_FIELD_BY_KEY.status.label}
+            options={SHOWCASE_FILTER_OPTIONS.status}
             value={users.filters.status}
             onValueChange={users.setStatusFilter}
           />
@@ -143,11 +149,9 @@ export function BaseUiShowcase({ users }: ShowcaseProps) {
                   <Checkbox.Indicator>{somePageSelected && !allPageSelected ? '−' : '✓'}</Checkbox.Indicator>
                 </Checkbox.Root>
               </th>
-              <th>姓名</th>
-              <th>邮箱</th>
-              <th>角色</th>
-              <th>状态</th>
-              <th>入职日期</th>
+              {USER_TABLE_COLUMNS.map((field) => (
+                <th key={field.key}>{field.label}</th>
+              ))}
               <th>操作</th>
             </tr>
           </thead>
@@ -164,11 +168,9 @@ export function BaseUiShowcase({ users }: ShowcaseProps) {
                     <Checkbox.Indicator>✓</Checkbox.Indicator>
                   </Checkbox.Root>
                 </td>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>{ROLE_LABELS[user.role]}</td>
-                <td>{STATUS_LABELS[user.status]}</td>
-                <td>{user.hireDate}</td>
+                {USER_TABLE_COLUMNS.map((field) => (
+                  <td key={field.key}>{renderCell(user, field.key)}</td>
+                ))}
                 <td>
                   <div className="base-ui-row-actions">
                     <Button type="button" onClick={() => openEdit(user)}>
@@ -183,7 +185,7 @@ export function BaseUiShowcase({ users }: ShowcaseProps) {
             ))}
             {users.users.length === 0 && (
               <tr>
-                <td colSpan={7}>暂无数据</td>
+                <td colSpan={USER_TABLE_COLUMNS.length + 2}>暂无数据</td>
               </tr>
             )}
           </tbody>
@@ -238,74 +240,132 @@ export function BaseUiShowcase({ users }: ShowcaseProps) {
                 }}
               >
                 <div className="base-ui-form-grid">
-                  <Field.Root className="base-ui-field" name="name">
-                    <Field.Label>姓名</Field.Label>
-                    <Input
-                      aria-required="true"
-                      value={form.name}
-                      onValueChange={(name) => setForm((current) => ({ ...current, name }))}
-                    />
-                    <Field.Error />
-                  </Field.Root>
+                  {USER_FORM_FIELDS.map((field) => {
+                    const label = `${field.label}${field.rules.required ? ' *' : ''}`
 
-                  <Field.Root className="base-ui-field" name="email">
-                    <Field.Label>邮箱</Field.Label>
-                    <Input
-                      aria-required="true"
-                      inputMode="email"
-                      value={form.email}
-                      onValueChange={(email) => setForm((current) => ({ ...current, email }))}
-                    />
-                    <Field.Error />
-                  </Field.Root>
+                    if (field.key === 'role') {
+                      return (
+                        <UnstyledSelectField
+                          key={field.key}
+                          label={label}
+                          name="role"
+                          options={field.options ?? []}
+                          value={form.role}
+                          onValueChange={(role) =>
+                            setForm((current) =>
+                              withUserFieldValue(current, 'role', role),
+                            )
+                          }
+                        />
+                      )
+                    }
 
-                  <UnstyledSelectField
-                    label="角色"
-                    name="role"
-                    options={ROLE_OPTIONS}
-                    value={form.role}
-                    onValueChange={(role) => setForm((current) => ({ ...current, role }))}
-                  />
+                    if (field.key === 'status') {
+                      return (
+                        <Field.Root
+                          key={field.key}
+                          className="base-ui-field"
+                          name="status"
+                        >
+                          <Field.Label>{label}</Field.Label>
+                          <div className="base-ui-switch-row">
+                            <Switch.Root
+                              className="base-ui-switch"
+                              aria-label={`${field.label}：${STATUS_LABELS[form.status]}`}
+                              checked={form.status === 'active'}
+                              onCheckedChange={(checked) =>
+                                setForm((current) =>
+                                  withUserFieldValue(
+                                    current,
+                                    'status',
+                                    checked ? 'active' : 'disabled',
+                                  ),
+                                )
+                              }
+                            >
+                              <Switch.Thumb className="base-ui-switch-thumb" />
+                            </Switch.Root>
+                            <span>{STATUS_LABELS[form.status]}</span>
+                          </div>
+                          <Field.Error />
+                        </Field.Root>
+                      )
+                    }
 
-                  <Field.Root className="base-ui-field" name="status">
-                    <Field.Label>状态</Field.Label>
-                    <div className="base-ui-switch-row">
-                      <Switch.Root
-                        className="base-ui-switch"
-                        aria-label={form.status === 'active' ? '状态：启用' : '状态：禁用'}
-                        checked={form.status === 'active'}
-                        onCheckedChange={(checked) =>
-                          setForm((current) => ({
-                            ...current,
-                            status: checked ? 'active' : 'disabled',
-                          }))
-                        }
+                    if (field.key === 'hireDate') {
+                      return (
+                        <Field.Root
+                          key={field.key}
+                          className="base-ui-field"
+                          name="hireDate"
+                        >
+                          <Field.Label>{label}</Field.Label>
+                          <Field.Control
+                            type="date"
+                            placeholder={field.placeholder}
+                            value={form.hireDate}
+                            onValueChange={(hireDate) =>
+                              setForm((current) =>
+                                withUserFieldValue(
+                                  current,
+                                  'hireDate',
+                                  hireDate,
+                                ),
+                              )
+                            }
+                          />
+                          <Field.Error />
+                        </Field.Root>
+                      )
+                    }
+
+                    if (field.key === 'remark') {
+                      return (
+                        <Field.Root
+                          key={field.key}
+                          className="base-ui-field base-ui-form-wide"
+                          name="remark"
+                        >
+                          <Field.Label>{label}</Field.Label>
+                          <Field.Control
+                            render={<textarea rows={3} />}
+                            placeholder={field.placeholder}
+                            value={form.remark}
+                            onValueChange={(remark) =>
+                              setForm((current) =>
+                                withUserFieldValue(current, 'remark', remark),
+                              )
+                            }
+                          />
+                          <Field.Error />
+                        </Field.Root>
+                      )
+                    }
+
+                    return (
+                      <Field.Root
+                        key={field.key}
+                        className="base-ui-field"
+                        name={field.key}
                       >
-                        <Switch.Thumb className="base-ui-switch-thumb" />
-                      </Switch.Root>
-                      <span>{form.status === 'active' ? '启用' : '禁用'}</span>
-                    </div>
-                  </Field.Root>
-
-                  <Field.Root className="base-ui-field" name="hireDate">
-                    <Field.Label>入职日期</Field.Label>
-                    <Field.Control
-                      type="date"
-                      value={form.hireDate}
-                      onValueChange={(hireDate) =>
-                        setForm((current) => ({ ...current, hireDate }))
-                      }
-                    />
-                  </Field.Root>
-
-                  <Field.Root className="base-ui-field base-ui-form-wide" name="remark">
-                    <Field.Label>备注</Field.Label>
-                    <Field.Control
-                      render={<textarea rows={3} />}
-                      value={form.remark}
-                      onValueChange={(remark) => setForm((current) => ({ ...current, remark }))}
-                    />
-                  </Field.Root>
+                        <Field.Label>{label}</Field.Label>
+                        <Input
+                          aria-required={Boolean(field.rules.required)}
+                          inputMode={
+                            field.control === 'email' ? 'email' : undefined
+                          }
+                          placeholder={field.placeholder}
+                          value={form[field.key]}
+                          onValueChange={(value) =>
+                            setForm((current) =>
+                              withUserFieldValue(current, field.key, value),
+                            )
+                          }
+                        />
+                        <Field.Error />
+                      </Field.Root>
+                    )
+                  })}
                 </div>
 
                 <div className="base-ui-dialog-actions">

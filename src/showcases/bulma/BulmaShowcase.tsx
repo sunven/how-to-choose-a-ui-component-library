@@ -4,8 +4,15 @@ import { useLayoutEffect, useState } from 'react'
 // daisyUI uses dy- prefix so class names no longer collide with Bulma.
 import bulmaCss from './bulma.scoped.css?raw'
 import {
+  SHOWCASE_FILTERS,
+  SHOWCASE_FILTER_OPTIONS,
+  USER_FORM_FIELDS,
+  USER_TABLE_COLUMNS,
+  withUserFieldValue,
+  type UserFieldKey,
+} from '@/domain/showcaseSpec'
+import {
   ROLE_LABELS,
-  ROLE_OPTIONS,
   STATUS_LABELS,
   emptyUserInput,
   type User,
@@ -21,6 +28,25 @@ import { injectLibraryStyle } from '@/showcases/styleIsolation'
 import type { ShowcaseProps } from '../types'
 
 const surface = librarySurfaces.bulma
+
+function renderCell(user: User, key: UserFieldKey) {
+  switch (key) {
+    case 'role':
+      return ROLE_LABELS[user.role]
+    case 'status':
+      return (
+        <span
+          className={
+            user.status === 'active' ? 'tag is-success is-light' : 'tag is-light'
+          }
+        >
+          {STATUS_LABELS[user.status]}
+        </span>
+      )
+    default:
+      return user[key]
+  }
+}
 
 /**
  * Vanilla Showcase (V2): React prints DOM with Bulma classes.
@@ -93,7 +119,7 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
                   type="search"
                   className="input is-small"
                   style={{ width: 220 }}
-                  placeholder="搜索姓名 / 邮箱"
+                  placeholder={SHOWCASE_FILTERS.keywordPlaceholder}
                   value={users.filters.keyword}
                   onChange={(e) => users.setKeyword(e.target.value)}
                 />
@@ -107,10 +133,9 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
                 onChange={(e) => users.setRoleFilter(e.target.value as typeof users.filters.role)}
                 aria-label="角色筛选"
               >
-                <option value="all">全部角色</option>
-                {ROLE_OPTIONS.map((o) => (
-                  <option key={o.value} value={o.value}>
-                    {o.label}
+                {SHOWCASE_FILTER_OPTIONS.role.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
                   </option>
                 ))}
               </select>
@@ -125,9 +150,11 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
                 }
                 aria-label="状态筛选"
               >
-                <option value="all">全部状态</option>
-                <option value="active">{STATUS_LABELS.active}</option>
-                <option value="disabled">{STATUS_LABELS.disabled}</option>
+                {SHOWCASE_FILTER_OPTIONS.status.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -169,11 +196,9 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
                   />
                 </label>
               </th>
-              <th>姓名</th>
-              <th>邮箱</th>
-              <th>角色</th>
-              <th>状态</th>
-              <th>入职日期</th>
+              {USER_TABLE_COLUMNS.map((field) => (
+                <th key={field.key}>{field.label}</th>
+              ))}
               <th className="has-text-right">操作</th>
             </tr>
           </thead>
@@ -190,19 +215,14 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
                     />
                   </label>
                 </td>
-                <td>{row.name}</td>
-                <td className="has-text-grey">{row.email}</td>
-                <td>{ROLE_LABELS[row.role]}</td>
-                <td>
-                  <span
-                    className={
-                      row.status === 'active' ? 'tag is-success is-light' : 'tag is-light'
-                    }
+                {USER_TABLE_COLUMNS.map((field) => (
+                  <td
+                    key={field.key}
+                    className={field.key === 'email' ? 'has-text-grey' : undefined}
                   >
-                    {STATUS_LABELS[row.status]}
-                  </span>
-                </td>
-                <td>{row.hireDate}</td>
+                    {renderCell(row, field.key)}
+                  </td>
+                ))}
                 <td className="has-text-right">
                   <div className="buttons are-small has-addons is-right mb-0">
                     <button type="button" className="button is-link is-light" onClick={() => openEdit(row)}>
@@ -223,7 +243,10 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
             ))}
             {users.users.length === 0 && (
               <tr>
-                <td colSpan={7} className="has-text-centered has-text-grey py-5">
+                <td
+                  colSpan={USER_TABLE_COLUMNS.length + 2}
+                  className="has-text-centered has-text-grey py-5"
+                >
                   暂无数据
                 </td>
               </tr>
@@ -279,107 +302,108 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
             />
           </header>
           <section className="modal-card-body">
-            <div className="field">
-              <label className="label is-small" htmlFor="bulma-name">
-                姓名
-              </label>
-              <div className="control">
-                <input
-                  id="bulma-name"
-                  type="text"
-                  className={`input is-small${errors.name ? ' is-danger' : ''}`}
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                />
-              </div>
-              {errors.name && <p className="help is-danger">{errors.name}</p>}
-            </div>
-            <div className="field">
-              <label className="label is-small" htmlFor="bulma-email">
-                邮箱
-              </label>
-              <div className="control">
-                <input
-                  id="bulma-email"
-                  type="email"
-                  className={`input is-small${errors.email ? ' is-danger' : ''}`}
-                  value={form.email}
-                  onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                />
-              </div>
-              {errors.email && <p className="help is-danger">{errors.email}</p>}
-            </div>
-            <div className="field">
-              <label className="label is-small" htmlFor="bulma-role">
-                角色
-              </label>
-              <div className="control">
-                <div className="select is-small is-fullwidth">
-                  <select
-                    id="bulma-role"
-                    value={form.role}
-                    onChange={(e) =>
-                      setForm((f) => ({ ...f, role: e.target.value as UserInput['role'] }))
-                    }
+            {USER_FORM_FIELDS.map((field) =>
+              field.key === 'status' ? (
+                <div key={field.key} className="field">
+                  <div
+                    className="is-flex is-align-items-center is-justify-content-space-between px-3 py-2"
+                    style={{ border: '1px solid #dbdbdb', borderRadius: 6 }}
                   >
-                    {ROLE_OPTIONS.map((o) => (
-                      <option key={o.value} value={o.value}>
-                        {o.label}
-                      </option>
-                    ))}
-                  </select>
+                    <span className="label is-small mb-0">
+                      {field.label}
+                      {field.rules.required ? ' *' : ''}
+                    </span>
+                    <label className="checkbox">
+                      <input
+                        type="checkbox"
+                        checked={form.status === 'active'}
+                        onChange={(e) =>
+                          setForm((current) =>
+                            withUserFieldValue(
+                              current,
+                              'status',
+                              e.target.checked ? 'active' : 'disabled',
+                            ),
+                          )
+                        }
+                        aria-label={field.label}
+                      />
+                    </label>
+                  </div>
+                  {errors.status && (
+                    <p className="help is-danger">{errors.status}</p>
+                  )}
                 </div>
-              </div>
-            </div>
-            <div className="field">
-              <div
-                className="is-flex is-align-items-center is-justify-content-space-between px-3 py-2"
-                style={{ border: '1px solid #dbdbdb', borderRadius: 6 }}
-              >
-                <span className="label is-small mb-0">状态（启用）</span>
-                <label className="checkbox">
-                  <input
-                    type="checkbox"
-                    checked={form.status === 'active'}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        status: e.target.checked ? 'active' : 'disabled',
-                      }))
-                    }
-                    aria-label="状态启用"
-                  />
-                </label>
-              </div>
-            </div>
-            <div className="field">
-              <label className="label is-small" htmlFor="bulma-hire">
-                入职日期
-              </label>
-              <div className="control">
-                <input
-                  id="bulma-hire"
-                  type="date"
-                  className="input is-small"
-                  value={form.hireDate}
-                  onChange={(e) => setForm((f) => ({ ...f, hireDate: e.target.value }))}
-                />
-              </div>
-            </div>
-            <div className="field mb-0">
-              <label className="label is-small" htmlFor="bulma-remark">
-                备注
-              </label>
-              <div className="control">
-                <textarea
-                  id="bulma-remark"
-                  className="textarea is-small"
-                  rows={3}
-                  value={form.remark}
-                  onChange={(e) => setForm((f) => ({ ...f, remark: e.target.value }))}
-                />
-              </div>
-            </div>
+              ) : (
+                <div
+                  key={field.key}
+                  className={field.key === 'remark' ? 'field mb-0' : 'field'}
+                >
+                  <label className="label is-small" htmlFor={`bulma-${field.key}`}>
+                    {field.label}
+                    {field.rules.required ? ' *' : ''}
+                  </label>
+                  <div className="control">
+                    {field.control === 'select' ? (
+                      <div
+                        className={`select is-small is-fullwidth${errors[field.key] ? ' is-danger' : ''}`}
+                      >
+                        <select
+                          id={`bulma-${field.key}`}
+                          value={form[field.key]}
+                          onChange={(e) =>
+                            setForm((current) =>
+                              withUserFieldValue(current, field.key, e.target.value),
+                            )
+                          }
+                        >
+                          {field.options?.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    ) : field.control === 'textarea' ? (
+                      <textarea
+                        id={`bulma-${field.key}`}
+                        className={`textarea is-small${errors[field.key] ? ' is-danger' : ''}`}
+                        rows={3}
+                        placeholder={field.placeholder}
+                        value={form[field.key]}
+                        onChange={(e) =>
+                          setForm((current) =>
+                            withUserFieldValue(current, field.key, e.target.value),
+                          )
+                        }
+                      />
+                    ) : (
+                      <input
+                        id={`bulma-${field.key}`}
+                        type={
+                          field.control === 'email'
+                            ? 'email'
+                            : field.control === 'date'
+                              ? 'date'
+                              : 'text'
+                        }
+                        className={`input is-small${errors[field.key] ? ' is-danger' : ''}`}
+                        placeholder={field.placeholder}
+                        value={form[field.key]}
+                        onChange={(e) =>
+                          setForm((current) =>
+                            withUserFieldValue(current, field.key, e.target.value),
+                          )
+                        }
+                      />
+                    )}
+                  </div>
+                  {errors[field.key] && (
+                    <p className="help is-danger">{errors[field.key]}</p>
+                  )}
+                </div>
+              ),
+            )}
           </section>
           <footer className="modal-card-foot is-justify-content-flex-end" style={{ gap: '0.5rem' }}>
             <button type="button" className="button is-small" onClick={closeModal}>
