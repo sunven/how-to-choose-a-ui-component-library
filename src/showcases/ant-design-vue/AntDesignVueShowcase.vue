@@ -33,7 +33,7 @@ import {
   type UserRole,
   type UserStatus,
 } from '@/domain/user'
-import type { HireDateSort } from '@/domain/showcaseScenario'
+import { toHireDateSort } from '../vue-shared/hireDateSort'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const {
@@ -161,12 +161,6 @@ async function submit() {
 function confirmDelete(user: User) {
   deleteUser(user.id)
   message.success('已删除')
-}
-
-function toHireDateSort(
-  order: string | null | undefined,
-): HireDateSort {
-  return order === 'ascend' ? 'asc' : order === 'descend' ? 'desc' : 'none'
 }
 
 const onTableChange: TableProps['onChange'] = (_pag, _filters, sorter) => {

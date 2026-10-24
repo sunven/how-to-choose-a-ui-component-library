@@ -39,9 +39,8 @@ export interface ShowcaseUserStore {
   remove(id: string): void
 }
 
-export interface ShowcaseScenario {
-  subscribe(listener: () => void): () => void
-  getSnapshot(): ShowcaseScenarioSnapshot
+/** The framework-agnostic Showcase Scenario action contract. */
+export interface ShowcaseScenarioActions {
   setKeyword(keyword: string): void
   setRoleFilter(role: UserFilters['role']): void
   setStatusFilter(status: UserFilters['status']): void
@@ -54,36 +53,19 @@ export interface ShowcaseScenario {
   createUser(input: UserInput): UserSaveResult
   updateUser(id: string, input: UserInput): UserSaveResult
   deleteUser(id: string): void
-  dispose(): void
 }
 
-export const SHOWCASE_SCENARIO_ACTION_KEYS = [
-  'setKeyword',
-  'setRoleFilter',
-  'setStatusFilter',
-  'setPage',
-  'setHireDateSort',
-  'cycleHireDateSort',
-  'replacePageSelection',
-  'toggleSelect',
-  'toggleSelectAllPage',
-  'createUser',
-  'updateUser',
-  'deleteUser',
-] as const satisfies readonly (keyof ShowcaseScenario)[]
-
-/** The framework-agnostic Showcase Scenario action contract. */
-export type ShowcaseScenarioActions = Pick<
-  ShowcaseScenario,
-  (typeof SHOWCASE_SCENARIO_ACTION_KEYS)[number]
->
+export interface ShowcaseScenario extends ShowcaseScenarioActions {
+  subscribe(listener: () => void): () => void
+  getSnapshot(): ShowcaseScenarioSnapshot
+  dispose(): void
+}
 
 export function pickScenarioActions(
   scenario: ShowcaseScenario,
 ): ShowcaseScenarioActions {
-  return Object.fromEntries(
-    SHOWCASE_SCENARIO_ACTION_KEYS.map((key) => [key, scenario[key]]),
-  ) as ShowcaseScenarioActions
+  const { subscribe, getSnapshot, dispose, ...actions } = scenario
+  return actions
 }
 
 const PAGE_SIZE = 10

@@ -1,4 +1,4 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import {
   createShowcaseScenario,
   pickScenarioActions,
@@ -23,5 +23,7 @@ export function useUsers(store: ShowcaseUserStore = userStore): UsersController 
 
   useEffect(() => () => scenario.dispose(), [scenario])
 
-  return { ...snapshot, ...pickScenarioActions(scenario) }
+  const actions = useMemo(() => pickScenarioActions(scenario), [scenario])
+
+  return { ...snapshot, ...actions }
 }

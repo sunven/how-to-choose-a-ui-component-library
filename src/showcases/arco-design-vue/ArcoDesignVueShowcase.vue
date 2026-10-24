@@ -33,7 +33,7 @@ import {
   type UserRole,
   type UserStatus,
 } from '@/domain/user'
-import type { HireDateSort } from '@/domain/showcaseScenario'
+import { toHireDateSort } from '../vue-shared/hireDateSort'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const FormItem = Form.Item
@@ -153,10 +153,6 @@ async function submit() {
 function confirmDelete(user: User) {
   deleteUser(user.id)
   Message.success('已删除')
-}
-
-function toHireDateSort(direction: string): HireDateSort {
-  return direction === 'ascend' ? 'asc' : direction === 'descend' ? 'desc' : 'none'
 }
 
 const hireDateModel = computed({

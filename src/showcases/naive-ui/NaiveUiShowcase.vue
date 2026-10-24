@@ -31,7 +31,7 @@ import {
   type User,
   type UserInput,
 } from '@/domain/user'
-import type { HireDateSort } from '@/domain/showcaseScenario'
+import { toHireDateSort } from '../vue-shared/hireDateSort'
 import { useShowcaseUsers } from '../vue-shared/useShowcaseUsers'
 
 const message = useMessage()
@@ -82,12 +82,6 @@ const rules: FormRules = Object.fromEntries(
     return fieldRules.length ? [[field.key, fieldRules] as const] : []
   }),
 ) as FormRules
-
-function toHireDateSort(
-  order: string | boolean | null | undefined,
-): HireDateSort {
-  return order === 'ascend' ? 'asc' : order === 'descend' ? 'desc' : 'none'
-}
 
 const columns = computed<DataTableColumns<User>>(() => {
   const result: DataTableColumns<User> = [{ type: 'selection' }]
