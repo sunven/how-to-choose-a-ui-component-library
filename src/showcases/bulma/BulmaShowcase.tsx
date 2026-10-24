@@ -13,8 +13,14 @@ import {
   type UserInput,
 } from '@/domain/user'
 import { useThemeMode } from '@/domain/useThemeMode'
+import {
+  librarySurfaces,
+  surfaceThemeAttributes,
+} from '@/showcases/librarySurfaces'
+import { injectLibraryStyle } from '@/showcases/styleIsolation'
 import type { ShowcaseProps } from '../types'
-import { injectScopedShowcaseCss } from '../vanillaCss'
+
+const surface = librarySurfaces.bulma
 
 /**
  * Vanilla Showcase (V2): React prints DOM with Bulma classes.
@@ -27,7 +33,7 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
   const [form, setForm] = useState<UserInput>(emptyUserInput())
   const [errors, setErrors] = useState<UserFormErrors>({})
 
-  useLayoutEffect(() => injectScopedShowcaseCss('bulma', bulmaCss), [])
+  useLayoutEffect(() => injectLibraryStyle('bulma', bulmaCss), [])
 
   const openCreate = () => {
     setEditing(null)
@@ -74,7 +80,10 @@ export function BulmaShowcase({ users }: ShowcaseProps) {
     users.users.length > 0 && users.users.every((u) => users.selectedIds.includes(u.id))
 
   return (
-    <div className="showcase-bulma" data-theme={mode}>
+    <div
+      className={surface.rootClassName}
+      {...surfaceThemeAttributes(surface, mode)}
+    >
       <div className="level is-mobile mb-4" style={{ flexWrap: 'wrap', gap: '0.75rem' }}>
         <div className="level-left" style={{ flexWrap: 'wrap', gap: '0.5rem' }}>
           <div className="level-item">

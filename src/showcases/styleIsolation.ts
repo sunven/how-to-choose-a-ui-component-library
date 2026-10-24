@@ -120,6 +120,20 @@ function cacheKey(item: CachedStyle): string {
     : `link:${item.href}`
 }
 
+/** Inject a library-owned stylesheet and tag it for L1 custody. */
+export function injectLibraryStyle(
+  libraryId: LibraryId,
+  cssText: string,
+): () => void {
+  const el = document.createElement('style')
+  el.setAttribute('data-showcase-lib', libraryId)
+  el.textContent = cssText
+  document.head.appendChild(el)
+  return () => {
+    el.remove()
+  }
+}
+
 /**
  * Activate CSS lifecycle for the current Candidate Library.
  * Call on mount; returns a disposer for unmount / library switch.
@@ -158,7 +172,7 @@ export function activateLibraryStyles(libraryId: LibraryId): () => void {
     // after a microtask (next library / StrictMode remount can steal first).
     const candidates = new Set(claimed)
     document
-      .querySelectorAll(`[data-showcase-lib="${CSS.escape(libraryId)}"]`)
+      .querySelectorAll(`[data-showcase-lib="${libraryId}"]`)
       .forEach((el) => candidates.add(el))
     claimed.clear()
 

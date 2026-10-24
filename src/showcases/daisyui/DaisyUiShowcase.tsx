@@ -9,7 +9,13 @@ import {
   type UserInput,
 } from '@/domain/user'
 import { useThemeMode } from '@/domain/useThemeMode'
+import {
+  librarySurfaces,
+  surfaceThemeAttributes,
+} from '@/showcases/librarySurfaces'
 import type { ShowcaseProps } from '../types'
+
+const surface = librarySurfaces.daisyui
 
 /**
  * Vanilla Showcase (V2): React only prints DOM with daisyUI semantic classes.
@@ -68,7 +74,10 @@ export function DaisyUiShowcase({ users }: ShowcaseProps) {
     users.users.length > 0 && users.users.every((u) => users.selectedIds.includes(u.id))
 
   return (
-    <div className="showcase-daisyui space-y-4" data-theme={mode}>
+    <div
+      className={`${surface.rootClassName} space-y-4`}
+      {...surfaceThemeAttributes(surface, mode)}
+    >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <input

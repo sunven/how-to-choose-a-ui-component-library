@@ -123,6 +123,10 @@ _Avoid_: Showcase loader；npm 包清单；跨 Framework 扁平列表
 每个 Candidate Library 在渲染层的唯一注册项：以 LibraryId 解析出该库的 Showcase，并负责加载与框架归一化。与 **Candidate Library Catalog** 分离：Catalog 只管身份、Library Profile 与路由顺序，不含加载方式或渲染实现；Registry 不参与路由解析、默认库或回退决策。注册项与 Catalog 的 Candidate 一一对应；缺项、多项或指向错误实现都属于注册错误。
 _Avoid_: 把 loader / 渲染实现塞回 Catalog；按 Framework 维护多张渲染表；在 Registry 里做路由回退或默认库决策；用 Registry 替代 Library Route 的合法性校验
 
+**Library Surface** (展示表面):
+某个 Candidate Library 在 DOM 上的样式落点与作用域契约：root class、隔离方式（全局 L1 / 构建期前缀 / Vanilla `@scope` / Tailwind 前缀）以及需要时的 Theme Mode 属性。Library Surface 是 **Style Isolation** 的实现契约：Catalog 记录身份与 Library Profile，Surface 记录该库的 DOM 根与样式落点；Showcase Registry 与 Showcase 读取同一个 Surface。Surface 不参与 Library Route、默认库或回退决策，也不包含 Showcase 加载方式。
+_Avoid_: 把 root class 分别写死在 Vite config、生成脚本、Island 与 Showcase；把 Surface 当成 Catalog 的一部分；用 Surface 表达路由/默认库；把 shadcn 内容 token root 与 island root 混为同一 Surface（未决议）
+
 **React Candidate Expansion** (React 候选扩展):
 在已有 React 三库之上，新增 Arco Design、Semi Design、Mantine 三个 React Candidate Library 的真机 Showcase 与 Library Profile。场景全对齐；React Switcher 顺序：Ant Design → MUI → shadcn/ui → Arco Design → Semi Design → Mantine；默认库仍为 Ant Design。
 _Avoid_: 借扩展之名加新框架；用档案页代替真机 Showcase；把默认库换成新库以「推广」某候选

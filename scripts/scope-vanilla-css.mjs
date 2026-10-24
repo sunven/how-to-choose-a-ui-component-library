@@ -17,6 +17,11 @@
 import fs from 'node:fs'
 import postcss from 'postcss'
 
+// Root classes and theme attributes are owned by the Library Surface manifest.
+const surfaces = JSON.parse(
+  fs.readFileSync(new URL('../src/showcases/librarySurfaces.json', import.meta.url), 'utf8'),
+)
+
 /**
  * Rewrite a single selector for @scope + Theme Mode attributes.
  *
@@ -135,8 +140,8 @@ const jobs = [
   {
     src: 'node_modules/bootstrap/dist/css/bootstrap.min.css',
     dest: 'src/showcases/bootstrap/bootstrap.scoped.css',
-    scope: '.showcase-bootstrap',
-    themeAttr: 'data-bs-theme',
+    scope: `.${surfaces.bootstrap.rootClassName}`,
+    themeAttr: surfaces.bootstrap.themeAttr,
     keepGlobal: (s) =>
       s.includes('.modal-backdrop') ||
       s === 'body.modal-open' ||
@@ -145,8 +150,8 @@ const jobs = [
   {
     src: 'node_modules/bulma/css/bulma.min.css',
     dest: 'src/showcases/bulma/bulma.scoped.css',
-    scope: '.showcase-bulma',
-    themeAttr: 'data-theme',
+    scope: `.${surfaces.bulma.rootClassName}`,
+    themeAttr: surfaces.bulma.themeAttr,
   },
 ]
 
@@ -167,8 +172,10 @@ const bu = fs.readFileSync('src/showcases/bulma/bulma.scoped.css', 'utf8')
 const checks = [
   // Bootstrap keeps light/base on bare :scope (from :root); dark must hit root
   ['bs base :scope tokens', /:scope[,{]/.test(bs) && bs.includes('--bs-body-bg')],
-  ['bs dark on scope root', bs.includes(':scope[data-bs-theme=dark]')],
-  ['bulma dark on scope root', bu.includes(':scope[data-theme=dark]')],
+  ['bs scope root', bs.includes(`@scope (.${surfaces.bootstrap.rootClassName})`)],
+  ['bs dark on scope root', bs.includes(`:scope[${surfaces.bootstrap.themeAttr}=dark]`)],
+  ['bulma scope root', bu.includes(`@scope (.${surfaces.bulma.rootClassName})`)],
+  ['bulma dark on scope root', bu.includes(`:scope[${surfaces.bulma.themeAttr}=dark]`)],
   ['bulma no prefers-color-scheme', !bu.includes('prefers-color-scheme')],
 ]
 for (const [name, ok] of checks) {

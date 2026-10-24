@@ -14,8 +14,14 @@ import {
   type UserInput,
 } from '@/domain/user'
 import { useThemeMode } from '@/domain/useThemeMode'
+import {
+  librarySurfaces,
+  surfaceThemeAttributes,
+} from '@/showcases/librarySurfaces'
+import { injectLibraryStyle } from '@/showcases/styleIsolation'
 import type { ShowcaseProps } from '../types'
-import { injectScopedShowcaseCss } from '../vanillaCss'
+
+const surface = librarySurfaces.bootstrap
 
 /**
  * Vanilla Showcase (V2): React prints DOM with Bootstrap classes.
@@ -31,7 +37,7 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
   const modalElRef = useRef<HTMLDivElement>(null)
   const modalRef = useRef<Modal | null>(null)
 
-  useLayoutEffect(() => injectScopedShowcaseCss('bootstrap', bootstrapCss), [])
+  useLayoutEffect(() => injectLibraryStyle('bootstrap', bootstrapCss), [])
 
   useEffect(() => {
     const el = modalElRef.current
@@ -107,7 +113,10 @@ export function BootstrapShowcase({ users }: ShowcaseProps) {
     users.users.length > 0 && users.users.every((u) => users.selectedIds.includes(u.id))
 
   return (
-    <div className="showcase-bootstrap" data-bs-theme={mode}>
+    <div
+      className={surface.rootClassName}
+      {...surfaceThemeAttributes(surface, mode)}
+    >
       <div className="d-flex flex-column flex-sm-row gap-3 align-items-sm-end justify-content-between mb-3">
         <div className="d-flex flex-column flex-sm-row flex-wrap gap-2 flex-sm-grow-1">
           <input

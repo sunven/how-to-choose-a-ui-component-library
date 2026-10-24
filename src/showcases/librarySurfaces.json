@@ -1,0 +1,65 @@
+{
+  "element-plus": {
+    "rootClassName": "element-plus-island",
+    "styleStrategy": "global-l1"
+  },
+  "naive-ui": {
+    "rootClassName": "naive-ui-island",
+    "styleStrategy": "global-l1"
+  },
+  "ant-design-vue": {
+    "rootClassName": "ant-design-vue-island",
+    "styleStrategy": "global-l1"
+  },
+  "arco-design-vue": {
+    "rootClassName": "arco-design-vue-island",
+    "styleStrategy": "global-l1"
+  },
+  "vuetify": {
+    "rootClassName": "vuetify-island",
+    "styleStrategy": "vite-prefix"
+  },
+  "primevue": {
+    "rootClassName": "primevue-island",
+    "styleStrategy": "global-l1"
+  },
+  "shadcn-vue": {
+    "rootClassName": "shadcn-vue-island",
+    "styleStrategy": "global-l1"
+  },
+  "vuestic-ui": {
+    "rootClassName": "vuestic-island",
+    "styleStrategy": "vite-prefix"
+  },
+  "flowbite-vue": {
+    "rootClassName": "flowbite-vue-island",
+    "styleStrategy": "global-l1"
+  },
+  "quasar": {
+    "rootClassName": "quasar-island",
+    "styleStrategy": "vite-prefix"
+  },
+  "volt-ui": {
+    "rootClassName": "volt-island",
+    "styleStrategy": "global-l1"
+  },
+  "reka-ui": {
+    "rootClassName": "reka-island",
+    "styleStrategy": "global-l1"
+  },
+  "daisyui": {
+    "rootClassName": "showcase-daisyui",
+    "styleStrategy": "tailwind-prefix",
+    "themeAttr": "data-theme"
+  },
+  "bootstrap": {
+    "rootClassName": "showcase-bootstrap",
+    "styleStrategy": "vanilla-scope",
+    "themeAttr": "data-bs-theme"
+  },
+  "bulma": {
+    "rootClassName": "showcase-bulma",
+    "styleStrategy": "vanilla-scope",
+    "themeAttr": "data-theme"
+  }
+}
