@@ -28,9 +28,8 @@ const {
   pageCount,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
-  setHireDateSortFromOrder,
+  users: pageUsers,
+  setHireDateSort,
   createUser,
   updateUser,
   deleteUser,
@@ -127,13 +126,13 @@ function confirmDelete(user: User) {
 
 function onSorted(payload: { sortBy?: string; sortingOrder?: 'asc' | 'desc' | null }) {
   if (payload.sortBy && payload.sortBy !== 'hireDate') return
-  setHireDateSortFromOrder(payload.sortingOrder ?? null)
+  setHireDateSort(payload.sortingOrder ?? 'none')
 }
 
 function cycleHireDateSort() {
-  if (hireDateSort.value === 'none') setHireDateSortFromOrder('asc')
-  else if (hireDateSort.value === 'asc') setHireDateSortFromOrder('desc')
-  else setHireDateSortFromOrder(null)
+  if (hireDateSort.value === 'none') setHireDateSort('asc')
+  else if (hireDateSort.value === 'asc') setHireDateSort('desc')
+  else setHireDateSort('none')
 }
 
 function onOk(hide: () => void) {
@@ -152,7 +151,6 @@ function onOk(hide: () => void) {
           label="搜索"
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px; min-width: 180px"
-          @update:model-value="resetFiltersPage"
         />
         <VaSelect
           v-model="roleFilter"
@@ -162,7 +160,6 @@ function onOk(hide: () => void) {
           value-by="value"
           :label="USER_FIELD_BY_KEY.role.label"
           style="width: 140px; min-width: 120px"
-          @update:model-value="resetFiltersPage"
         />
         <VaSelect
           v-model="statusFilter"
@@ -172,7 +169,6 @@ function onOk(hide: () => void) {
           value-by="value"
           :label="USER_FIELD_BY_KEY.status.label"
           style="width: 140px; min-width: 120px"
-          @update:model-value="resetFiltersPage"
         />
         <VaButton preset="secondary" class="flex-none" @click="cycleHireDateSort">
           入职排序：{{ sortLabel }}

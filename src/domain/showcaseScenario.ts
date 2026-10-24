@@ -57,6 +57,23 @@ export interface ShowcaseScenario {
   dispose(): void
 }
 
+/** The framework-agnostic Showcase Scenario action contract. */
+export type ShowcaseScenarioActions = Pick<
+  ShowcaseScenario,
+  | 'setKeyword'
+  | 'setRoleFilter'
+  | 'setStatusFilter'
+  | 'setPage'
+  | 'setHireDateSort'
+  | 'cycleHireDateSort'
+  | 'replacePageSelection'
+  | 'toggleSelect'
+  | 'toggleSelectAllPage'
+  | 'createUser'
+  | 'updateUser'
+  | 'deleteUser'
+>
+
 const PAGE_SIZE = 10
 
 function hasErrors(errors: UserFormErrors) {

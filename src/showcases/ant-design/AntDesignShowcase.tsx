@@ -230,9 +230,9 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
   const onChange: TableProps<User>['onChange'] = (_p, _f, sorter) => {
     const s = Array.isArray(sorter) ? sorter[0] : sorter
     if (s?.columnKey === 'hireDate' || s?.field === 'hireDate') {
-      if (s.order === 'ascend') users.setHireDateSortOrder('asc')
-      else if (s.order === 'descend') users.setHireDateSortOrder('desc')
-      else users.setHireDateSortOrder('none')
+      if (s.order === 'ascend') users.setHireDateSort('asc')
+      else if (s.order === 'descend') users.setHireDateSort('desc')
+      else users.setHireDateSort('none')
     }
   }
 
@@ -279,7 +279,7 @@ export function AntDesignShowcase({ users }: ShowcaseProps) {
           onChange={onChange}
           rowSelection={{
             selectedRowKeys: users.selectedIds,
-            onChange: (keys) => users.setSelectedIds(keys as string[]),
+            onChange: (keys) => users.replacePageSelection(keys as string[]),
           }}
           pagination={{
             current: users.page,

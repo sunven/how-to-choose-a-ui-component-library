@@ -43,9 +43,8 @@ const {
   page,
   pageSize,
   total,
-  pageUsers,
-  resetFiltersPage,
-  onSelectionChange,
+  users: pageUsers,
+  replacePageSelection,
   setHireDateSort,
   createUser,
   updateUser,
@@ -170,6 +169,10 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
   asc: 'ascending',
   desc: 'descending',
 }
+
+function onSelectionChange(rows: User[]) {
+  replacePageSelection(rows.map((row) => row.id))
+}
 </script>
 
 <template>
@@ -181,12 +184,10 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
           clearable
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
-          @update:model-value="resetFiltersPage"
         />
         <ElSelect
           v-model="roleFilter"
           style="width: 120px"
-          @change="resetFiltersPage"
         >
           <ElOption
             v-for="option in SHOWCASE_FILTER_OPTIONS.role"
@@ -198,7 +199,6 @@ const sortOrders: Record<'none' | 'asc' | 'desc', 'ascending' | 'descending' | n
         <ElSelect
           v-model="statusFilter"
           style="width: 120px"
-          @change="resetFiltersPage"
         >
           <ElOption
             v-for="option in SHOWCASE_FILTER_OPTIONS.status"

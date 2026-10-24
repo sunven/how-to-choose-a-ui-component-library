@@ -45,9 +45,8 @@ const {
   pageSize,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
-  setHireDateSortFromOrder,
+  users: pageUsers,
+  setHireDateSort,
   createUser,
   updateUser,
   deleteUser,
@@ -152,9 +151,9 @@ function confirmDelete(user: User) {
 
 function onSort(event: { sortField?: string | ((item: unknown) => string); sortOrder?: number | null }) {
   if (event.sortField !== 'hireDate') return
-  if (event.sortOrder === 1) setHireDateSortFromOrder('asc')
-  else if (event.sortOrder === -1) setHireDateSortFromOrder('desc')
-  else setHireDateSortFromOrder(null)
+  if (event.sortOrder === 1) setHireDateSort('asc')
+  else if (event.sortOrder === -1) setHireDateSort('desc')
+  else setHireDateSort('none')
 }
 
 function onPage(event: { page: number }) {
@@ -181,7 +180,6 @@ function statusSeverity(status: UserStatus) {
           v-model="keyword"
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
-          @update:model-value="resetFiltersPage"
         />
         <Select
           v-model="roleFilter"
@@ -189,7 +187,6 @@ function statusSeverity(status: UserStatus) {
           option-label="label"
           option-value="value"
           style="width: 120px"
-          @update:model-value="resetFiltersPage"
         />
         <Select
           v-model="statusFilter"
@@ -197,7 +194,6 @@ function statusSeverity(status: UserStatus) {
           option-label="label"
           option-value="value"
           style="width: 120px"
-          @update:model-value="resetFiltersPage"
         />
       </div>
       <Button label="新建用户" @click="openCreate" />

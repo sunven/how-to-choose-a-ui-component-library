@@ -203,13 +203,13 @@ export function SemiDesignShowcase({ users }: ShowcaseProps) {
           onChange={(changeInfo) => {
             const sorter = changeInfo.sorter
             if (!sorter || sorter.dataIndex !== 'hireDate') return
-            if (sorter.sortOrder === 'ascend') users.setHireDateSortOrder('asc')
-            else if (sorter.sortOrder === 'descend') users.setHireDateSortOrder('desc')
-            else users.setHireDateSortOrder('none')
+            if (sorter.sortOrder === 'ascend') users.setHireDateSort('asc')
+            else if (sorter.sortOrder === 'descend') users.setHireDateSort('desc')
+            else users.setHireDateSort('none')
           }}
           rowSelection={{
             selectedRowKeys: users.selectedIds,
-            onChange: (keys) => users.setSelectedIds((keys as string[]) ?? []),
+            onChange: (keys) => users.replacePageSelection((keys as string[]) ?? []),
           }}
           pagination={{
             currentPage: users.page,

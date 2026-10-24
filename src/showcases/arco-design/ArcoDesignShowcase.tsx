@@ -225,9 +225,9 @@ export function ArcoDesignShowcase({ users }: ShowcaseProps) {
   const onChange: TableProps<User>['onChange'] = (_pagination, sorter) => {
     const s = Array.isArray(sorter) ? sorter[0] : sorter
     if (s && s.field === 'hireDate') {
-      if (s.direction === 'ascend') users.setHireDateSortOrder('asc')
-      else if (s.direction === 'descend') users.setHireDateSortOrder('desc')
-      else users.setHireDateSortOrder('none')
+      if (s.direction === 'ascend') users.setHireDateSort('asc')
+      else if (s.direction === 'descend') users.setHireDateSort('desc')
+      else users.setHireDateSort('none')
     }
   }
 
@@ -269,7 +269,7 @@ export function ArcoDesignShowcase({ users }: ShowcaseProps) {
           onChange={onChange}
           rowSelection={{
             selectedRowKeys: users.selectedIds,
-            onChange: (keys) => users.setSelectedIds(keys as string[]),
+            onChange: (keys) => users.replacePageSelection(keys as string[]),
           }}
           pagination={{
             current: users.page,

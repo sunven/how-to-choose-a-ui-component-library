@@ -44,9 +44,8 @@ const {
   pageSize,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
-  setHireDateSortFromOrder,
+  users: pageUsers,
+  setHireDateSort,
   createUser,
   updateUser,
   deleteUser,
@@ -166,7 +165,9 @@ function confirmDelete(user: User) {
 const onTableChange: TableProps['onChange'] = (_pag, _filters, sorter) => {
   const s = Array.isArray(sorter) ? sorter[0] : sorter
   if (s && (s.field === 'hireDate' || s.columnKey === 'hireDate')) {
-    setHireDateSortFromOrder(s.order)
+    setHireDateSort(
+      s.order === 'ascend' ? 'asc' : s.order === 'descend' ? 'desc' : 'none',
+    )
   }
 }
 
@@ -187,19 +188,16 @@ const hireDateModel = computed({
           allow-clear
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
-          @change="resetFiltersPage"
         />
         <Select
           v-model:value="roleFilter"
           style="width: 120px"
           :options="SHOWCASE_FILTER_OPTIONS.role"
-          @change="resetFiltersPage"
         />
         <Select
           v-model:value="statusFilter"
           style="width: 120px"
           :options="SHOWCASE_FILTER_OPTIONS.status"
-          @change="resetFiltersPage"
         />
       </Space>
       <Button type="primary" @click="openCreate">新建用户</Button>

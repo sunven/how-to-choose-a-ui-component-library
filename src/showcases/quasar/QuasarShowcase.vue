@@ -30,9 +30,8 @@ const {
   pageSize,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
-  setHireDateSortFromOrder,
+  users: pageUsers,
+  setHireDateSort,
   createUser,
   updateUser,
   deleteUser,
@@ -141,9 +140,9 @@ function onRequest(props: { pagination: NonNullable<QTableProps['pagination']> }
   if (p) {
     page.value = p.page ?? 1
     if (p.sortBy === 'hireDate') {
-      setHireDateSortFromOrder(p.descending ? 'desc' : 'asc')
+      setHireDateSort(p.descending ? 'desc' : 'asc')
     } else if (!p.sortBy) {
-      setHireDateSortFromOrder(null)
+      setHireDateSort('none')
     }
   }
 }
@@ -164,7 +163,6 @@ function statusLabel(status: UserStatus) {
           clearable
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
-          @update:model-value="resetFiltersPage"
         />
         <q-select
           v-model="roleFilter"
@@ -174,7 +172,6 @@ function statusLabel(status: UserStatus) {
           emit-value
           map-options
           style="width: 120px"
-          @update:model-value="resetFiltersPage"
         />
         <q-select
           v-model="statusFilter"
@@ -184,7 +181,6 @@ function statusLabel(status: UserStatus) {
           emit-value
           map-options
           style="width: 120px"
-          @update:model-value="resetFiltersPage"
         />
       </div>
       <div class="col-auto">

@@ -1,15 +1,18 @@
 import { useEffect, useState, useSyncExternalStore } from 'react'
 import {
   createShowcaseScenario,
-  type HireDateSort,
+  type ShowcaseScenarioActions,
+  type ShowcaseScenarioSnapshot,
   type ShowcaseUserStore,
 } from './showcaseScenario'
 import { userStore } from './userStore'
 
 export type { HireDateSort, UserFilters } from './showcaseScenario'
 
+export type UsersController = ShowcaseScenarioSnapshot & ShowcaseScenarioActions
+
 /** React adapter for one Showcase Scenario mount. */
-export function useUsers(store: ShowcaseUserStore = userStore) {
+export function useUsers(store: ShowcaseUserStore = userStore): UsersController {
   const [scenario] = useState(() => createShowcaseScenario(store))
   const snapshot = useSyncExternalStore(
     scenario.subscribe,
@@ -26,8 +29,8 @@ export function useUsers(store: ShowcaseUserStore = userStore) {
     setStatusFilter: scenario.setStatusFilter,
     setPage: scenario.setPage,
     cycleHireDateSort: scenario.cycleHireDateSort,
-    setHireDateSortOrder: (order: HireDateSort) => scenario.setHireDateSort(order),
-    setSelectedIds: scenario.replacePageSelection,
+    setHireDateSort: scenario.setHireDateSort,
+    replacePageSelection: scenario.replacePageSelection,
     toggleSelect: scenario.toggleSelect,
     toggleSelectAllPage: scenario.toggleSelectAllPage,
     createUser: scenario.createUser,
@@ -35,5 +38,3 @@ export function useUsers(store: ShowcaseUserStore = userStore) {
     deleteUser: scenario.deleteUser,
   }
 }
-
-export type UsersController = ReturnType<typeof useUsers>

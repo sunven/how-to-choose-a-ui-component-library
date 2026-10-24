@@ -28,9 +28,8 @@ const {
   pageCount,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
-  setHireDateSortFromOrder,
+  users: pageUsers,
+  setHireDateSort,
   createUser,
   updateUser,
   deleteUser,
@@ -156,10 +155,10 @@ function confirmDelete() {
 function onSortByUpdate(value: { key: string; order?: 'asc' | 'desc' }[]) {
   const hire = value.find((s) => s.key === 'hireDate')
   if (!hire?.order) {
-    setHireDateSortFromOrder(null)
+    setHireDateSort('none')
     return
   }
-  setHireDateSortFromOrder(hire.order === 'asc' ? 'asc' : 'desc')
+  setHireDateSort(hire.order === 'asc' ? 'asc' : 'desc')
 }
 
 function roleLabel(role: UserRole) {
@@ -182,7 +181,6 @@ function statusLabel(status: UserStatus) {
           clearable
           :label="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
-          @update:model-value="resetFiltersPage"
         />
         <v-select
           v-model="roleFilter"
@@ -190,7 +188,6 @@ function statusLabel(status: UserStatus) {
           density="compact"
           hide-details
           style="width: 120px"
-          @update:model-value="resetFiltersPage"
         />
         <v-select
           v-model="statusFilter"
@@ -198,7 +195,6 @@ function statusLabel(status: UserStatus) {
           density="compact"
           hide-details
           style="width: 120px"
-          @update:model-value="resetFiltersPage"
         />
       </div>
       <v-btn color="primary" @click="openCreate">新建用户</v-btn>

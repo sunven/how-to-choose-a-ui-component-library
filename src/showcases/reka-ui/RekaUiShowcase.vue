@@ -36,8 +36,7 @@ const {
   pageCount,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
+  users: pageUsers,
   cycleHireDateSort,
   toggleSelect: setUserSelected,
   toggleSelectAllPage: setPageSelected,
@@ -123,12 +122,10 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
           v-model="keyword"
           class="reka-input reka-input--search"
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
-          @input="resetFiltersPage"
         />
         <select
           v-model="roleFilter"
           class="reka-select reka-select--filter"
-          @change="resetFiltersPage"
         >
           <option
             v-for="option in SHOWCASE_FILTER_OPTIONS.role"
@@ -141,7 +138,6 @@ function toggleSelectAllPage(checked: boolean | 'indeterminate') {
         <select
           v-model="statusFilter"
           class="reka-select reka-select--filter"
-          @change="resetFiltersPage"
         >
           <option
             v-for="option in SHOWCASE_FILTER_OPTIONS.status"

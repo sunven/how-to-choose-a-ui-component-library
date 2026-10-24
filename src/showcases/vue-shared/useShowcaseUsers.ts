@@ -1,8 +1,7 @@
 import { computed, onUnmounted, shallowRef } from 'vue'
-import type { User } from '@/domain/user'
 import {
   createShowcaseScenario,
-  type HireDateSort,
+  type ShowcaseScenarioActions,
   type ShowcaseUserStore,
 } from '@/domain/showcaseScenario'
 import { userStore } from '@/domain/userStore'
@@ -41,22 +40,27 @@ export function useShowcaseUsers(store: ShowcaseUserStore = userStore) {
     get: () => snapshot.value.selectedIds,
     set: scenario.replacePageSelection,
   })
-  const filtered = computed(() => snapshot.value.allFiltered)
   const total = computed(() => snapshot.value.total)
   const pageCount = computed(() => snapshot.value.pageCount)
-  const pageUsers = computed(() => snapshot.value.users)
+  const users = computed(() => snapshot.value.users)
 
-  function setHireDateSortFromOrder(order: string | boolean | null | undefined) {
-    let normalized: HireDateSort = 'none'
-    if (order === 'ascend' || order === 'ascending' || order === true || order === 'asc') {
-      normalized = 'asc'
-    } else if (order === 'descend' || order === 'descending' || order === 'desc') {
-      normalized = 'desc'
-    }
-    scenario.setHireDateSort(normalized)
+  const actions: ShowcaseScenarioActions = {
+    setKeyword: scenario.setKeyword,
+    setRoleFilter: scenario.setRoleFilter,
+    setStatusFilter: scenario.setStatusFilter,
+    setPage: scenario.setPage,
+    setHireDateSort: scenario.setHireDateSort,
+    cycleHireDateSort: scenario.cycleHireDateSort,
+    replacePageSelection: scenario.replacePageSelection,
+    toggleSelect: scenario.toggleSelect,
+    toggleSelectAllPage: scenario.toggleSelectAllPage,
+    createUser: scenario.createUser,
+    updateUser: scenario.updateUser,
+    deleteUser: scenario.deleteUser,
   }
 
   return {
+    users,
     keyword,
     roleFilter,
     statusFilter,
@@ -65,19 +69,7 @@ export function useShowcaseUsers(store: ShowcaseUserStore = userStore) {
     pageSize: snapshot.value.pageSize,
     pageCount,
     selectedIds,
-    filtered,
     total,
-    pageUsers,
-    resetFiltersPage: () => scenario.setPage(1),
-    onSelectionChange: (rows: User[]) =>
-      scenario.replacePageSelection(rows.map((row) => row.id)),
-    setHireDateSortFromOrder,
-    setHireDateSort: scenario.setHireDateSort,
-    cycleHireDateSort: scenario.cycleHireDateSort,
-    toggleSelect: scenario.toggleSelect,
-    toggleSelectAllPage: scenario.toggleSelectAllPage,
-    createUser: scenario.createUser,
-    updateUser: scenario.updateUser,
-    deleteUser: scenario.deleteUser,
+    ...actions,
   }
 }

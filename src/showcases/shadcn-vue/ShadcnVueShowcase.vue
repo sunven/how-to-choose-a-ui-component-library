@@ -33,8 +33,7 @@ const {
   pageCount,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
+  users: pageUsers,
   cycleHireDateSort,
   toggleSelect,
   toggleSelectAllPage,
@@ -100,12 +99,10 @@ function confirmDelete(user: User) {
 
 function onRoleFilter(v: string) {
   roleFilter.value = v as typeof roleFilter.value
-  resetFiltersPage()
 }
 
 function onStatusFilter(v: string) {
   statusFilter.value = v as typeof statusFilter.value
-  resetFiltersPage()
 }
 </script>
 
@@ -117,7 +114,6 @@ function onStatusFilter(v: string) {
           v-model="keyword"
           class="sm:w-56"
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
-          @update:model-value="resetFiltersPage"
         />
         <Select
           :model-value="roleFilter"

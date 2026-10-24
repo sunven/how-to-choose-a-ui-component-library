@@ -43,9 +43,8 @@ const {
   pageSize,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
-  setHireDateSortFromOrder,
+  users: pageUsers,
+  setHireDateSort,
   createUser,
   updateUser,
   deleteUser,
@@ -214,19 +213,16 @@ function confirmDelete(user: User) {
           clearable
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
-          @update:value="resetFiltersPage"
         />
         <NSelect
           v-model:value="roleFilter"
           :options="SHOWCASE_FILTER_OPTIONS.role"
           style="width: 120px"
-          @update:value="resetFiltersPage"
         />
         <NSelect
           v-model:value="statusFilter"
           :options="SHOWCASE_FILTER_OPTIONS.status"
           style="width: 120px"
-          @update:value="resetFiltersPage"
         />
       </NSpace>
       <NButton type="primary" @click="openCreate">新建用户</NButton>
@@ -243,7 +239,14 @@ function confirmDelete(user: User) {
       @update:sorter="
         (sorter) => {
           const s = Array.isArray(sorter) ? sorter[0] : sorter
-          if (s && s.columnKey === 'hireDate') setHireDateSortFromOrder(s.order)
+          if (s && s.columnKey === 'hireDate')
+            setHireDateSort(
+              s.order === 'ascend'
+                ? 'asc'
+                : s.order === 'descend'
+                  ? 'desc'
+                  : 'none',
+            )
         }
       "
     />

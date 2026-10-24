@@ -57,9 +57,8 @@ const {
   pageSize,
   selectedIds,
   total,
-  pageUsers,
-  resetFiltersPage,
-  setHireDateSortFromOrder,
+  users: pageUsers,
+  setHireDateSort,
   createUser,
   updateUser,
   deleteUser,
@@ -172,20 +171,16 @@ const hireDateModel = computed({
           allow-clear
           :placeholder="SHOWCASE_FILTERS.keywordPlaceholder"
           style="width: 220px"
-          @input="resetFiltersPage"
-          @clear="resetFiltersPage"
         />
         <Select
           v-model="roleFilter"
           style="width: 120px"
           :options="SHOWCASE_FILTER_OPTIONS.role"
-          @change="resetFiltersPage"
         />
         <Select
           v-model="statusFilter"
           style="width: 120px"
           :options="SHOWCASE_FILTER_OPTIONS.status"
-          @change="resetFiltersPage"
         />
       </Space>
       <Button type="primary" @click="openCreate">新建用户</Button>
@@ -212,7 +207,14 @@ const hireDateModel = computed({
       @page-change="(p: number) => (page = p)"
       @sorter-change="
         (dataIndex: string, direction: string) => {
-          if (dataIndex === 'hireDate') setHireDateSortFromOrder(direction || null)
+          if (dataIndex === 'hireDate')
+            setHireDateSort(
+              direction === 'ascend'
+                ? 'asc'
+                : direction === 'descend'
+                  ? 'desc'
+                  : 'none',
+            )
         }
       "
     >
